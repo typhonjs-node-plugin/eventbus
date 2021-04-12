@@ -4,11 +4,11 @@
   "version": "0.0.0",
   "author": "typhonrt",
   "type": "module",
-  "main": "src/TyphonEvents.js",
-  "module": "src/TyphonEvents.js",
+  "main": "src/Eventbus.js",
+  "module": "src/Eventbus.js",
   "exports": {
-    ".": "./src/TyphonEvents.js",
-    "./EventProxy": "./src/EventProxy.js",
+    ".": "./src/Eventbus.js",
+    "./EventbusProxy": "./src/EventbusProxy.js",
     "./instances": "./src/instances.js"
   },
   "maintainers": [

@@ -1,15 +1,110 @@
+import EventbusProxy from './EventbusProxy.js';
+
 /**
  * `@typhonjs-plugin/eventbus` / Provides the ability to bind and trigger custom named events.
  *
- * This module is an evolution of Backbone Events. (http://backbonejs.org/#Events). TyphonEvents extends the
- * functionality provided in Backbone Events which is captured in Events.
+ * This module is an evolution of Backbone Events. (http://backbonejs.org/#Events). Eventbus extends the
+ * functionality provided in Backbone Events with additional triggering methods to receive asynchronous and
+ * synchronous results.
  *
  * ---------------
  */
-export default class Events
+export default class Eventbus
 {
-   /** */
-   constructor() {}
+   /**
+    * Provides a constructor which optionally takes the eventbus name.
+    *
+    * @param {string}   eventbusName - Optional eventbus name.
+    */
+   constructor(eventbusName = void 0)
+   {
+      /**
+       * Stores the name of this eventbus.
+       *
+       * @type {string}
+       * @private
+       */
+      this._eventbusName = eventbusName;
+   }
+
+   /**
+    * Creates an EventProxy wrapping this events instance. An EventProxy proxies events allowing all listeners added
+    * to be easily removed from the wrapped Events instance.
+    *
+    * @returns {EventbusProxy} A new EventbusProxy for this eventbus.
+    */
+   createProxy()
+   {
+      return new EventbusProxy(this);
+   }
+
+   /**
+    * Iterates over all stored events yielding and array with event name, callback function, and event context.
+    *
+    * @param {string} [eventName] Optional event name to iterate over.
+    *
+    * @yields
+    */
+   *entries(eventName = void 0)
+   {
+      /* c8 ignore next */
+      if (!this._events) { return; }
+
+      if (eventName)
+      {
+         for (const event of this._events[eventName])
+         {
+            yield [eventName, event.callback, event.ctx];
+         }
+      }
+      else
+      {
+         for (const name in this._events)
+         {
+            for (const event of this._events[name])
+            {
+               yield [name, event.callback, event.ctx];
+            }
+         }
+      }
+   }
+
+   /**
+    * Returns the current eventbus name.
+    *
+    * @returns {string|*} The current eventbus name.
+    */
+   get eventbusName()
+   {
+      return this._eventbusName;
+   }
+
+   /**
+    * Returns the current event count.
+    *
+    * @returns {number} The current proxied event count.
+    */
+   get eventCount()
+   {
+      let count = 0;
+
+      for (const name in this._events) { count += this._events[name].length; }
+
+      return count;
+   }
+
+   /**
+    * Returns the event names of registered event listeners.
+    *
+    * @returns {string[]} The event names of registered event listeners.
+    */
+   get eventNames()
+   {
+      /* c8 ignore next */
+      if (!this._events) { return []; }
+
+      return Object.keys(this._events);
+   }
 
    /**
     * Tell an object to listen to a particular event on an other object. The advantage of using this form, instead of
@@ -25,7 +120,7 @@ export default class Events
     * @param {string}   name        - Event name(s)
     * @param {Function} callback    - Event callback function
     * @param {object}   [context]   - Optional: event context
-    * @returns {Events} This Events instance.
+    * @returns {Eventbus} This Eventbus instance.
     */
    listenTo(obj, name, callback, context = this)
    {
@@ -56,7 +151,7 @@ export default class Events
     * @param {string}   name     - Event name(s)
     * @param {Function} callback - Event callback function
     * @param {object}   [context=this] - Optional: event context
-    * @returns {Events} This Events instance.
+    * @returns {Eventbus} This Eventbus instance.
     */
    listenToOnce(obj, name, callback, context = this)
    {
@@ -95,7 +190,7 @@ export default class Events
     * @param {string}   name     - Event name(s)
     * @param {Function} callback - Event callback function
     * @param {object}   context  - Event context
-    * @returns {Events} This Events instance.
+    * @returns {Eventbus} This Eventbus instance.
     */
    off(name, callback = void 0, context = void 0)
    {
@@ -143,7 +238,7 @@ export default class Events
     * @param {string}   name     - Event name(s)
     * @param {Function} callback - Event callback function
     * @param {object}   context  - Event context
-    * @returns {Events} This Events instance.
+    * @returns {Eventbus} This Eventbus instance.
     */
    on(name, callback, context = void 0)
    {
@@ -160,7 +255,7 @@ export default class Events
     * @param {string}   name     - Event name(s)
     * @param {Function} callback - Event callback function
     * @param {object}   context  - Event context
-    * @returns {Events} This Events instance.
+    * @returns {Eventbus} This Eventbus instance.
     */
    once(name, callback, context = void 0)
    {
@@ -170,6 +265,16 @@ export default class Events
       if (typeof name === 'string' && (context === null || typeof context === 'undefined')) { callback = void 0; }
 
       return this.on(events, callback, context);
+   }
+
+   /**
+    * Sets the eventbus name.
+    *
+    * @param {string}   name - The name for this eventbus.
+    */
+   set eventbusName(name)
+   {
+      this._eventbusName = name;
    }
 
    /**
@@ -188,7 +293,7 @@ export default class Events
     * @param {string}   name           - Event name(s)
     * @param {Function} callback       - Event callback function
     * @param {object}   [context=this] - Optional: event context
-    * @returns {Events} This Events instance.
+    * @returns {Eventbus} This Eventbus instance.
     */
    stopListening(obj, name = void 0, callback = void 0, context = this)
    {
@@ -217,7 +322,7 @@ export default class Events
     * @see http://backbonejs.org/#Events-trigger
     *
     * @param {string}   name  - Event name(s)
-    * @returns {Events} This Events instance.
+    * @returns {Eventbus} This Eventbus instance.
     */
    trigger(name)
    {
@@ -229,9 +334,63 @@ export default class Events
 
       for (let i = 0; i < length; i++) { args[i] = arguments[i + 1]; }
 
-      s_EVENTS_API(s_TRIGGER_API, this._events, name, void 0, args);
+      s_EVENTS_TARGET_API(s_TRIGGER_API, s_TRIGGER_EVENTS, this._events, name, void 0, args);
 
       return this;
+   }
+
+   /**
+    * Provides `trigger` functionality, but collects any returned Promises from invoked targets and returns a
+    * single Promise generated by `Promise.resolve` for a single value or `Promise.all` for multiple results. This is
+    * a very useful mechanism to invoke asynchronous operations over an eventbus.
+    *
+    * @param {string}   name  - Event name(s)
+    * @returns {Promise} A Promise with any results.
+    */
+   async triggerAsync(name)
+   {
+      /* c8 ignore next */
+      if (!this._events) { return Promise.resolve([]); }
+
+      const length = Math.max(0, arguments.length - 1);
+      const args = new Array(length);
+      for (let i = 0; i < length; i++) { args[i] = arguments[i + 1]; }
+
+      const promise = s_EVENTS_TARGET_API(s_TRIGGER_API, s_TRIGGER_ASYNC_EVENTS, this._events, name, void 0, args);
+
+      return promise !== void 0 ? promise : Promise.resolve();
+   }
+
+   /**
+    * Defers invoking `trigger`. This is useful for triggering events in the next clock tick.
+    *
+    * @returns {Eventbus} This Eventbus instance.
+    */
+   triggerDefer()
+   {
+      setTimeout(() => { this.trigger(...arguments); }, 0);
+
+      return this;
+   }
+
+   /**
+    * Provides `trigger` functionality, but collects any returned result or results from invoked targets as a single
+    * value or in an array and passes it back to the callee in a synchronous manner.
+    *
+    * @param {string}   name  - Event name(s)
+    * @returns {*|Array<*>} The results of the event invocation.
+    */
+   triggerSync(name)
+   {
+      /* c8 ignore next */
+      if (!this._events) { return void 0; }
+
+      const start = 1;
+      const length = Math.max(0, arguments.length - 1);
+      const args = new Array(length);
+      for (let i = 0; i < length; i++) { args[i] = arguments[i + start]; }
+
+      return s_EVENTS_TARGET_API(s_TRIGGER_API, s_TRIGGER_SYNC_EVENTS, this._events, name, void 0, args);
    }
 }
 
@@ -284,15 +443,57 @@ const s_EVENTS_API = (iteratee, events, name, callback, opts) =>
 };
 
 /**
+ * Iterates over the standard `event, callback` (as well as the fancy multiple space-separated events `"change blur",
+ * callback` and jQuery-style event maps `{event: callback}`).
+ *
+ * @param {Function} iteratee       - Trigger API
+ * @param {Function} iterateeTarget - Internal function which is dispatched to.
+ * @param {Array<*>} events         - Array of stored event callback data.
+ * @param {string}   name           - Event name(s)
+ * @param {Function} callback       - callback
+ * @param {object}   opts           - Optional parameters
+ * @returns {*} The Events object.
+ */
+const s_EVENTS_TARGET_API = (iteratee, iterateeTarget, events, name, callback, opts) =>
+{
+   let i = 0, names;
+
+   if (name && typeof name === 'object')
+   {
+      // Handle event maps.
+      if (callback !== void 0 && 'context' in opts && opts.context === void 0) { opts.context = callback; }
+      for (names = Object.keys(name); i < names.length; i++)
+      {
+         events = s_EVENTS_API(iteratee, iterateeTarget, events, names[i], name[names[i]], opts);
+      }
+   }
+   else if (name && s_EVENT_SPLITTER.test(name))
+   {
+      // Handle space-separated event names by delegating them individually.
+      for (names = name.split(s_EVENT_SPLITTER); i < names.length; i++)
+      {
+         events = iteratee(iterateeTarget, events, names[i], callback, opts);
+      }
+   }
+   else
+   {
+      // Finally, standard events.
+      events = iteratee(iterateeTarget, events, name, callback, opts);
+   }
+
+   return events;
+};
+
+/**
  * Guard the `listening` argument from the public API.
  *
- * @param {Events}   obj      - The Events instance
+ * @param {Eventbus}   obj    - The Eventbus instance
  * @param {string}   name     - Event name
  * @param {Function} callback - Event callback
  * @param {object}   context  - Event context
  * @param {object.<{obj: object, objId: string, id: string, listeningTo: object, count: number}>} listening -
  *                              Listening object
- * @returns {Events} The Events instance.
+ * @returns {Eventbus} The Eventbus instance.
  */
 const s_INTERNAL_ON = (obj, name, callback, context, listening) =>
 {
@@ -314,7 +515,7 @@ const s_INTERNAL_ON = (obj, name, callback, context, listening) =>
  * @param {string}   name     - Event name
  * @param {Function} callback - Event callback
  * @param {object}   options  - Optional parameters
- * @returns {Events} The Events object.
+ * @returns {Eventbus} The Eventbus object.
  */
 const s_OFF_API = (events, name, callback, options) =>
 {
@@ -435,23 +636,27 @@ const s_ONCE_MAP = function(map, name, callback, offer)
 /**
  * Handles triggering the appropriate event callbacks.
  *
- * @param {object.<{callback: Function, context: object, ctx: object, listening:{}}>} objEvents - Events object
- * @param {string}   name  - Event name
- * @param {Function} callback - Event callback
- * @param {Array<*>} args  - Event arguments
- * @returns {*} The Events object.
+ * @param {Function} iterateeTarget - Internal function which is dispatched to.
+ * @param {Array<*>} objEvents      - Array of stored event callback data.
+ * @param {string}   name           - Event name(s)
+ * @param {Function} cb             - callback
+ * @param {Array<*>} args           - Arguments supplied to a trigger method.
+ * @returns {*} The results from the triggered event.
  */
-const s_TRIGGER_API = (objEvents, name, callback, args) =>
+const s_TRIGGER_API = (iterateeTarget, objEvents, name, cb, args) =>
 {
+   let result;
+
    if (objEvents)
    {
       const events = objEvents[name];
       let allEvents = objEvents.all;
       if (events && allEvents) { allEvents = allEvents.slice(); }
-      if (events) { s_TRIGGER_EVENTS(events, args); }
-      if (allEvents) { s_TRIGGER_EVENTS(allEvents, [name].concat(args)); }
+      if (events) { result = iterateeTarget(events, args); }
+      if (allEvents) { result = iterateeTarget(allEvents, [name].concat(args)); }
    }
-   return objEvents;
+
+   return result;
 };
 
 /**
@@ -484,6 +689,166 @@ const s_TRIGGER_EVENTS = (events, args) =>
          while (++i < l) { (ev = events[i]).callback.apply(ev.ctx, args); }
          return;
    }
+};
+
+/**
+ * A difficult-to-believe, but optimized internal dispatch function for triggering events. Tries to keep the usual
+ * cases speedy (most internal Backbone events have 3 arguments). This dispatch method uses ES6 Promises and adds
+ * any returned results to an array which is added to a Promise.all construction which passes back a Promise which
+ * waits until all Promises complete. Any target invoked may return a Promise or any result. This is very useful to
+ * use for any asynchronous operations.
+ *
+ * @param {Array<*>} events   -  Array of stored event callback data.
+ * @param {Array<*>} args     -  Arguments supplied to `triggerAsync`.
+ * @returns {Promise} A Promise of the results from the triggered event.
+ */
+const s_TRIGGER_ASYNC_EVENTS = async (events, args) =>
+{
+   let ev, i = -1;
+   const a1 = args[0], a2 = args[1], a3 = args[2], l = events.length;
+
+   const results = [];
+
+   try
+   {
+      switch (args.length)
+      {
+         case 0:
+            while (++i < l)
+            {
+               const result = (ev = events[i]).callback.call(ev.ctx);
+
+               // If we received a valid result add it to the promises array.
+               if (result !== void 0) { results.push(result); }
+            }
+            break;
+
+         case 1:
+            while (++i < l)
+            {
+               const result = (ev = events[i]).callback.call(ev.ctx, a1);
+
+               // If we received a valid result add it to the promises array.
+               if (result !== void 0) { results.push(result); }
+            }
+            break;
+
+         case 2:
+            while (++i < l)
+            {
+               const result = (ev = events[i]).callback.call(ev.ctx, a1, a2);
+
+               // If we received a valid result add it to the promises array.
+               if (result !== void 0) { results.push(result); }
+            }
+            break;
+
+         case 3:
+            while (++i < l)
+            {
+               const result = (ev = events[i]).callback.call(ev.ctx, a1, a2, a3);
+
+               // If we received a valid result add it to the promises array.
+               if (result !== void 0) { results.push(result); }
+            }
+            break;
+
+         default:
+            while (++i < l)
+            {
+               const result = (ev = events[i]).callback.apply(ev.ctx, args);
+
+               // If we received a valid result add it to the promises array.
+               if (result !== void 0) { results.push(result); }
+            }
+            break;
+      }
+   }
+   catch (error) // will catch synchronous event binding errors and reject again async errors.
+   {
+      return Promise.reject(error);
+   }
+
+   // If there are multiple results then use Promise.all otherwise Promise.resolve.
+   return results.length > 1 ? Promise.all(results).then((values) =>
+   {
+      const filtered = values.filter((entry) => entry !== void 0);
+      switch (filtered.length)
+      {
+         case 0: return void 0;
+         case 1: return filtered[0];
+         default: return filtered;
+      }
+   }) : results.length === 1 ? Promise.resolve(results[0]) : Promise.resolve();
+};
+
+/**
+ * A difficult-to-believe, but optimized internal dispatch function for triggering events. Tries to keep the usual
+ * cases speedy (most internal Backbone events have 3 arguments). This dispatch method synchronously passes back a
+ * single value or an array with all results returned by any invoked targets.
+ *
+ * @param {Array<*>} events   -  Array of stored event callback data.
+ * @param {Array<*>} args     -  Arguments supplied to `triggerSync`.
+ * @returns {*|Array<*>} The results from the triggered event.
+ */
+const s_TRIGGER_SYNC_EVENTS = (events, args) =>
+{
+   let ev, i = -1;
+   const a1 = args[0], a2 = args[1], a3 = args[2], l = events.length;
+
+   const results = [];
+
+   switch (args.length)
+   {
+      case 0:
+         while (++i < l)
+         {
+            const result = (ev = events[i]).callback.call(ev.ctx);
+
+            // If we received a valid result return immediately.
+            if (result !== void 0) { results.push(result); }
+         }
+         break;
+      case 1:
+         while (++i < l)
+         {
+            const result = (ev = events[i]).callback.call(ev.ctx, a1);
+
+            // If we received a valid result return immediately.
+            if (result !== void 0) { results.push(result); }
+         }
+         break;
+      case 2:
+         while (++i < l)
+         {
+            const result = (ev = events[i]).callback.call(ev.ctx, a1, a2);
+
+            // If we received a valid result return immediately.
+            if (result !== void 0) { results.push(result); }
+         }
+         break;
+      case 3:
+         while (++i < l)
+         {
+            const result = (ev = events[i]).callback.call(ev.ctx, a1, a2, a3);
+
+            // If we received a valid result return immediately.
+            if (result !== void 0) { results.push(result); }
+         }
+         break;
+      default:
+         while (++i < l)
+         {
+            const result = (ev = events[i]).callback.apply(ev.ctx, args);
+
+            // If we received a valid result return immediately.
+            if (result !== void 0) { results.push(result); }
+         }
+         break;
+   }
+
+   // Return the results array if there are more than one or just a single result.
+   return results.length > 1 ? results : results.length === 1 ? results[0] : void 0;
 };
 
 /**

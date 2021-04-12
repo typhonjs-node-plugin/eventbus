@@ -1,39 +1,39 @@
-import TyphonEvents from './TyphonEvents.js';
+import Eventbus from './Eventbus.js';
 
 /**
- * EventProxy provides a protected proxy of another TyphonEvents / eventbus instance.
+ * EventbusProxy provides a protected proxy of another Eventbus instance.
  *
- * The main use case of EventProxy is to allow indirect access to an eventbus. This is handy when it comes to managing
- * the event lifecycle for a plugin system. When a plugin is added it could receive a callback, perhaps named
- * `onPluginLoaded`, which contains an EventProxy instance rather than the direct eventbus. This EventProxy instance is
- * associated in the management system controlling plugin lifecycle. When a plugin is removed / unloaded the management
- * system can automatically unregister all events for the plugin without requiring the plugin author doing it correctly
- * if they had full control. IE This allows to plugin system to guarantee no dangling listeners.
+ * The main use case of EventbusProxy is to allow indirect access to an eventbus. This is handy when it comes to
+ * managing the event lifecycle for a plugin system. When a plugin is added it could receive a callback, perhaps named
+ * `onPluginLoaded`, which contains an EventbusProxy instance rather than the direct eventbus. This EventbusProxy
+ * instance is associated in the management system controlling plugin lifecycle. When a plugin is removed / unloaded the
+ * management system can automatically unregister all events for the plugin without requiring the plugin author doing it
+ * correctly if they had full control. IE This allows to plugin system to guarantee no dangling listeners.
  *
- * EventProxy provides the on / off, once, and trigger methods with the same signatures as found in
- * TyphonEvents / Events. However, the proxy tracks all added event bindings which is used to proxy between the target
+ * EventbusProxy provides the on / off, once, and trigger methods with the same signatures as found in
+ * Eventbus. However, the proxy tracks all added event bindings which is used to proxy between the target
  * eventbus which is passed in from the constructor. All registration methods (on / off / once) proxy. In addition
  * there is a `destroy` method which will unregister all of proxied events and remove references to the managed
- * eventbus. Any further usage of a destroyed EventProxy instance results in a ReferenceError thrown.
+ * eventbus. Any further usage of a destroyed EventbusProxy instance results in a ReferenceError thrown.
  */
-export default class EventProxy
+export default class EventbusProxy
 {
    /**
     * Creates the event proxy with an existing instance of TyphonEvents.
     *
-    * @param {TyphonEvents}   eventbus - The target eventbus instance.
+    * @param {Eventbus}   eventbus - The target eventbus instance.
     */
    constructor(eventbus)
    {
-      if (!(eventbus instanceof TyphonEvents))
+      if (!(eventbus instanceof Eventbus))
       {
-         throw new TypeError(`'eventbus' is not an instance of TyphonEvents.`);
+         throw new TypeError(`'eventbus' is not an instance of Eventbus.`);
       }
 
       /**
        * Stores the target eventbus.
        *
-       * @type {TyphonEvents}
+       * @type {Eventbus}
        * @private
        */
       this._eventbus = eventbus;
@@ -48,13 +48,13 @@ export default class EventProxy
    }
 
    /**
-    * Creates a new EventProxy from the target eventbus of this proxy.
+    * Creates a new EventbusProxy from the target eventbus of this proxy.
     *
-    * @returns {EventProxy} A new EventProxy of the eventbus of this EventProxy.
+    * @returns {EventbusProxy} A new EventbusProxy of the eventbus of this EventbusProxy.
     */
-   createEventProxy()
+   createProxy()
    {
-      return new EventProxy(this._eventbus);
+      return new EventbusProxy(this._eventbus);
    }
 
    /**
@@ -65,7 +65,7 @@ export default class EventProxy
    {
       if (this._eventbus === null)
       {
-         throw new ReferenceError('This EventProxy instance has been destroyed.');
+         throw new ReferenceError('This EventbusProxy instance has been destroyed.');
       }
 
       for (const event of this._events) { this._eventbus.off(event.name, event.callback, event.context); }
@@ -73,6 +73,46 @@ export default class EventProxy
       this._events = [];
 
       this._eventbus = null;
+   }
+
+   /**
+    * Iterates over all stored events yielding and array with event name, callback function, and event context.
+    *
+    * @param {string} [eventName] Optional event name to iterate over.
+    *
+    * @yields
+    */
+   *entries(eventName = void 0)
+   {
+      /* c8 ignore next */
+      if (!this._events) { return; }
+
+      if (eventName)
+      {
+         for (const event of this._events)
+         {
+            if (eventName === event.name) { yield [event.name, event.callback, event.context]; }
+         }
+      }
+      else
+      {
+         for (const event of this._events)
+         {
+            yield [event.name, event.callback, event.context];
+         }
+      }
+   }
+
+   /**
+    * Returns the target eventbus name.
+    *
+    * @returns {string|*} The target eventbus name.
+    */
+   get eventbusName()
+   {
+      if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
+
+      return this._eventbus.eventbusName;
    }
 
    /**
@@ -87,7 +127,7 @@ export default class EventProxy
     *
     * @returns {string[]} Returns the event names of proxied event listeners.
     */
-   getEventNames()
+   get eventNames()
    {
       if (!this._events) { return []; }
 
@@ -99,25 +139,13 @@ export default class EventProxy
    }
 
    /**
-    * Iterates over all proxied events invoking a callback with the event data stored.
-    *
-    * @param {Function} callback - Callback invoked for each proxied event stored.
-    */
-   forEachEvent(callback)
-   {
-      if (typeof callback !== 'function') { throw new TypeError(`'callback' is not a 'function'.`); }
-
-      for (const event of this._events) { callback(event.name, event.callback, event.context); }
-   }
-
-   /**
     * Returns the target eventbus name.
     *
     * @returns {string|*} The target eventbus name.
     */
    getEventbusName()
    {
-      if (this._eventbus === null) { throw new ReferenceError('This EventProxy instance has been destroyed.'); }
+      if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
       return this._eventbus.getEventbusName();
    }
@@ -133,13 +161,13 @@ export default class EventProxy
     *
     * @param {object}   [context]  - Event context
     *
-    * @returns {EventProxy} This EventProxy.
+    * @returns {EventbusProxy} This EventbusProxy.
     */
    off(name = void 0, callback = void 0, context = void 0)
    {
       if (this._eventbus === null)
       {
-         throw new ReferenceError('This EventProxy instance has been destroyed.');
+         throw new ReferenceError('This EventbusProxy instance has been destroyed.');
       }
 
       const hasName = typeof name !== 'undefined' && name !== null;
@@ -194,13 +222,13 @@ export default class EventProxy
     * @param {string}   name     - Event name(s)
     * @param {Function} callback - Event callback function
     * @param {object}   context  - Event context
-    * @returns {EventProxy} This EventProxy.
+    * @returns {EventbusProxy} This EventbusProxy.
     */
    on(name, callback, context = void 0)
    {
       if (this._eventbus === null)
       {
-         throw new ReferenceError('This EventProxy instance has been destroyed.');
+         throw new ReferenceError('This EventbusProxy instance has been destroyed.');
       }
 
       this._eventbus.on(name, callback, context);
@@ -216,11 +244,11 @@ export default class EventProxy
     *
     * Please see {@link Events#trigger}.
     *
-    * @returns {EventProxy} This EventProxy.
+    * @returns {EventbusProxy} This EventbusProxy.
     */
    trigger()
    {
-      if (this._eventbus === null) { throw new ReferenceError('This EventProxy instance has been destroyed.'); }
+      if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
       this._eventbus.trigger(...arguments);
 
@@ -238,7 +266,7 @@ export default class EventProxy
     */
    triggerAsync()
    {
-      if (this._eventbus === null) { throw new ReferenceError('This EventProxy instance has been destroyed.'); }
+      if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
       return this._eventbus.triggerAsync(...arguments);
    }
@@ -248,11 +276,11 @@ export default class EventProxy
     *
     * Please see {@link TyphonEvents#triggerDefer}.
     *
-    * @returns {EventProxy} This EventProxy.
+    * @returns {EventbusProxy} This EventbusProxy.
     */
    triggerDefer()
    {
-      if (this._eventbus === null) { throw new ReferenceError('This EventProxy instance has been destroyed.'); }
+      if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
       this._eventbus.triggerDefer(...arguments);
 
@@ -269,7 +297,7 @@ export default class EventProxy
     */
    triggerSync()
    {
-      if (this._eventbus === null) { throw new ReferenceError('This EventProxy instance has been destroyed.'); }
+      if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
       return this._eventbus.triggerSync(...arguments);
    }

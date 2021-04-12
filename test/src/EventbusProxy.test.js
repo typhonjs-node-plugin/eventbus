@@ -1,28 +1,28 @@
 import { assert }    from 'chai';
 
-import TyphonEvents  from '../../src/TyphonEvents.js';
+import Eventbus  from '../../src/Eventbus.js';
 
 /* eslint-disable no-undef */
 
-describe('EventProxy', () =>
+describe('EventbusProxy', () =>
 {
    let callbacks, eventbus, proxy;
 
    beforeEach(() =>
    {
       callbacks = {};
-      eventbus = new TyphonEvents();
-      proxy = eventbus.createEventProxy();
+      eventbus = new Eventbus();
+      proxy = eventbus.createProxy();
    });
 
    it('get name', () =>
    {
-      eventbus.setEventbusName('testname');
+      eventbus.eventbusName = 'testname';
 
-      assert(proxy.getEventbusName() === 'testname');
+      assert(proxy.eventbusName === 'testname');
    });
 
-   it('forEachEvent', () =>
+   it('entries()', () =>
    {
       const callback1 = () => {};
       const callback2 = () => {};
@@ -48,16 +48,16 @@ describe('EventProxy', () =>
 
       let cntr = 0;
 
-      proxy.forEachEvent((name, callback, context) =>
+      for (const [name, callback, context] of proxy.entries())
       {
          assert.strictEqual(name, allNames[cntr]);
          assert.strictEqual(callback, allCallbacks[cntr]);
          assert.strictEqual(context, allContexts[cntr]);
          cntr++;
-      });
+      }
    });
 
-   it('getEventNames', () =>
+   it('get - eventNames', () =>
    {
       eventbus.on('can:not:see:this', () => {});
 
@@ -66,7 +66,7 @@ describe('EventProxy', () =>
       proxy.on('test:trigger3', () => {});
       proxy.on('test:trigger3', () => {});
 
-      const eventNames = proxy.getEventNames();
+      const eventNames = proxy.eventNames;
 
       assert.strictEqual(JSON.stringify(eventNames), '["test:trigger","test:trigger2","test:trigger3"]');
    });
@@ -232,7 +232,7 @@ describe('EventProxy', () =>
       const testError = (err) =>
       {
          assert(err instanceof ReferenceError);
-         assert.strictEqual(err.message, 'This EventProxy instance has been destroyed.');
+         assert.strictEqual(err.message, 'This EventbusProxy instance has been destroyed.');
       };
 
       // Ensure that proxy is destroyed and all methods throw a ReferenceError.

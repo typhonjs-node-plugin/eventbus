@@ -1,6 +1,6 @@
 import { assert }    from 'chai';
 
-import TyphonEvents  from '../../src/TyphonEvents.js';
+import Eventbus  from '../../src/Eventbus.js';
 
 /* eslint-disable no-undef */
 
@@ -15,19 +15,19 @@ const s_CREATE_TIMED_FUNC = (func, timeout = 1000) =>
    };
 };
 
-describe('Events', () =>
+describe('Eventbus', () =>
 {
    let callbacks, eventbus;
 
-   beforeEach(() => { callbacks = {}; eventbus = new TyphonEvents(); });
+   beforeEach(() => { callbacks = {}; eventbus = new Eventbus(); });
 
    it('set / get name', () =>
    {
-      eventbus.setEventbusName('testname');
-      assert.strictEqual(eventbus.getEventbusName(), 'testname');
+      eventbus.eventbusName = 'testname';
+      assert.strictEqual(eventbus.eventbusName, 'testname');
 
-      eventbus = new TyphonEvents('testname2');
-      assert.strictEqual(eventbus.getEventbusName(), 'testname2');
+      eventbus = new Eventbus('testname2');
+      assert.strictEqual(eventbus.eventbusName, 'testname2');
    });
 
    it('entries', () =>
@@ -94,14 +94,14 @@ describe('Events', () =>
       }
    });
 
-   it('getEventNames', () =>
+   it('get - eventNames', () =>
    {
       eventbus.on('test:trigger', () => {});
       eventbus.on('test:trigger2', () => {});
       eventbus.on('test:trigger3', () => {});
       eventbus.on('test:trigger3', () => {});
 
-      const eventNames = eventbus.getEventNames();
+      const eventNames = eventbus.eventNames;
 
       assert.strictEqual(JSON.stringify(eventNames), '["test:trigger","test:trigger2","test:trigger3"]');
    });
@@ -119,7 +119,7 @@ describe('Events', () =>
    it('object composition - trigger (on / off)', () =>
    {
       const anObject = {
-         events: new TyphonEvents(),
+         events: new Eventbus(),
          register: function() { this.events.on('test:trigger', this.handler, this); },
          testTrigger: 0,
          triggerTest: function() { this.events.trigger('test:trigger'); },
@@ -183,7 +183,7 @@ describe('Events', () =>
 
    it('trigger (listenTo)', () =>
    {
-      const test = new TyphonEvents();
+      const test = new Eventbus();
 
       callbacks.testTriggerCount = 0;
 
@@ -207,7 +207,7 @@ describe('Events', () =>
 
    it('trigger (listenToOnce)', () =>
    {
-      const test = new TyphonEvents();
+      const test = new Eventbus();
 
       callbacks.testTriggerOnce = 0;
 
@@ -274,7 +274,7 @@ describe('Events', () =>
 
    it('triggerDefer (listenTo)', (done) =>
    {
-      const test = new TyphonEvents();
+      const test = new Eventbus();
 
       callbacks.testTriggerCount = 0;
 
@@ -318,7 +318,7 @@ describe('Events', () =>
 
    it('triggerDefer (listenToOnce)', (done) =>
    {
-      const test = new TyphonEvents();
+      const test = new Eventbus();
 
       callbacks.testTriggerOnce = 0;
 
@@ -463,7 +463,7 @@ describe('Events', () =>
 
    it('triggerSync-1 (listenTo)', () =>
    {
-      const test = new TyphonEvents();
+      const test = new Eventbus();
 
       callbacks.testTriggerCount = 0;
 
@@ -491,7 +491,7 @@ describe('Events', () =>
 
    it('triggerSync-1 (listenToOnce)', () =>
    {
-      const test = new TyphonEvents();
+      const test = new Eventbus();
 
       callbacks.testTriggerOnce = 0;
 
@@ -625,7 +625,7 @@ describe('Events', () =>
 
    it('promise - triggerAsync (listenTo)', (done) =>
    {
-      const test = new TyphonEvents();
+      const test = new Eventbus();
 
       callbacks.testTriggerCount = 0;
 
@@ -663,7 +663,7 @@ describe('Events', () =>
 
    it('promise - triggerAsync (listenToOnce)', (done) =>
    {
-      const test = new TyphonEvents();
+      const test = new Eventbus();
 
       callbacks.testTriggerOnce = 0;
 
@@ -774,7 +774,7 @@ describe('Events', () =>
 
    it('async / await - triggerAsync (listenTo)', async () =>
    {
-      const test = new TyphonEvents();
+      const test = new Eventbus();
 
       callbacks.testTriggerCount = 0;
 
@@ -801,7 +801,7 @@ describe('Events', () =>
 
    it('async / await - triggerAsync (listenToOnce)', async () =>
    {
-      const test = new TyphonEvents();
+      const test = new Eventbus();
 
       callbacks.testTriggerOnce = 0;
 

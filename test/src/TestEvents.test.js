@@ -389,6 +389,40 @@ describe('Events', () =>
       assert.strictEqual(results[1], 'bar');
    });
 
+   it('triggerSync-2 (only 1 result)', () =>
+   {
+      eventbus.on('test:trigger:sync2', () => { callbacks.testTriggerSync2A = true; return 'foo'; });
+      eventbus.on('test:trigger:sync2', () => { callbacks.testTriggerSync2B = true; });
+
+      assert.strictEqual(eventbus.eventCount, 2);
+
+      const results = eventbus.triggerSync('test:trigger:sync2');
+
+      assert.isTrue(callbacks.testTriggerSync2A);
+      assert.isTrue(callbacks.testTriggerSync2B);
+      assert.isString(results);
+      assert.strictEqual(results, 'foo');
+   });
+
+   it('triggerSync-3 (2 results)', () =>
+   {
+      eventbus.on('test:trigger:sync2', () => { callbacks.testTriggerSync2A = true; return 'foo'; });
+      eventbus.on('test:trigger:sync2', () => { callbacks.testTriggerSync2B = true; });
+      eventbus.on('test:trigger:sync2', () => { callbacks.testTriggerSync2C = true; return 'bar'; });
+
+      assert.strictEqual(eventbus.eventCount, 3);
+
+      const results = eventbus.triggerSync('test:trigger:sync2');
+
+      assert.isTrue(callbacks.testTriggerSync2A);
+      assert.isTrue(callbacks.testTriggerSync2B);
+      assert.isTrue(callbacks.testTriggerSync2C);
+      assert.isArray(results);
+      assert.strictEqual(results.length, 2);
+      assert.strictEqual(results[0], 'foo');
+      assert.strictEqual(results[1], 'bar');
+   });
+
    it('triggerSync (on / off)', () =>
    {
       assert.strictEqual(eventbus.eventCount, 0);
@@ -527,6 +561,38 @@ describe('Events', () =>
       });
    });
 
+
+   it('promise - triggerAsync (2 results)', (done) =>
+   {
+      eventbus.on('test:trigger:async',
+       s_CREATE_TIMED_FUNC((resolve) => { callbacks.testTriggerAsync = true; resolve('foo'); }));
+
+      eventbus.on('test:trigger:async',
+       s_CREATE_TIMED_FUNC((resolve) => { callbacks.testTriggerAsync2 = true; resolve(); }));
+
+      eventbus.on('test:trigger:async',
+       s_CREATE_TIMED_FUNC((resolve) => { callbacks.testTriggerAsync3 = true; resolve('bar'); }));
+
+      assert.strictEqual(eventbus.eventCount, 3);
+
+      const promise = eventbus.triggerAsync('test:trigger:async');
+
+      assert(promise instanceof Promise);
+
+      // triggerAsync resolves all Promises by Promise.all() so result is an array.
+      promise.then((result) =>
+      {
+         assert.isTrue(callbacks.testTriggerAsync);
+         assert.isTrue(callbacks.testTriggerAsync2);
+         assert.isTrue(callbacks.testTriggerAsync3);
+         assert.isArray(result);
+         assert.strictEqual(result.length, 2);
+         assert.strictEqual(result[0], 'foo');
+         assert.strictEqual(result[1], 'bar');
+         done();
+      });
+   });
+
    it('promise - triggerAsync (once)', (done) =>
    {
       callbacks.testTriggerOnce = 0;
@@ -642,6 +708,41 @@ describe('Events', () =>
       assert.isTrue(callbacks.testTriggerAsync2);
       assert.strictEqual(result[0], 'foo');
       assert.strictEqual(result[1], 'bar');
+   });
+
+   it('async / await - triggerAsync (result undefined)', async () =>
+   {
+      eventbus.on('test:trigger:async',
+         s_CREATE_TIMED_FUNC((resolve) => { callbacks.testTriggerAsync = true; resolve(); }));
+
+      eventbus.on('test:trigger:async',
+         s_CREATE_TIMED_FUNC((resolve) => { callbacks.testTriggerAsync2 = true; resolve(); }));
+
+      assert.strictEqual(eventbus.eventCount, 2);
+
+      const result = await eventbus.triggerAsync('test:trigger:async');
+
+      assert.isTrue(callbacks.testTriggerAsync);
+      assert.isTrue(callbacks.testTriggerAsync2);
+      assert.isUndefined(result);
+   });
+
+   it('async / await - triggerAsync (1 result)', async () =>
+   {
+      eventbus.on('test:trigger:async',
+       s_CREATE_TIMED_FUNC((resolve) => { callbacks.testTriggerAsync = true; resolve('foo'); }));
+
+      eventbus.on('test:trigger:async',
+       s_CREATE_TIMED_FUNC((resolve) => { callbacks.testTriggerAsync2 = true; resolve(); }));
+
+      assert.strictEqual(eventbus.eventCount, 2);
+
+      const result = await eventbus.triggerAsync('test:trigger:async');
+
+      assert.isTrue(callbacks.testTriggerAsync);
+      assert.isTrue(callbacks.testTriggerAsync2);
+      assert.isString(result);
+      assert.strictEqual(result, 'foo');
    });
 
    it('async / await - triggerAsync (once)', async () =>

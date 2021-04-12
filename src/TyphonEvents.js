@@ -12,6 +12,8 @@ import EventProxy from './EventProxy.js';
  * `triggerAsync` - Invokes all targets matched and adds any returned results through `Promise.all` which returns
  *  a single promise to the callee.
  *
+ *  Both triggerAsync and TriggerSync will skip any undefined results received from callbacks.
+ *
  * Please refer to the Events documentation for all inherited functionality.
  */
 export default class TyphonEvents extends Events
@@ -275,7 +277,6 @@ const s_TRIGGER_ASYNC_EVENTS = async (events, args) =>
    let ev, i = -1;
    const a1 = args[0], a2 = args[1], a3 = args[2], l = events.length;
 
-   let result;
    const results = [];
 
    try
@@ -285,50 +286,50 @@ const s_TRIGGER_ASYNC_EVENTS = async (events, args) =>
          case 0:
             while (++i < l)
             {
-               result = (ev = events[i]).callback.call(ev.ctx);
+               const result = (ev = events[i]).callback.call(ev.ctx);
 
                // If we received a valid result add it to the promises array.
-               if (result !== null && result !== void 0) { results.push(result); }
+               if (result !== void 0) { results.push(result); }
             }
             break;
 
          case 1:
             while (++i < l)
             {
-               result = (ev = events[i]).callback.call(ev.ctx, a1);
+               const result = (ev = events[i]).callback.call(ev.ctx, a1);
 
                // If we received a valid result add it to the promises array.
-               if (result !== null && result !== void 0) { results.push(result); }
+               if (result !== void 0) { results.push(result); }
             }
             break;
 
          case 2:
             while (++i < l)
             {
-               result = (ev = events[i]).callback.call(ev.ctx, a1, a2);
+               const result = (ev = events[i]).callback.call(ev.ctx, a1, a2);
 
                // If we received a valid result add it to the promises array.
-               if (result !== null && result !== void 0) { results.push(result); }
+               if (result !== void 0) { results.push(result); }
             }
             break;
 
          case 3:
             while (++i < l)
             {
-               result = (ev = events[i]).callback.call(ev.ctx, a1, a2, a3);
+               const result = (ev = events[i]).callback.call(ev.ctx, a1, a2, a3);
 
                // If we received a valid result add it to the promises array.
-               if (result !== null && result !== void 0) { results.push(result); }
+               if (result !== void 0) { results.push(result); }
             }
             break;
 
          default:
             while (++i < l)
             {
-               result = (ev = events[i]).callback.apply(ev.ctx, args);
+               const result = (ev = events[i]).callback.apply(ev.ctx, args);
 
                // If we received a valid result add it to the promises array.
-               if (result !== null && result !== void 0) { results.push(result); }
+               if (result !== void 0) { results.push(result); }
             }
             break;
       }
@@ -339,7 +340,16 @@ const s_TRIGGER_ASYNC_EVENTS = async (events, args) =>
    }
 
    // If there are multiple results then use Promise.all otherwise Promise.resolve.
-   return results.length > 1 ? Promise.all(results) : Promise.resolve(result);
+   return results.length > 1 ? Promise.all(results).then((values) =>
+   {
+      const filtered = values.filter((entry) => entry !== void 0);
+      switch (filtered.length)
+      {
+         case 0: return void 0;
+         case 1: return filtered[0];
+         default: return filtered;
+      }
+   }) : Promise.resolve(results[0]);
 };
 
 /**
@@ -356,7 +366,6 @@ const s_TRIGGER_SYNC_EVENTS = (events, args) =>
    let ev, i = -1;
    const a1 = args[0], a2 = args[1], a3 = args[2], l = events.length;
 
-   let result;
    const results = [];
 
    switch (args.length)
@@ -364,50 +373,50 @@ const s_TRIGGER_SYNC_EVENTS = (events, args) =>
       case 0:
          while (++i < l)
          {
-            result = (ev = events[i]).callback.call(ev.ctx);
+            const result = (ev = events[i]).callback.call(ev.ctx);
 
             // If we received a valid result return immediately.
-            if (result !== null && result !== void 0) { results.push(result); }
+            if (result !== void 0) { results.push(result); }
          }
          break;
       case 1:
          while (++i < l)
          {
-            result = (ev = events[i]).callback.call(ev.ctx, a1);
+            const result = (ev = events[i]).callback.call(ev.ctx, a1);
 
             // If we received a valid result return immediately.
-            if (result !== null && result !== void 0) { results.push(result); }
+            if (result !== void 0) { results.push(result); }
          }
          break;
       case 2:
          while (++i < l)
          {
-            result = (ev = events[i]).callback.call(ev.ctx, a1, a2);
+            const result = (ev = events[i]).callback.call(ev.ctx, a1, a2);
 
             // If we received a valid result return immediately.
-            if (result !== null && result !== void 0) { results.push(result); }
+            if (result !== void 0) { results.push(result); }
          }
          break;
       case 3:
          while (++i < l)
          {
-            result = (ev = events[i]).callback.call(ev.ctx, a1, a2, a3);
+            const result = (ev = events[i]).callback.call(ev.ctx, a1, a2, a3);
 
             // If we received a valid result return immediately.
-            if (result !== null && result !== void 0) { results.push(result); }
+            if (result !== void 0) { results.push(result); }
          }
          break;
       default:
          while (++i < l)
          {
-            result = (ev = events[i]).callback.apply(ev.ctx, args);
+            const result = (ev = events[i]).callback.apply(ev.ctx, args);
 
             // If we received a valid result return immediately.
-            if (result !== null && result !== void 0) { results.push(result); }
+            if (result !== void 0) { results.push(result); }
          }
          break;
    }
 
    // Return the results array if there are more than one or just a single result.
-   return results.length > 1 ? results : result;
+   return results.length > 1 ? results : results.length === 1 ? results[0] : void 0;
 };

@@ -1,13 +1,10 @@
 /**
- * @typhonjs-plugin/eventbus / Provides the ability to bind and trigger custom named events.
+ * `@typhonjs-plugin/eventbus` / Provides the ability to bind and trigger custom named events.
  *
  * This module is an evolution of Backbone Events. (http://backbonejs.org/#Events). TyphonEvents extends the
  * functionality provided in Backbone Events which is captured in Events.
  *
- *
- *
  * ---------------
- *
  */
 export default class Events
 {

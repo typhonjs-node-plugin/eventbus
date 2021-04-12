@@ -1,0 +1,45 @@
+{
+  "name": "@typhonjs-plugin/eventbus",
+  "description": "Provides an eventbus ",
+  "version": "0.0.0",
+  "author": "typhonrt",
+  "type": "module",
+  "main": "src/TyphonEvents.js",
+  "module": "src/TyphonEvents.js",
+  "exports": {
+    ".": "./src/TyphonEvents.js",
+    "./EventProxy": "./src/EventProxy.js",
+    "./instances": "./src/instances.js"
+  },
+  "maintainers": [
+    {
+      "name": "Michael Leahy",
+      "email": "support@typhonjs.io",
+      "url": "https://github.com/typhonrt"
+    }
+  ],
+  "devDependencies": {
+    "@typhonjs-node-utils/build-test": "^0.1.0"
+  },
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "files": [
+    "/npm-shrinkwrap.json",
+    "/src"
+  ],
+  "homepage": "https://github.com/typhonjs-plugin/eventbus",
+  "keywords": [
+    "typhonjs",
+    "eventbus"
+  ],
+  "license": "MPL-2.0",
+  "repository": "typhonjs-plugin/eventbus",
+  "bugs": "https://github.com/typhonjs-plugin/eventbus/issues",
+  "scripts": {
+    "eslint": "eslint .",
+    "posttest": "npm run eslint",
+    "prepublishOnly": "npm run test",
+    "test": "c8 --reporter=lcov --reporter=text-summary mocha -colors \"test/src/**/*.test.js\""
+  }
+}

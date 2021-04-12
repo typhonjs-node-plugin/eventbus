@@ -349,7 +349,7 @@ const s_TRIGGER_ASYNC_EVENTS = async (events, args) =>
          case 1: return filtered[0];
          default: return filtered;
       }
-   }) : Promise.resolve(results[0]);
+   }) : results.length === 1 ? Promise.resolve(results[0]) : Promise.resolve();
 };
 
 /**

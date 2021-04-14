@@ -39,7 +39,7 @@ export default class Eventbus
    }
 
    /**
-    * Iterates over all stored events yielding and array with event name, callback function, and event context.
+    * Iterates over all stored events yielding an array with event name, callback function, and event context.
     *
     * @param {string} [eventName] Optional event name to iterate over.
     *

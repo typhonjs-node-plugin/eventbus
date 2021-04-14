@@ -15,6 +15,9 @@ import Eventbus from './Eventbus.js';
  * eventbus which is passed in from the constructor. All registration methods (on / off / once) proxy. In addition
  * there is a `destroy` method which will unregister all of proxied events and remove references to the managed
  * eventbus. Any further usage of a destroyed EventbusProxy instance results in a ReferenceError thrown.
+ *
+ * Finally the EventbusProxy only allows events registered through it to be turned off providing a buffer between
+ * any consumers such that they can not turn off other registrations made on the eventbus or other proxy instances.
  */
 export default class EventbusProxy
 {
@@ -53,9 +56,10 @@ export default class EventbusProxy
     */
    destroy()
    {
-      if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
-
-      for (const event of this._events) { this._eventbus.off(event.name, event.callback, event.context); }
+      if (this._eventbus !== null)
+      {
+         for (const event of this._events) { this._eventbus.off(event.name, event.callback, event.context); }
+      }
 
       this._events = [];
 
@@ -63,7 +67,8 @@ export default class EventbusProxy
    }
 
    /**
-    * Iterates over all stored events yielding and array with event name, callback function, and event context.
+    * Iterates over all of events from the proxied eventbus yielding an array with event name, callback function, and
+    * event context.
     *
     * @param {string} [eventName] Optional event name to iterate over.
     *
@@ -73,27 +78,14 @@ export default class EventbusProxy
    {
       if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
-      /* c8 ignore next */
-      if (!this._events) { return; }
-
-      if (eventName)
+      for (const entry of this._eventbus.entries(eventName))
       {
-         for (const event of this._events)
-         {
-            if (eventName === event.name) { yield [event.name, event.callback, event.context]; }
-         }
-      }
-      else
-      {
-         for (const event of this._events)
-         {
-            yield [event.name, event.callback, event.context];
-         }
+         yield entry;
       }
    }
 
    /**
-    * Returns the current proxied event count.
+    * Returns the current proxied eventbus event count.
     *
     * @returns {number} Returns the current proxied event count.
     */
@@ -101,11 +93,11 @@ export default class EventbusProxy
    {
       if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
-      return this._events.length;
+      return this._eventbus.eventCount;
    }
 
    /**
-    * Returns the event names of proxied event listeners.
+    * Returns the event names of proxied eventbys event listeners.
     *
     * @returns {string[]} Returns the event names of proxied event listeners.
     */
@@ -113,13 +105,17 @@ export default class EventbusProxy
    {
       if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
-      if (!this._events) { return []; }
+      return this._eventbus.eventNames;
+   }
 
-      const eventNames = {};
-
-      for (const event of this._events) { eventNames[event.name] = true; }
-
-      return Object.keys(eventNames);
+   /**
+    * Returns whether this EventbusProxy has already been destroyed.
+    *
+    * @returns {boolean} Is destroyed state.
+    */
+   get isDestroyed()
+   {
+      return this._eventbus === null;
    }
 
    /**
@@ -214,6 +210,66 @@ export default class EventbusProxy
       this._events.push({ name, callback, context });
 
       return this;
+   }
+
+   /**
+    * Iterates over all stored proxy events yielding an array with event name, callback function, and event context.
+    *
+    * @param {string} [eventName] Optional event name to iterate over.
+    *
+    * @yields
+    */
+   *proxyEntries(eventName = void 0)
+   {
+      if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
+
+      /* c8 ignore next */
+      if (!this._events) { return; }
+
+      if (eventName)
+      {
+         for (const event of this._events)
+         {
+            if (eventName === event.name) { yield [event.name, event.callback, event.context]; }
+         }
+      }
+      else
+      {
+         for (const event of this._events)
+         {
+            yield [event.name, event.callback, event.context];
+         }
+      }
+   }
+
+   /**
+    * Returns the current proxied event count.
+    *
+    * @returns {number} Returns the current proxied event count.
+    */
+   get proxyEventCount()
+   {
+      if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
+
+      return this._events.length;
+   }
+
+   /**
+    * Returns the event names of proxied event listeners.
+    *
+    * @returns {string[]} Returns the event names of proxied event listeners.
+    */
+   get proxyEventNames()
+   {
+      if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
+
+      if (!this._events) { return []; }
+
+      const eventNames = {};
+
+      for (const event of this._events) { eventNames[event.name] = true; }
+
+      return Object.keys(eventNames);
    }
 
    /**

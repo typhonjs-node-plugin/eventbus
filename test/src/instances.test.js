@@ -16,10 +16,10 @@ describe('Instances', () =>
 
    it('get name', () =>
    {
-      assert(auxEventbus.eventbusName === 'auxEventbus');
-      assert(mainEventbus.eventbusName === 'mainEventbus');
-      assert(pluginEventbus.eventbusName === 'pluginEventbus');
-      assert(testEventbus.eventbusName === 'testEventbus');
+      assert(auxEventbus.name === 'auxEventbus');
+      assert(mainEventbus.name === 'mainEventbus');
+      assert(pluginEventbus.name === 'pluginEventbus');
+      assert(testEventbus.name === 'testEventbus');
    });
 
    it('trigger (auxEventbus)', () =>

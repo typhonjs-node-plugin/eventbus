@@ -17,9 +17,9 @@ describe('EventbusProxy', () =>
 
    it('get name', () =>
    {
-      eventbus.eventbusName = 'testname';
-
-      assert(proxy.eventbusName === 'testname');
+      eventbus = new Eventbus('testname');
+      proxy = eventbus.createProxy();
+      assert(proxy.name === 'testname');
    });
 
    it('entries()', () =>
@@ -239,7 +239,7 @@ describe('EventbusProxy', () =>
       try { proxy.destroy(); }
       catch (err) { testError(err); }
 
-      try { proxy.getEventbusName(); }
+      try { proxy.name(); }
       catch (err) { testError(err); }
 
       try { proxy.off(); }

@@ -23,11 +23,11 @@ describe('Eventbus', () =>
 
    it('set / get name', () =>
    {
-      eventbus.eventbusName = 'testname';
-      assert.strictEqual(eventbus.eventbusName, 'testname');
+      eventbus = new Eventbus('testname');
+      assert.strictEqual(eventbus.name, 'testname');
 
       eventbus = new Eventbus('testname2');
-      assert.strictEqual(eventbus.eventbusName, 'testname2');
+      assert.strictEqual(eventbus.name, 'testname2');
    });
 
    it('entries', () =>

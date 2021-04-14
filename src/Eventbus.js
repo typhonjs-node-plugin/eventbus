@@ -74,7 +74,7 @@ export default class Eventbus
     *
     * @returns {string|*} The current eventbus name.
     */
-   get eventbusName()
+   get name()
    {
       return this._eventbusName;
    }
@@ -265,16 +265,6 @@ export default class Eventbus
       if (typeof name === 'string' && (context === null || typeof context === 'undefined')) { callback = void 0; }
 
       return this.on(events, callback, context);
-   }
-
-   /**
-    * Sets the eventbus name.
-    *
-    * @param {string}   name - The name for this eventbus.
-    */
-   set eventbusName(name)
-   {
-      this._eventbusName = name;
    }
 
    /**

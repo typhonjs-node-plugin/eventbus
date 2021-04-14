@@ -4,10 +4,10 @@
   "version": "0.0.0",
   "author": "typhonrt",
   "type": "module",
-  "main": "src/Eventbus.js",
-  "module": "src/Eventbus.js",
+  "main": "src/index.js",
+  "module": "src/index.js",
   "exports": {
-    ".": "./src/Eventbus.js",
+    ".": "./src/index.js",
     "./EventbusProxy": "./src/EventbusProxy.js",
     "./instances": "./src/instances.js"
   },

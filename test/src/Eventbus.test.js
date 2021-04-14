@@ -1,6 +1,6 @@
-import { assert }    from 'chai';
+import { assert, expect }  from 'chai';
 
-import Eventbus  from '../../src/Eventbus.js';
+import Eventbus            from '../../src/Eventbus.js';
 
 /* eslint-disable no-undef */
 
@@ -829,6 +829,18 @@ describe('Eventbus', () =>
       assert.strictEqual(result, 'foo');
    });
 
+   it('async / await - triggerAsync - reject', async () =>
+   {
+      eventbus.on('test:trigger:async',
+       s_CREATE_TIMED_FUNC((resolve) => { callbacks.testTriggerAsync = true; resolve('foo'); }));
+
+      eventbus.on('test:trigger:async', s_CREATE_TIMED_FUNC((resolve, reject) => { reject('bar'); }));
+
+      assert.strictEqual(eventbus.eventCount, 2);
+
+      await expect(eventbus.triggerAsync('test:trigger:async')).to.be.rejectedWith('bar');
+   });
+
    it('async / await - triggerAsync - try / catch reject error', async () =>
    {
       eventbus.on('test:trigger:async',
@@ -839,13 +851,7 @@ describe('Eventbus', () =>
 
       assert.strictEqual(eventbus.eventCount, 2);
 
-      try
-      {
-         await eventbus.triggerAsync('test:trigger:async');
-
-         throw new Error('No error thrown: should not reach here!');
-      }
-      catch (err) { /* nop */ }
+      await expect(eventbus.triggerAsync('test:trigger:async')).to.be.rejectedWith(Error, 'An Error!');
    });
 
    it('async / await - triggerAsync - try / catch sync error', async () =>
@@ -857,12 +863,6 @@ describe('Eventbus', () =>
 
       assert.strictEqual(eventbus.eventCount, 2);
 
-      try
-      {
-         await eventbus.triggerAsync('test:trigger:async');
-
-         throw new Error('No error thrown: should not reach here!');
-      }
-      catch (err) { /* nop */ }
+      await expect(eventbus.triggerAsync('test:trigger:async')).to.be.rejectedWith(Error, 'An Error!');
    });
 });

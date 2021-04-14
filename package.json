@@ -2,7 +2,7 @@
   "name": "@typhonjs-plugin/eventbus",
   "description": "Provides an eventbus ",
   "version": "0.0.0",
-  "author": "typhonrt",
+  "author": "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)",
   "type": "module",
   "main": "src/index.js",
   "module": "src/index.js",
@@ -11,12 +11,8 @@
     "./EventbusProxy": "./src/EventbusProxy.js",
     "./instances": "./src/instances.js"
   },
-  "maintainers": [
-    {
-      "name": "Michael Leahy",
-      "email": "support@typhonjs.io",
-      "url": "https://github.com/typhonrt"
-    }
+  "contributors": [
+    "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)"
   ],
   "devDependencies": {
     "@typhonjs-node-utils/build-test": "^0.1.0"
@@ -34,7 +30,7 @@
     "eventbus"
   ],
   "license": "MPL-2.0",
-  "repository": "typhonjs-plugin/eventbus",
+  "repository": "github:typhonjs-plugin/eventbus",
   "bugs": "https://github.com/typhonjs-plugin/eventbus/issues",
   "scripts": {
     "eslint": "eslint .",

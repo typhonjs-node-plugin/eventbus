@@ -1,6 +1,6 @@
-import { assert }    from 'chai';
+import { assert, expect }  from 'chai';
 
-import Eventbus  from '../../src/Eventbus.js';
+import Eventbus            from '../../src/Eventbus.js';
 
 /* eslint-disable no-undef */
 
@@ -221,7 +221,6 @@ describe('EventbusProxy', () =>
       proxy.destroy();
 
       assert.strictEqual(eventbus.eventCount, 1);
-      assert.strictEqual(proxy.eventCount, 0);
 
       eventbus.trigger('test:trigger');
       eventbus.trigger('test:trigger2');
@@ -229,36 +228,33 @@ describe('EventbusProxy', () =>
 
       assert.strictEqual(callbacks.testTriggerCount, 7);
 
-      const testError = (err) =>
-      {
-         assert(err instanceof ReferenceError);
-         assert.strictEqual(err.message, 'This EventbusProxy instance has been destroyed.');
-      };
+      expect(() => proxy.destroy()).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
 
-      // Ensure that proxy is destroyed and all methods throw a ReferenceError.
-      try { proxy.destroy(); }
-      catch (err) { testError(err); }
+      expect(() => { for (const entry of proxy.entries()) { console.log(entry); } }).to.throw(ReferenceError,
+       'This EventbusProxy instance has been destroyed.');
 
-      try { proxy.name(); }
-      catch (err) { testError(err); }
+      expect(() => proxy.eventCount).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
 
-      try { proxy.off(); }
-      catch (err) { testError(err); }
+      expect(() => proxy.eventNames).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
 
-      try { proxy.on('test:bogus', testError); }
-      catch (err) { testError(err); }
+      expect(() => proxy.name).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
 
-      try { proxy.trigger('test:trigger'); }
-      catch (err) { testError(err); }
+      expect(() => proxy.off()).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
 
-      try { proxy.triggerAsync('test:trigger'); }
-      catch (err) { testError(err); }
+      expect(() => proxy.on('test:bogus', () => {})).to.throw(ReferenceError,
+       'This EventbusProxy instance has been destroyed.');
 
-      try { proxy.triggerDefer('test:trigger'); }
-      catch (err) { testError(err); }
+      expect(() => proxy.trigger('test:trigger')).to.throw(ReferenceError,
+       'This EventbusProxy instance has been destroyed.');
 
-      try { proxy.triggerSync('test:trigger'); }
-      catch (err) { testError(err); }
+      expect(() => proxy.triggerAsync('test:trigger')).to.throw(ReferenceError,
+       'This EventbusProxy instance has been destroyed.');
+
+      expect(() => proxy.triggerDefer('test:trigger')).to.throw(ReferenceError,
+       'This EventbusProxy instance has been destroyed.');
+
+      expect(() => proxy.triggerSync('test:trigger')).to.throw(ReferenceError,
+       'This EventbusProxy instance has been destroyed.');
 
       assert.strictEqual(callbacks.testTriggerCount, 7);
    });

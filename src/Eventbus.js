@@ -70,16 +70,6 @@ export default class Eventbus
    }
 
    /**
-    * Returns the current eventbus name.
-    *
-    * @returns {string|*} The current eventbus name.
-    */
-   get name()
-   {
-      return this._eventbusName;
-   }
-
-   /**
     * Returns the current event count.
     *
     * @returns {number} The current proxied event count.
@@ -104,6 +94,16 @@ export default class Eventbus
       if (!this._events) { return []; }
 
       return Object.keys(this._events);
+   }
+
+   /**
+    * Returns the current eventbus name.
+    *
+    * @returns {string|*} The current eventbus name.
+    */
+   get name()
+   {
+      return this._eventbusName;
    }
 
    /**

@@ -97,7 +97,7 @@ export default class EventbusProxy
    }
 
    /**
-    * Returns the event names of proxied eventbys event listeners.
+    * Returns the event names of proxied eventbus event listeners.
     *
     * @returns {string[]} Returns the event names of proxied event listeners.
     */

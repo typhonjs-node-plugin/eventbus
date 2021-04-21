@@ -94,17 +94,20 @@ export default class EventbusProxy
    }
 
    /**
-    * Returns the event names of proxied eventbus event listeners.
+    * Returns an iterable for the event names / keys of proxied eventbus event listeners.
     *
     * @param {RegExp} [regex] Optional regular expression to filter event names.
     *
-    * @returns {string[]} Returns the event names of proxied event listeners.
+    * @yields
     */
-   getEventNames(regex = void 0)
+   *keys(regex = void 0)
    {
       if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
-      return this._eventbus.getEventNames(regex);
+      for (const entry of this._eventbus.keys(regex))
+      {
+         yield entry;
+      }
    }
 
    /**
@@ -241,33 +244,36 @@ export default class EventbusProxy
    }
 
    /**
-    * Returns the event names of proxied event listeners.
+    * Returns an iterable for the event names / keys of the locally proxied event listeners.
     *
     * @param {RegExp} [regex] Optional regular expression to filter event names.
     *
-    * @returns {string[]} Returns the event names of proxied event listeners.
+    * @yields
     */
-   getProxyEventNames(regex = void 0)
+   *proxyKeys(regex = void 0)
    {
       if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
       if (regex !== void 0 && !(regex instanceof RegExp)) { throw new TypeError(`'regex' is not a RegExp`); }
 
-      if (!this._events) { return []; }
+      if (!this._events) { return; }
 
       if (regex)
       {
-         const results = [];
          for (const name in this._events)
          {
             if (regex.test(name))
             {
-               results.push(name);
+               yield name;
             }
          }
-         return results;
       }
-
-      return objectKeys(this._events);
+      else
+      {
+         for (const name in this._events)
+         {
+            yield name;
+         }
+      }
    }
 
    /**

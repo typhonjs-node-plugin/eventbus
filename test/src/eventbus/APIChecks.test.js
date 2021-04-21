@@ -20,9 +20,9 @@ if (config.apichecks)
          result = eventbus.entries();
          expect(result.next()).to.eql({ done: true, value: void 0 });
 
-         result = eventbus.getEventNames();
-         assert.isArray(result);
-         assert.strictEqual(result.length, 0);
+         // Empty generator
+         result = eventbus.keys();
+         expect(result.next()).to.eql({ done: true, value: void 0 });
 
          result = eventbus.on('test');
          expect(result).to.equal(eventbus);

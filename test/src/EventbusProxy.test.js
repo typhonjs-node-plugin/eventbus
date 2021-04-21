@@ -24,6 +24,14 @@ if (config.eventbusproxy)
          assert(proxy.name === 'testname');
       });
 
+      it('entries throws when regex not instance of RegExp', () =>
+      {
+         expect(() =>
+         {
+            for (const array of proxy.entries(false)) { console.log(array); }
+         }).to.throw(TypeError, `'regex' is not a RegExp`);
+      });
+
       it('entries()', () =>
       {
          const eventbusCallback = () => {};
@@ -53,6 +61,41 @@ if (config.eventbusproxy)
          let cntr = 0;
 
          for (const [name, callback, context] of proxy.entries())
+         {
+            assert.strictEqual(name, allNames[cntr]);
+            assert.strictEqual(callback, allCallbacks[cntr]);
+            assert.strictEqual(context, allContexts[cntr]);
+            cntr++;
+         }
+      });
+
+      it(`entries(/test:trigger3/) w/ regex`, () =>
+      {
+         const callback1 = () => {};
+         const callback2 = () => {};
+         const callback3 = () => {};
+         const callback3A = () => {};
+
+         const context1 = {};
+         const context2 = {};
+         const context3 = {};
+         const context3A = {};
+
+         const allCallbacks = [callback3, callback3A];
+         const allContexts = [context3, context3A];
+         const allNames = ['test:trigger3', 'test:trigger3'];
+
+         // Proxy will not list this event on the main eventbus.
+         eventbus.on('can:not:see:this', () => {});
+
+         proxy.on('test:trigger', callback1, context1);
+         proxy.on('test:trigger2', callback2, context2);
+         proxy.on('test:trigger3', callback3, context3);
+         proxy.on('test:trigger3', callback3A, context3A);
+
+         let cntr = 0;
+
+         for (const [name, callback, context] of proxy.entries(/test:trigger3/))
          {
             assert.strictEqual(name, allNames[cntr]);
             assert.strictEqual(callback, allCallbacks[cntr]);
@@ -124,6 +167,14 @@ if (config.eventbusproxy)
          assert.strictEqual(eventNames.length, 0);
       });
 
+      it('proxyEntries() throws when regex not instance of RegExp', () =>
+      {
+         expect(() =>
+         {
+            for (const array of proxy.proxyEntries(false)) { console.log(array); }
+         }).to.throw(TypeError, `'regex' is not a RegExp`);
+      });
+
       it('proxyEntries()', () =>
       {
          const callback1 = () => {};
@@ -159,7 +210,7 @@ if (config.eventbusproxy)
          }
       });
 
-      it(`proxyEntries('test:trigger3') w/ event name`, () =>
+      it(`proxyEntries(/test:trigger3/) w/ regex`, () =>
       {
          const callback1 = () => {};
          const callback2 = () => {};
@@ -185,7 +236,7 @@ if (config.eventbusproxy)
 
          let cntr = 0;
 
-         for (const [name, callback, context] of proxy.proxyEntries('test:trigger3'))
+         for (const [name, callback, context] of proxy.proxyEntries(/test:trigger3/))
          {
             assert.strictEqual(name, allNames[cntr]);
             assert.strictEqual(callback, allCallbacks[cntr]);

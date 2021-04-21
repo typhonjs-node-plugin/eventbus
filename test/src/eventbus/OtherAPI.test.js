@@ -1,4 +1,4 @@
-import { assert } from 'chai';
+import { assert, expect } from 'chai';
 
 import Eventbus   from '../../../src/Eventbus.js';
 
@@ -19,6 +19,14 @@ if (config.other)
 
          eventbus = new Eventbus('testname2');
          assert.strictEqual(eventbus.name, 'testname2');
+      });
+
+      it('entries throws when regex not instance of RegExp', () =>
+      {
+         expect(() =>
+         {
+            for (const array of eventbus.entries(false)) { console.log(array); }
+         }).to.throw(TypeError, `'regex' is not a RegExp`);
       });
 
       it('entries', () =>
@@ -53,7 +61,7 @@ if (config.other)
          }
       });
 
-      it('entries w/ event name', () =>
+      it('entries w/ regex', () =>
       {
          const callback1 = () => {};
          const callback2 = () => {};
@@ -76,7 +84,7 @@ if (config.other)
 
          let cntr = 2;
 
-         for (const [name, callback, context] of eventbus.entries('test:trigger3'))
+         for (const [name, callback, context] of eventbus.entries(/test:trigger3/))
          {
             assert.strictEqual(name, allNames[cntr]);
             assert.strictEqual(callback, allCallbacks[cntr]);

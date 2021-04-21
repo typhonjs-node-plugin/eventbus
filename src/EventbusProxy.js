@@ -65,15 +65,15 @@ export default class EventbusProxy
     * Iterates over all of events from the proxied eventbus yielding an array with event name, callback function, and
     * event context.
     *
-    * @param {string} [eventName] Optional event name to iterate over.
+    * @param {RegExp} [regex] Optional regular expression to filter event names.
     *
     * @yields
     */
-   *entries(eventName = void 0)
+   *entries(regex = void 0)
    {
       if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
-      for (const entry of this._eventbus.entries(eventName))
+      for (const entry of this._eventbus.entries(regex))
       {
          yield entry;
       }
@@ -210,22 +210,23 @@ export default class EventbusProxy
    /**
     * Iterates over all stored proxy events yielding an array with event name, callback function, and event context.
     *
-    * @param {string} [eventName] Optional event name to iterate over.
+    * @param {RegExp} [regex] Optional regular expression to filter event names.
     *
     * @yields
     */
-   *proxyEntries(eventName = void 0)
+   *proxyEntries(regex = void 0)
    {
       if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
+      if (regex !== void 0 && !(regex instanceof RegExp)) { throw new TypeError(`'regex' is not a RegExp`); }
 
       /* c8 ignore next */
       if (!this._events) { return; }
 
-      if (eventName)
+      if (regex)
       {
          for (const event of this._events)
          {
-            if (eventName === event.name) { yield [event.name, event.callback, event.context]; }
+            if (regex.test(event.name)) { yield [event.name, event.callback, event.context]; }
          }
       }
       else

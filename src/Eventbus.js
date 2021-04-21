@@ -53,19 +53,27 @@ export default class Eventbus
    /**
     * Iterates over all stored events yielding an array with event name, callback function, and event context.
     *
-    * @param {string} [eventName] Optional event name to iterate over.
+    * @param {RegExp} [regex] Optional regular expression to filter event names.
     *
     * @yields
     */
-   *entries(eventName = void 0)
+   *entries(regex = void 0)
    {
+      if (regex !== void 0 && !(regex instanceof RegExp)) { throw new TypeError(`'regex' is not a RegExp`); }
+
       if (!this._events) { return; }
 
-      if (eventName)
+      if (regex)
       {
-         for (const event of this._events[eventName])
+         for (const name in this._events)
          {
-            yield [eventName, event.callback, event.ctx];
+            if (regex.test(name))
+            {
+               for (const event of this._events[name])
+               {
+                  yield [name, event.callback, event.ctx];
+               }
+            }
          }
       }
       else

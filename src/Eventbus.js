@@ -138,7 +138,7 @@ export default class Eventbus
          return results;
       }
 
-      return Object.keys(this._events);
+      return s_KEYS(this._events);
    }
 
    /**
@@ -154,26 +154,35 @@ export default class Eventbus
     * @param {object}   obj         - Event context
     * @param {string}   name        - Event name(s)
     * @param {Function} callback    - Event callback function
-    * @param {object}   [context]   - Optional: event context
     * @returns {Eventbus} This Eventbus instance.
     */
-   listenTo(obj, name, callback, context = this)
+   listenTo(obj, name, callback)
    {
       if (!obj) { return this; }
       const id = obj._listenId || (obj._listenId = s_UNIQUE_ID('l'));
       const listeningTo = this._listeningTo || (this._listeningTo = {});
-      let listening = listeningTo[id];
+      let listening = _listening = listeningTo[id];
 
       // This object is not listening to any other events on `obj` yet.
       // Setup the necessary references to track the listening callbacks.
       if (!listening)
       {
-         const thisId = this._listenId || (this._listenId = s_UNIQUE_ID('l'));
-         listening = listeningTo[id] = { obj, objId: id, id: thisId, listeningTo, count: 0 };
+         // const thisId = this._listenId || (this._listenId = s_UNIQUE_ID('l'));
+         // listening = listeningTo[id] = { obj, objId: id, id: thisId, listeningTo, count: 0 };
+
+         this._listenId || (this._listenId = s_UNIQUE_ID('l'));
+         listening = _listening = listeningTo[id] = new Listening(this, obj);
       }
 
-      // Bind callbacks on obj, and keep track of them on listening.
-      s_INTERNAL_ON(obj, name, callback, context, listening);
+      // Bind callbacks on obj.
+      const error = s_TRY_CATCH_ON(obj, name, callback, this);
+      _listening = void 0;
+
+      if (error) { throw error; }
+
+      // If the target obj is not Backbone.Events, track events manually.
+      if (listening.interop) { listening.on(name, callback); }
+
       return this;
    }
 
@@ -185,15 +194,14 @@ export default class Eventbus
     * @param {object}   obj      - Event context
     * @param {string}   name     - Event name(s)
     * @param {Function} callback - Event callback function
-    * @param {object}   [context=this] - Optional: event context
     * @returns {Eventbus} This Eventbus instance.
     */
-   listenToOnce(obj, name, callback, context = this)
+   listenToOnce(obj, name, callback)
    {
       // Map the event into a `{event: once}` object.
       const events = s_EVENTS_API(this._ONCE_MAP, {}, name, callback, this.stopListening.bind(this, obj));
 
-      return this.listenTo(obj, events, void 0, context);
+      return this.listenTo(obj, events);
    }
 
    /**
@@ -222,9 +230,9 @@ export default class Eventbus
     *
     * @see http://backbonejs.org/#Events-off
     *
-    * @param {string}   name     - Event name(s)
-    * @param {Function} callback - Event callback function
-    * @param {object}   context  - Event context
+    * @param {string}   [name]     - Event name(s)
+    * @param {Function} [callback] - Event callback function
+    * @param {object}   [context]  - Event context
     * @returns {Eventbus} This Eventbus instance.
     */
    off(name, callback = void 0, context = void 0)
@@ -272,7 +280,22 @@ export default class Eventbus
     */
    on(name, callback, context = void 0)
    {
-      s_INTERNAL_ON(this, name, callback, context, void 0);
+      this._events = s_EVENTS_API(s_ON_API, this._events || {}, name, callback,
+      {
+         context,
+         ctx: this,
+         listening: _listening
+      });
+
+      if (_listening)
+      {
+         const listeners = this._listeners || (this._listeners = {});
+         listeners[_listening.id] = _listening;
+
+         // Allow the listening to use a counter, instead of tracking callbacks for library interop.
+         _listening.interop = false;
+      }
+
       return this;
    }
 
@@ -295,8 +318,7 @@ export default class Eventbus
 
       if (typeof name === 'string' && (context === null || context === void 0)) { callback = void 0; }
 
-      s_INTERNAL_ON(this, events, callback, context, void 0);
-      return this;
+      return this.on(events, callback, context);
    }
 
    /**
@@ -314,15 +336,14 @@ export default class Eventbus
     * @param {object}   obj            - Event context
     * @param {string}   name           - Event name(s)
     * @param {Function} callback       - Event callback function
-    * @param {object}   [context=this] - Optional: event context
     * @returns {Eventbus} This Eventbus instance.
     */
-   stopListening(obj, name = void 0, callback = void 0, context = this)
+   stopListening(obj, name = void 0, callback = void 0)
    {
       const listeningTo = this._listeningTo;
       if (!listeningTo) { return this; }
 
-      const ids = obj ? [obj._listenId] : Object.keys(listeningTo);
+      const ids = obj ? [obj._listenId] : s_KEYS(listeningTo);
 
       for (let i = 0; i < ids.length; i++)
       {
@@ -331,7 +352,9 @@ export default class Eventbus
          // If listening doesn't exist, this object is not currently listening to obj. Break out early.
          if (!listening) { break; }
 
-         listening.obj.off(name, callback, context);
+         listening.obj.off(name, callback, this);
+
+         if (listening.interop) { listening.off(name, callback); }
       }
 
       return this;
@@ -466,20 +489,80 @@ export default class Eventbus
 
 // Private / internal methods ---------------------------------------------------------------------------------------
 
-const s_ONCE = function(func)
+/**
+ * Global listening object
+ *
+ * @type {Listening}
+ */
+let _listening;
+
+/**
+ * A listening class that tracks and cleans up memory bindings when all callbacks have been offed.
+ */
+class Listening
 {
-   let result;
-   return function(...args)
+   constructor(listener, obj)
    {
-      if (func)
+      this.id = listener._listenId;
+      this.listener = listener;
+      this.obj = obj;
+      this.interop = true;
+      this.count = 0;
+      this._events = void 0;
+   }
+
+   // Cleans up memory bindings between the listener and the listenee.
+   cleanup()
+   {
+      delete this.listener._listeningTo[this.obj._listenId];
+      if (!this.interop) { delete this.obj._listeners[this.id]; }
+   }
+
+   /**
+    * @see {@link Eventbus#on}
+    *
+    * @param {string}   name     - Event name(s)
+    * @param {Function} callback - Event callback function
+    * @param {object}   context  - Event context
+    * @returns {Listening} This Listening instance.
+    */
+   on(name, callback, context = void 0)
+   {
+      this._events = s_EVENTS_API(s_ON_API, this._events || {}, name, callback,
       {
-         result = func.apply(this, args);
-         func = void 0;
+         context,
+         ctx: this,
+         listening: this
+      });
+
+      return this;
+   }
+
+   // Offs a callback (or several).
+   // Uses an optimized counter if the listenee uses Backbone.Events.
+   // Otherwise, falls back to manual tracking to support events
+   // library interop.
+   off(name, callback)
+   {
+      let cleanup;
+
+      if (this.interop)
+      {
+         this._events = s_EVENTS_API(s_OFF_API, this._events, name, callback, {
+            context: void 0,
+            listeners: void 0
+         });
+         cleanup = !this._events;
+      }
+      else
+      {
+         this.count--;
+         cleanup = this.count === 0;
       }
 
-      return result;
-   };
-};
+      if (cleanup) { this.cleanup(); }
+   }
+}
 
 /**
  * Regular expression used to split event strings.
@@ -506,7 +589,7 @@ const s_EVENTS_API = (iteratee, events, name, callback, opts) =>
    {
       // Handle event maps.
       if (callback !== void 0 && 'context' in opts && opts.context === void 0) { opts.context = callback; }
-      for (names = Object.keys(name); i < names.length; i++)
+      for (names = s_KEYS(name); i < names.length; i++)
       {
          events = s_EVENTS_API(iteratee, events, names[i], name[names[i]], opts);
       }
@@ -525,6 +608,131 @@ const s_EVENTS_API = (iteratee, events, name, callback, opts) =>
       events = iteratee(events, name, callback, opts);
    }
    return events;
+};
+
+/**
+ * Provides  protected Object.keys functionality.
+ *
+ * @param {object}   object - Object to retrieve keys.
+ *
+ * @returns {string[]} Keys of object if any.
+ */
+const s_KEYS = (object) =>
+{
+   return object === null || typeof object !== 'object' ? [] : Object.keys(object);
+};
+
+/**
+ * The reducing API that removes a callback from the `events` object.
+ *
+ * @param {Events}   events   - Events object
+ * @param {string}   name     - Event name
+ * @param {Function} callback - Event callback
+ * @param {object}   options  - Optional parameters
+ * @returns {void|Events} Events object
+ */
+const s_OFF_API = (events, name, callback, options) =>
+{
+   /* c8 ignore next 1 */
+   if (!events) { return; }
+
+   const context = options.context, listeners = options.listeners;
+   let i = 0, names;
+
+   // Delete all event listeners and "drop" events.
+   if (!name && !context && !callback)
+   {
+      for (names = s_KEYS(listeners); i < names.length; i++)
+      {
+         listeners[names[i]].cleanup();
+      }
+      return;
+   }
+
+   names = name ? [name] : s_KEYS(events);
+
+   for (; i < names.length; i++)
+   {
+      name = names[i];
+      const handlers = events[name];
+
+      // Bail out if there are no events stored.
+      if (!handlers) { break; }
+
+      // Find any remaining events.
+      const remaining = [];
+      for (let j = 0; j < handlers.length; j++)
+      {
+         const handler = handlers[j];
+         if (callback && callback !== handler.callback && callback !== handler.callback._callback ||
+          context && context !== handler.context)
+         {
+            remaining.push(handler);
+         }
+         else
+         {
+            const listening = handler.listening;
+            if (listening) { listening.off(name, callback); }
+         }
+      }
+
+      // Replace events if there are any remaining.  Otherwise, clean up.
+      if (remaining.length)
+      {
+         events[name] = remaining;
+      }
+      else
+      {
+         delete events[name];
+      }
+   }
+
+   return events;
+};
+
+/**
+ * The reducing API that adds a callback to the `events` object.
+ *
+ * @param {Events}   events   - Events object
+ * @param {string}   name     - Event name
+ * @param {Function} callback - Event callback
+ * @param {object}   options  - Optional parameters
+ * @returns {Events} Events object.
+ */
+const s_ON_API = (events, name, callback, options) =>
+{
+   if (callback)
+   {
+      const handlers = events[name] || (events[name] = []);
+      const context = options.context, ctx = options.ctx, listening = options.listening;
+
+      if (listening) { listening.count++; }
+
+      handlers.push({ callback, context, ctx: context || ctx, listening });
+   }
+   return events;
+};
+
+/**
+ * Only executes the given function once storing the result.
+ *
+ * @param {Function} func - Function to run once.
+ *
+ * @returns {Function} Wrapped function.
+ */
+const s_ONCE = function(func)
+{
+   let result;
+   return function(...args)
+   {
+      if (func)
+      {
+         result = func.apply(this, args);
+         func = void 0;
+      }
+
+      return result;
+   };
 };
 
 /**
@@ -608,166 +816,16 @@ const s_RESULTS_TARGET_API = (iteratee, iterateeTarget, events, name, callback, 
 };
 
 /**
- * Guard the `listening` argument from the public API.
- *
- * @param {object}   obj            - Event context
- * @param {string|object} name      - A single event name, compound event names, or a hash of event names.
- * @param {Function} callback       - Event callback
- * @param {object}   context        - Event context
- * @param {ListeningData} listening - Listening object
- *
- * @returns {object} Event context.
- */
-const s_INTERNAL_ON = (obj, name, callback, context, listening) =>
-{
-   obj._events = s_EVENTS_API(s_ON_API, obj._events || {}, name, callback, { context, ctx: obj, listening });
-
-   if (listening)
-   {
-      const listeners = obj._listeners || (obj._listeners = {});
-      listeners[listening.id] = listening;
-   }
-
-   return obj;
-};
-
-/**
- * The reducing API that removes a callback from the `events` object.
- *
- * @param {Events}   events   - Events object
- * @param {string}   name     - Event name
- * @param {Function} callback - Event callback
- * @param {object}   options  - Optional parameters
- * @returns {void|Events} Events object
- */
-const s_OFF_API = (events, name, callback, options) =>
-{
-   /* c8 ignore next 1 */
-   if (!events) { return; }
-
-   let i = 0, listening;
-   const context = options.context, listeners = options.listeners;
-
-   // Delete all events listeners and "drop" events.
-   if (!name && !callback && !context && listeners)
-   {
-      const ids = Object.keys(listeners);
-      for (; i < ids.length; i++)
-      {
-         listening = listeners[ids[i]];
-         delete listeners[listening.id];
-         delete listening.listeningTo[listening.objId];
-      }
-      return;
-   }
-
-   const names = name ? [name] : Object.keys(events);
-   for (; i < names.length; i++)
-   {
-      name = names[i];
-      const handlers = events[name];
-
-      // Bail out if there are no events stored.
-      /* c8 ignore next */
-      if (!handlers) { break; }
-
-      // Replace events if there are any remaining.  Otherwise, clean up.
-      const remaining = [];
-      for (let j = 0; j < handlers.length; j++)
-      {
-         const handler = handlers[j];
-         if (
-          callback && callback !== handler.callback &&
-          callback !== handler.callback._callback ||
-          context && context !== handler.context
-         )
-         {
-            remaining.push(handler);
-         }
-         else
-         {
-            listening = handler.listening;
-            if (listening && --listening.count === 0)
-            {
-               delete listeners[listening.id];
-               delete listening.listeningTo[listening.objId];
-            }
-         }
-      }
-
-      // Update tail event if the list has any events.  Otherwise, clean up.
-      if (remaining.length)
-      {
-         events[name] = remaining;
-      }
-      else
-      {
-         delete events[name];
-      }
-   }
-
-   return events;
-};
-
-/**
- * The reducing API that adds a callback to the `events` object.
- *
- * @param {Events}   events   - Events object
- * @param {string}   name     - Event name
- * @param {Function} callback - Event callback
- * @param {object}   options  - Optional parameters
- * @returns {Events} Events object.
- */
-const s_ON_API = (events, name, callback, options) =>
-{
-   if (callback)
-   {
-      const handlers = events[name] || (events[name] = []);
-      const context = options.context, ctx = options.ctx, listening = options.listening;
-
-      if (listening) { listening.count++; }
-
-      handlers.push({ callback, context, ctx: context || ctx, listening });
-   }
-   return events;
-};
-
-// /**
-//  * Reduces the event callbacks into a map of `{event: onceWrapper}`. `offer` unbinds the `onceWrapper` after
-//  * it has been called.
-//  *
-//  * @param {Events}   map      - Events object
-//  * @param {string}   name     - Event name
-//  * @param {Function} callback - Event callback
-//  * @param {Function} offer    - Function to invoke after event has been triggered once; `off()`
-//  * @returns {Events} The Events object.
-//  */
-// const s_ONCE_MAP = function(map, name, callback, offer)
-// {
-//    if (callback)
-//    {
-//       const once = map[name] = () =>
-//       {
-//          offer(name, once);
-//          return callback.apply(this, arguments);
-//       };
-//
-//       once._callback = callback;
-//    }
-//    return map;
-// };
-
-/**
  * Handles triggering the appropriate event callbacks.
  *
  * @param {Function} iterateeTarget - Internal function which is dispatched to.
  * @param {Events}   objEvents      - Array of stored event callback data.
  * @param {string}   name           - Event name(s)
- * @param {Function} cb             - callback
+ * @param {Function} callback       - callback
  * @param {*[]}      args           - Arguments supplied to a trigger method.
  * @returns {*} The results from the triggered event.
  */
-const s_TRIGGER_API = (iterateeTarget, objEvents, name, cb, args) =>
+const s_TRIGGER_API = (iterateeTarget, objEvents, name, callback, args) =>
 {
    let result;
 
@@ -973,6 +1031,28 @@ const s_TRIGGER_SYNC_EVENTS = (events, args) =>
 
    // Return the results array if there are more than one or just a single result.
    return results.length > 1 ? results : results.length === 1 ? results[0] : void 0;
+};
+
+/**
+ * A try-catch guarded #on function, to prevent poisoning the global `_listening` variable.
+ *
+ * @param {Eventbus} obj -
+ * @param {string}   name -
+ * @param {Function} callback -
+ * @param {object}   context -
+ *
+ * @returns {Error} Any error if thrown.
+ */
+const s_TRY_CATCH_ON = (obj, name, callback, context) =>
+{
+   try
+   {
+      obj.on(name, callback, context);
+   }
+   catch (err)
+   {
+      return err;
+   }
 };
 
 /**

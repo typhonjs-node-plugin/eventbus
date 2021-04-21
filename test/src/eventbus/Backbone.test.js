@@ -533,5 +533,73 @@ if (config.backbone)
 
          assert.strictEqual(count, 2);
       });
+
+      it('listenTo is compatible with non-Backbone event libraries', () =>
+      {
+         const other = {
+            events: {},
+            on: function(name, callback)
+            {
+               this.events[name] = callback;
+            },
+            trigger: function(name)
+            {
+               this.events[name]();
+            }
+         };
+
+         eventbus.listenTo(other, 'test', () => { count++; assert.ok(true); });
+         other.trigger('test');
+
+         assert.strictEqual(count, 1);
+      });
+
+      it('stopListening is compatible with non-Backbone event libraries', () =>
+      {
+         const other = {
+            _events: {},
+            on: function(name, callback)
+            {
+               this._events[name] = callback;
+            },
+            off: function()
+            {
+               this._events = {};
+            },
+            trigger: function(name)
+            {
+               const fn = this._events[name];
+               if (fn) { fn(); }
+            }
+         };
+
+         eventbus.listenTo(other, 'test', () => { assert.ok(false); });
+         eventbus.stopListening(other);
+         other.trigger('test');
+
+         assert.equal(size(eventbus._listeningTo), 0);
+      });
+
+      it('fabricated error in other eventbus implementation', () =>
+      {
+         const other = {
+            _events: {},
+            on: function()
+            {
+               throw new Error('Other Eventbus On Fake Error');
+            },
+            off: function()
+            {
+               this._events = {};
+            },
+            trigger: function(name)
+            {
+               const fn = this._events[name];
+               if (fn) { fn(); }
+            }
+         };
+
+         expect(() => eventbus.listenTo(other, 'test', () => {})).to.throw(Error, 'Other Eventbus On Fake Error');
+      });
    });
 }

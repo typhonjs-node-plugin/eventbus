@@ -2,7 +2,6 @@
 export default {
    apichecks:              true,
    backbone:               true,
-   failing:                false,
    other:                  true,
    trigger:                true,
    triggerAsync:           true,

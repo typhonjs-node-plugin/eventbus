@@ -116,7 +116,28 @@ if (config.eventbusproxy)
          assert.strictEqual(proxy.eventCount, 5);
       });
 
-      it('get - eventNames', () =>
+      it('getEventNames throws when regex not instance of RegExp', () =>
+      {
+         expect(() => { proxy.getEventNames(false); }).to.throw(TypeError, `'regex' is not a RegExp`);
+      });
+
+      it('getEventNames', () =>
+      {
+         eventbus.on('can:see:this', () => {});
+
+         proxy.on('test:trigger', () => {});
+         proxy.on('test:trigger2', () => {});
+         proxy.on('test:trigger2', () => {});
+         proxy.on('test:trigger3', () => {});
+         proxy.on('test:trigger3A', () => {});
+
+         const eventNames = proxy.getEventNames();
+
+         assert.strictEqual(JSON.stringify(eventNames),
+          '["can:see:this","test:trigger","test:trigger2","test:trigger3","test:trigger3A"]');
+      });
+
+      it('getEventNames w/ regex', () =>
       {
          eventbus.on('can:see:this', () => {});
 
@@ -124,11 +145,11 @@ if (config.eventbusproxy)
          proxy.on('test:trigger2', () => {});
          proxy.on('test:trigger3', () => {});
          proxy.on('test:trigger3', () => {});
+         proxy.on('test:trigger3A', () => {});
 
-         const eventNames = proxy.eventNames;
+         const eventNames = proxy.getEventNames(/test:trigger3/);
 
-         assert.strictEqual(JSON.stringify(eventNames),
-            '["can:see:this","test:trigger","test:trigger2","test:trigger3"]');
+         assert.strictEqual(JSON.stringify(eventNames), '["test:trigger3","test:trigger3A"]');
       });
 
       it('get - proxyEventCount', () =>
@@ -143,7 +164,22 @@ if (config.eventbusproxy)
          assert.strictEqual(proxy.proxyEventCount, 4);
       });
 
-      it('get - proxyEventNames', () =>
+      it('getProxyEventNames throws when regex not instance of RegExp', () =>
+      {
+         expect(() => { proxy.getProxyEventNames(false); }).to.throw(TypeError, `'regex' is not a RegExp`);
+      });
+
+      it('getProxyEventNames (none)', () =>
+      {
+         eventbus.on('can:not:see:this', () => {});
+
+         const eventNames = proxy.getProxyEventNames();
+
+         assert.isArray(eventNames);
+         assert.strictEqual(eventNames.length, 0);
+      });
+
+      it('getProxyEventNames', () =>
       {
          eventbus.on('can:not:see:this', () => {});
 
@@ -152,19 +188,24 @@ if (config.eventbusproxy)
          proxy.on('test:trigger3', () => {});
          proxy.on('test:trigger3', () => {});
 
-         const eventNames = proxy.proxyEventNames;
+         const eventNames = proxy.getProxyEventNames();
 
          assert.strictEqual(JSON.stringify(eventNames), '["test:trigger","test:trigger2","test:trigger3"]');
       });
 
-      it('get - proxyEventNames (none)', () =>
+      it('getProxyEventNames w/ regex', () =>
       {
          eventbus.on('can:not:see:this', () => {});
 
-         const eventNames = proxy.proxyEventNames;
+         proxy.on('test:trigger', () => {});
+         proxy.on('test:trigger2', () => {});
+         proxy.on('test:trigger3', () => {});
+         proxy.on('test:trigger3', () => {});
+         proxy.on('test:trigger3A', () => {});
 
-         assert.isArray(eventNames);
-         assert.strictEqual(eventNames.length, 0);
+         const eventNames = proxy.getProxyEventNames(/test:trigger3/);
+
+         assert.strictEqual(JSON.stringify(eventNames), '["test:trigger3","test:trigger3A"]');
       });
 
       it('proxyEntries() throws when regex not instance of RegExp', () =>
@@ -431,7 +472,7 @@ if (config.eventbusproxy)
 
          expect(() => proxy.eventCount).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
 
-         expect(() => proxy.eventNames).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
+         expect(() => proxy.getEventNames()).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
 
          expect(() => proxy.name).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
 
@@ -450,7 +491,7 @@ if (config.eventbusproxy)
          expect(() => proxy.proxyEventCount).to.throw(ReferenceError,
             'This EventbusProxy instance has been destroyed.');
 
-         expect(() => proxy.proxyEventNames).to.throw(ReferenceError,
+         expect(() => proxy.getProxyEventNames()).to.throw(ReferenceError,
             'This EventbusProxy instance has been destroyed.');
 
          expect(() => proxy.trigger('test:trigger')).to.throw(ReferenceError,

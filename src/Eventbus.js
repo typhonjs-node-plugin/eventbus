@@ -103,18 +103,6 @@ export default class Eventbus
    }
 
    /**
-    * Returns the event names of registered event listeners.
-    *
-    * @returns {string[]} The event names of registered event listeners.
-    */
-   get eventNames()
-   {
-      if (!this._events) { return []; }
-
-      return Object.keys(this._events);
-   }
-
-   /**
     * Returns the current eventbus name.
     *
     * @returns {string|*} The current eventbus name.
@@ -122,6 +110,35 @@ export default class Eventbus
    get name()
    {
       return this._eventbusName;
+   }
+
+   /**
+    * Returns the event names of registered event listeners.
+    *
+    * @param {RegExp} [regex] Optional regular expression to filter event names.
+    *
+    * @returns {string[]} The event names of registered event listeners.
+    */
+   getEventNames(regex = void 0)
+   {
+      if (regex !== void 0 && !(regex instanceof RegExp)) { throw new TypeError(`'regex' is not a RegExp`); }
+
+      if (!this._events) { return []; }
+
+      if (regex)
+      {
+         const results = [];
+         for (const name in this._events)
+         {
+            if (regex.test(name))
+            {
+               results.push(name);
+            }
+         }
+         return results;
+      }
+
+      return Object.keys(this._events);
    }
 
    /**

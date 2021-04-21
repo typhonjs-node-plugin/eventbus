@@ -93,16 +93,36 @@ if (config.other)
          }
       });
 
-      it('get - eventNames', () =>
+      it('getEventNames throws when regex not instance of RegExp', () =>
+      {
+         expect(() => { eventbus.getEventNames(false); }).to.throw(TypeError, `'regex' is not a RegExp`);
+      });
+
+      it('getEventNames', () =>
       {
          eventbus.on('test:trigger', () => {});
          eventbus.on('test:trigger2', () => {});
+         eventbus.on('test:trigger2', () => {});
          eventbus.on('test:trigger3', () => {});
+         eventbus.on('test:trigger3A', () => {});
+
+         const eventNames = eventbus.getEventNames();
+
+         assert.strictEqual(JSON.stringify(eventNames),
+          '["test:trigger","test:trigger2","test:trigger3","test:trigger3A"]');
+      });
+
+      it('getEventNames w/ regex', () =>
+      {
+         eventbus.on('test:trigger', () => {});
+         eventbus.on('test:trigger2', () => {});
+         eventbus.on('test:trigger2', () => {});
          eventbus.on('test:trigger3', () => {});
+         eventbus.on('test:trigger3A', () => {});
 
-         const eventNames = eventbus.eventNames;
+         const eventNames = eventbus.getEventNames(/test:trigger3/);
 
-         assert.strictEqual(JSON.stringify(eventNames), '["test:trigger","test:trigger2","test:trigger3"]');
+         assert.strictEqual(JSON.stringify(eventNames), '["test:trigger3","test:trigger3A"]');
       });
    });
 }

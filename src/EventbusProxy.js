@@ -94,13 +94,15 @@ export default class EventbusProxy
    /**
     * Returns the event names of proxied eventbus event listeners.
     *
+    * @param {RegExp} [regex] Optional regular expression to filter event names.
+    *
     * @returns {string[]} Returns the event names of proxied event listeners.
     */
-   get eventNames()
+   getEventNames(regex = void 0)
    {
       if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
-      return this._eventbus.eventNames;
+      return this._eventbus.getEventNames(regex);
    }
 
    /**
@@ -219,9 +221,6 @@ export default class EventbusProxy
       if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
       if (regex !== void 0 && !(regex instanceof RegExp)) { throw new TypeError(`'regex' is not a RegExp`); }
 
-      /* c8 ignore next */
-      if (!this._events) { return; }
-
       if (regex)
       {
          for (const event of this._events)
@@ -253,15 +252,31 @@ export default class EventbusProxy
    /**
     * Returns the event names of proxied event listeners.
     *
+    * @param {RegExp} [regex] Optional regular expression to filter event names.
+    *
     * @returns {string[]} Returns the event names of proxied event listeners.
     */
-   get proxyEventNames()
+   getProxyEventNames(regex = void 0)
    {
       if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
+      if (regex !== void 0 && !(regex instanceof RegExp)) { throw new TypeError(`'regex' is not a RegExp`); }
 
       const eventNames = {};
 
-      for (const event of this._events) { eventNames[event.name] = true; }
+      if (regex)
+      {
+         for (const event of this._events)
+         {
+            if (regex.test(event.name))
+            {
+               eventNames[event.name] = true;
+            }
+         }
+      }
+      else
+      {
+         for (const event of this._events) { eventNames[event.name] = true; }
+      }
 
       return Object.keys(eventNames);
    }

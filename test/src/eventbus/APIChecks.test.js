@@ -20,7 +20,7 @@ if (config.apichecks)
          result = eventbus.entries();
          expect(result.next()).to.eql({ done: true, value: void 0 });
 
-         result = eventbus.eventNames;
+         result = eventbus.getEventNames();
          assert.isArray(result);
          assert.strictEqual(result.length, 0);
 

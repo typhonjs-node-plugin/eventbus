@@ -208,12 +208,28 @@ if (config.eventbusproxy)
          assert.strictEqual(JSON.stringify(eventNames), '["test:trigger3","test:trigger3A"]');
       });
 
+      it('off with no events', () =>
+      {
+         proxy.off();
+      });
+
+      it('off with non-registered event', () =>
+      {
+         proxy.on('foo', () => {});
+         proxy.off('bar');
+      });
+
       it('proxyEntries() throws when regex not instance of RegExp', () =>
       {
          expect(() =>
          {
             for (const array of proxy.proxyEntries(false)) { console.log(array); }
          }).to.throw(TypeError, `'regex' is not a RegExp`);
+      });
+
+      it('proxyEntries() with no events', () =>
+      {
+         for (const array of proxy.proxyEntries()) { assert.ok(false); console.log(array); }
       });
 
       it('proxyEntries()', () =>
@@ -284,6 +300,11 @@ if (config.eventbusproxy)
             assert.strictEqual(context, allContexts[cntr]);
             cntr++;
          }
+      });
+
+      it('proxyEventCount() with no events', () =>
+      {
+         assert.strictEqual(proxy.proxyEventCount, 0);
       });
 
       it('trigger (on / off)', () =>

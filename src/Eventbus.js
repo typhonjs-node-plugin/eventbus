@@ -1,5 +1,7 @@
 import EventbusProxy from './EventbusProxy.js';
 
+import * as Utils    from './utils.js';
+
 /**
  * `@typhonjs-plugin/eventbus` / Provides the ability to bind and trigger custom named events.
  *
@@ -95,6 +97,8 @@ export default class Eventbus
     */
    get eventCount()
    {
+      if (!this._events) { return 0; }
+
       let count = 0;
 
       for (const name in this._events) { count += this._events[name].length; }
@@ -138,7 +142,7 @@ export default class Eventbus
          return results;
       }
 
-      return s_KEYS(this._events);
+      return Utils.objectKeys(this._events);
    }
 
    /**
@@ -199,7 +203,7 @@ export default class Eventbus
    listenToOnce(obj, name, callback)
    {
       // Map the event into a `{event: once}` object.
-      const events = s_EVENTS_API(this._ONCE_MAP, {}, name, callback, this.stopListening.bind(this, obj));
+      const events = Utils.eventsAPI(s_ONCE_MAP, {}, name, callback, this.stopListening.bind(this, obj));
 
       return this.listenTo(obj, events);
    }
@@ -239,7 +243,7 @@ export default class Eventbus
    {
       if (!this._events) { return this; }
 
-      this._events = s_EVENTS_API(s_OFF_API, this._events, name, callback, { context, listeners: this._listeners });
+      this._events = Utils.eventsAPI(s_OFF_API, this._events, name, callback, { context, listeners: this._listeners });
 
       return this;
    }
@@ -280,7 +284,7 @@ export default class Eventbus
     */
    on(name, callback, context = void 0)
    {
-      this._events = s_EVENTS_API(s_ON_API, this._events || {}, name, callback,
+      this._events = Utils.eventsAPI(s_ON_API, this._events || {}, name, callback,
       {
          context,
          ctx: this,
@@ -314,7 +318,7 @@ export default class Eventbus
    once(name, callback, context = void 0)
    {
       // Map the event into a `{event: once}` object.
-      const events = s_EVENTS_API(this._ONCE_MAP, {}, name, callback, this.off.bind(this));
+      const events = Utils.eventsAPI(s_ONCE_MAP, {}, name, callback, this.off.bind(this));
 
       if (typeof name === 'string' && (context === null || context === void 0)) { callback = void 0; }
 
@@ -343,7 +347,7 @@ export default class Eventbus
       const listeningTo = this._listeningTo;
       if (!listeningTo) { return this; }
 
-      const ids = obj ? [obj._listenId] : s_KEYS(listeningTo);
+      const ids = obj ? [obj._listenId] : Utils.objectKeys(listeningTo);
 
       for (let i = 0; i < ids.length; i++)
       {
@@ -459,35 +463,35 @@ export default class Eventbus
 
       return s_RESULTS_TARGET_API(s_TRIGGER_API, s_TRIGGER_SYNC_EVENTS, this._events, name, void 0, args);
    }
-
-   /**
-    * Reduces the event callbacks into a map of `{event: onceWrapper}`. `offer` unbinds the `onceWrapper` after
-    * it has been called.
-    *
-    * @param {Events}   map      - Events object
-    * @param {string}   name     - Event name
-    * @param {Function} callback - Event callback
-    * @param {Function} offer    - Function to invoke after event has been triggered once; `off()`
-    * @returns {Events} The Events object.
-    * @ignore
-    */
-   _ONCE_MAP(map, name, callback, offer)
-   {
-      if (callback)
-      {
-         const once = map[name] = s_ONCE(function()
-         {
-            offer(name, once);
-            return callback.apply(this, arguments);
-         });
-
-         once._callback = callback;
-      }
-      return map;
-   }
 }
 
 // Private / internal methods ---------------------------------------------------------------------------------------
+
+/**
+ * Reduces the event callbacks into a map of `{event: onceWrapper}`. `offer` unbinds the `onceWrapper` after
+ * it has been called.
+ *
+ * @param {Events}   map      - Events object
+ * @param {string}   name     - Event name
+ * @param {Function} callback - Event callback
+ * @param {Function} offer    - Function to invoke after event has been triggered once; `off()`
+ * @returns {Events} The Events object.
+ * @ignore
+ */
+const s_ONCE_MAP = (map, name, callback, offer) =>
+{
+   if (callback)
+   {
+      const once = map[name] = s_ONCE(function()
+      {
+         offer(name, once);
+         return callback.apply(this, arguments);
+      });
+
+      once._callback = callback;
+   }
+   return map;
+};
 
 /**
  * Global listening object
@@ -528,7 +532,7 @@ class Listening
     */
    on(name, callback, context = void 0)
    {
-      this._events = s_EVENTS_API(s_ON_API, this._events || {}, name, callback,
+      this._events = Utils.eventsAPI(s_ON_API, this._events || {}, name, callback,
       {
          context,
          ctx: this,
@@ -548,7 +552,7 @@ class Listening
 
       if (this.interop)
       {
-         this._events = s_EVENTS_API(s_OFF_API, this._events, name, callback, {
+         this._events = Utils.eventsAPI(s_OFF_API, this._events, name, callback, {
             context: void 0,
             listeners: void 0
          });
@@ -563,64 +567,6 @@ class Listening
       if (cleanup) { this.cleanup(); }
    }
 }
-
-/**
- * Regular expression used to split event strings.
- *
- * @type {RegExp}
- */
-const s_EVENT_SPLITTER = /\s+/;
-
-/**
- * Iterates over the standard `event, callback` (as well as the fancy multiple space-separated events `"change blur",
- * callback` and jQuery-style event maps `{event: callback}`).
- *
- * @param {Function} iteratee    - Event operation to invoke.
- * @param {Events} events        - Events object
- * @param {string|object} name   - A single event name, compound event names, or a hash of event names.
- * @param {Function} callback    - Event callback function
- * @param {object}   opts        - Optional parameters
- * @returns {Events} Events object
- */
-const s_EVENTS_API = (iteratee, events, name, callback, opts) =>
-{
-   let i = 0, names;
-   if (name && typeof name === 'object')
-   {
-      // Handle event maps.
-      if (callback !== void 0 && 'context' in opts && opts.context === void 0) { opts.context = callback; }
-      for (names = s_KEYS(name); i < names.length; i++)
-      {
-         events = s_EVENTS_API(iteratee, events, names[i], name[names[i]], opts);
-      }
-   }
-   else if (name && s_EVENT_SPLITTER.test(name))
-   {
-      // Handle space-separated event names by delegating them individually.
-      for (names = name.split(s_EVENT_SPLITTER); i < names.length; i++)
-      {
-         events = iteratee(events, names[i], callback, opts);
-      }
-   }
-   else
-   {
-      // Finally, standard events.
-      events = iteratee(events, name, callback, opts);
-   }
-   return events;
-};
-
-/**
- * Provides  protected Object.keys functionality.
- *
- * @param {object}   object - Object to retrieve keys.
- *
- * @returns {string[]} Keys of object if any.
- */
-const s_KEYS = (object) =>
-{
-   return object === null || typeof object !== 'object' ? [] : Object.keys(object);
-};
 
 /**
  * The reducing API that removes a callback from the `events` object.
@@ -642,14 +588,14 @@ const s_OFF_API = (events, name, callback, options) =>
    // Delete all event listeners and "drop" events.
    if (!name && !context && !callback)
    {
-      for (names = s_KEYS(listeners); i < names.length; i++)
+      for (names = Utils.objectKeys(listeners); i < names.length; i++)
       {
          listeners[names[i]].cleanup();
       }
       return;
    }
 
-   names = name ? [name] : s_KEYS(events);
+   names = name ? [name] : Utils.objectKeys(events);
 
    for (; i < names.length; i++)
    {
@@ -754,10 +700,10 @@ const s_RESULTS_TARGET_API = (iteratee, iterateeTarget, events, name, callback, 
 
    // Handle the case of multiple events being triggered. The potential results of each event & callbacks must be
    // processed into a single array of results.
-   if (name && s_EVENT_SPLITTER.test(name))
+   if (name && Utils.eventSplitter.test(name))
    {
       // Handle space-separated event names by delegating them individually.
-      for (names = name.split(s_EVENT_SPLITTER); i < names.length; i++)
+      for (names = name.split(Utils.eventSplitter); i < names.length; i++)
       {
          const result = iteratee(iterateeTarget, events, names[i], callback, opts);
 

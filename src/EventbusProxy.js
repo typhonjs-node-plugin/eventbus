@@ -1,5 +1,7 @@
 import Eventbus from './Eventbus.js';
 
+import { eventsAPI, objectKeys } from './utils.js';
+
 /**
  * EventbusProxy provides a protected proxy of another Eventbus instance.
  *
@@ -42,7 +44,7 @@ export default class EventbusProxy
        * @type {Array<{name: string, callback: Function, context: *}>}
        * @private
        */
-      this._events = [];
+      this._events = void 0;
    }
 
    /**
@@ -53,7 +55,7 @@ export default class EventbusProxy
    {
       if (this._eventbus !== null)
       {
-         for (const event of this._events) { this._eventbus.off(event.name, event.callback, event.context); }
+         this.off();
       }
 
       this._events = [];
@@ -144,41 +146,10 @@ export default class EventbusProxy
    {
       if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
-      const hasName = typeof name !== 'undefined' && name !== null;
-      const hasCallback = typeof callback !== 'undefined' && callback !== null;
-      const hasContext = typeof context !== 'undefined' && context !== null;
-
-      // Remove all events if `off()` is invoked.
-      if (!hasName && !hasCallback && !hasContext)
-      {
-         for (const event of this._events) { this._eventbus.off(event.name, event.callback, event.context); }
-         this._events = [];
-      }
-      else
-      {
-         const values = {};
-         if (hasName) { values.name = name; }
-         if (hasCallback) { values.callback = callback; }
-         if (hasContext) { values.context = context; }
-
-         for (let cntr = this._events.length; --cntr >= 0;)
-         {
-            const event = this._events[cntr];
-
-            let foundMatch = true;
-
-            for (const key in values)
-            {
-               if (event[key] !== values[key]) { foundMatch = false; break; }
-            }
-
-            if (foundMatch)
-            {
-               this._eventbus.off(values.name, values.callback, values.context);
-               this._events.splice(cntr, 1);
-            }
-         }
-      }
+      this._events = eventsAPI(s_OFF_API, this._events || {}, name, callback, {
+         context,
+         eventbus: this._eventbus
+      });
 
       return this;
    }
@@ -202,9 +173,11 @@ export default class EventbusProxy
    {
       if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
-      this._eventbus.on(name, callback, context);
+      const targetContext = context || this;
 
-      this._events.push({ name, callback, context });
+      this._events = eventsAPI(s_ON_API, this._events || {}, name, callback, { context: targetContext });
+
+      this._eventbus.on(name, callback, targetContext);
 
       return this;
    }
@@ -221,18 +194,29 @@ export default class EventbusProxy
       if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
       if (regex !== void 0 && !(regex instanceof RegExp)) { throw new TypeError(`'regex' is not a RegExp`); }
 
+      if (!this._events) { return; }
+
       if (regex)
       {
-         for (const event of this._events)
+         for (const name in this._events)
          {
-            if (regex.test(event.name)) { yield [event.name, event.callback, event.context]; }
+            if (regex.test(name))
+            {
+               for (const event of this._events[name])
+               {
+                  yield [name, event.callback, event.context];
+               }
+            }
          }
       }
       else
       {
-         for (const event of this._events)
+         for (const name in this._events)
          {
-            yield [event.name, event.callback, event.context];
+            for (const event of this._events[name])
+            {
+               yield [name, event.callback, event.context];
+            }
          }
       }
    }
@@ -246,7 +230,13 @@ export default class EventbusProxy
    {
       if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
-      return this._events.length;
+      if (!this._events) { return 0; }
+
+      let count = 0;
+
+      for (const name in this._events) { count += this._events[name].length; }
+
+      return count;
    }
 
    /**
@@ -261,24 +251,22 @@ export default class EventbusProxy
       if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
       if (regex !== void 0 && !(regex instanceof RegExp)) { throw new TypeError(`'regex' is not a RegExp`); }
 
-      const eventNames = {};
+      if (!this._events) { return []; }
 
       if (regex)
       {
-         for (const event of this._events)
+         const results = [];
+         for (const name in this._events)
          {
-            if (regex.test(event.name))
+            if (regex.test(name))
             {
-               eventNames[event.name] = true;
+               results.push(name);
             }
          }
-      }
-      else
-      {
-         for (const event of this._events) { eventNames[event.name] = true; }
+         return results;
       }
 
-      return Object.keys(eventNames);
+      return objectKeys(this._events);
    }
 
    /**
@@ -345,3 +333,93 @@ export default class EventbusProxy
       return this._eventbus.triggerSync(...arguments);
    }
 }
+
+/**
+ * The reducing API that removes a callback from the `events` object.
+ *
+ * @param {Events}   events   - Events object
+ * @param {string}   name     - Event name
+ * @param {Function} callback - Event callback
+ * @param {object}   options  - Optional parameters
+ * @returns {void|Events} Events object
+ */
+const s_OFF_API = (events, name, callback, options) =>
+{
+   /* c8 ignore next 1 */
+   if (!events) { return; }
+
+   const context = options.context;
+   const eventbus = options.eventbus;
+
+   const names = name ? [name] : objectKeys(events);
+
+   for (let i = 0; i < names.length; i++)
+   {
+      name = names[i];
+      const handlers = events[name];
+
+      // Bail out if there are no events stored.
+      if (!handlers) { break; }
+
+      // Find any remaining events.
+      const remaining = [];
+      for (let j = 0; j < handlers.length; j++)
+      {
+         const handler = handlers[j];
+
+         if (callback && callback !== handler.callback && callback !== handler.callback._callback ||
+          context && context !== handler.context)
+         {
+            remaining.push(handler);
+         }
+      }
+
+      // Replace events if there are any remaining.  Otherwise, clean up.
+      if (remaining.length)
+      {
+         events[name] = remaining;
+      }
+      else
+      {
+         eventbus.off(name, callback, context);
+         delete events[name];
+      }
+   }
+
+   return events;
+};
+
+/**
+ * The reducing API that adds a callback to the `events` object.
+ *
+ * @param {Events}   events   - Events object
+ * @param {string}   name     - Event name
+ * @param {Function} callback - Event callback
+ * @param {object}   options  - Optional parameters
+ * @returns {Events} Events object.
+ */
+const s_ON_API = (events, name, callback, options) =>
+{
+   if (callback)
+   {
+      const handlers = events[name] || (events[name] = []);
+      const context = options.context;
+
+      handlers.push({ callback, context });
+   }
+
+   return events;
+};
+
+/**
+ * @typedef {object} EventData The callback data for an event.
+ *
+ * @property {Function} callback - Callback function
+ * @property {object} context -
+ * @property {object} ctx -
+ * @property {object} listening -
+ */
+
+/**
+ * @typedef {object.<string, EventData[]>} Events Event data stored by event name.
+ */

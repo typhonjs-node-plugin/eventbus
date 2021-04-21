@@ -114,7 +114,8 @@ if (config.triggerDefer)
          {
             callbacks.testTriggerOnce++;
 
-            assert.strictEqual(eventbus.eventCount, 1);
+            // Must defer here as after callback runs next
+            setTimeout(() => { assert.strictEqual(eventbus.eventCount, 1); }, 0);
          });
 
          assert.strictEqual(eventbus.eventCount, 1);

@@ -1,16 +1,20 @@
-import { assert, expect } from 'chai';
+import { assert, expect }  from 'chai';
 
-import Eventbus   from '../../../src/Eventbus.js';
+import Eventbus            from '../../../src/Eventbus.js';
 
-import config     from '../../utils/config.js';
+import config              from '../../utils/config.js';
 
 if (config.other)
 {
    describe('Eventbus - other API', () =>
    {
-      let eventbus;
+      let count, eventbus;
 
-      beforeEach(() => { eventbus = new Eventbus(); });
+      beforeEach(() =>
+      {
+         count = 0;
+         eventbus = new Eventbus();
+      });
 
       it('set / get name', () =>
       {
@@ -19,6 +23,34 @@ if (config.other)
 
          eventbus = new Eventbus('testname2');
          assert.strictEqual(eventbus.name, 'testname2');
+      });
+
+      it('before throws when count is not a number', () =>
+      {
+         expect(() => { eventbus.before(false); }).to.throw(TypeError, `'count' is not an integer`);
+      });
+
+      it('before - count 3', () =>
+      {
+         eventbus.before(3, 'test', () => { count++; });
+
+         eventbus.trigger('test');
+         eventbus.trigger('test');
+
+         assert.strictEqual(eventbus.eventCount, 1);
+
+         eventbus.trigger('test');
+
+         assert.strictEqual(eventbus.eventCount, 0);
+
+         eventbus.trigger('test');
+
+         assert.strictEqual(count, 3);
+      });
+
+      it('entries has early out when no events are set', () =>
+      {
+         Array.from(eventbus.entries());
       });
 
       it('entries throws when regex not instance of RegExp', () =>
@@ -93,6 +125,11 @@ if (config.other)
          }
       });
 
+      it('entries has early out when no events are set', () =>
+      {
+         Array.from(eventbus.keys());
+      });
+
       it('keys throws when regex not instance of RegExp', () =>
       {
          expect(() =>
@@ -126,6 +163,11 @@ if (config.other)
          const eventNames = Array.from(eventbus.keys(/test:trigger3/));
 
          assert.strictEqual(JSON.stringify(eventNames), '["test:trigger3","test:trigger3A"]');
+      });
+
+      it('listenToBefore throws when count is not a number', () =>
+      {
+         expect(() => { eventbus.listenToBefore(false); }).to.throw(TypeError, `'count' is not an integer`);
       });
    });
 }

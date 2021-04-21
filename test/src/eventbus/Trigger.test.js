@@ -257,6 +257,35 @@ if (config.trigger)
          assert.strictEqual(callbacks.testTriggerCount, 1);
       });
 
+      it('trigger (listenToBefpre)', () =>
+      {
+         const test = new Eventbus();
+
+         callbacks.testTrigger = 0;
+
+         test.listenToBefore(4, eventbus, 'test:trigger', () => { callbacks.testTrigger++; });
+
+         assert.strictEqual(eventbus.eventCount, 1);
+
+         eventbus.trigger('test:trigger');
+         eventbus.trigger('test:trigger');
+         eventbus.trigger('test:trigger');
+
+         assert.strictEqual(eventbus.eventCount, 1);
+
+         eventbus.trigger('test:trigger');
+
+         assert.strictEqual(eventbus.eventCount, 0);
+
+         assert.strictEqual(callbacks.testTrigger, 4);
+
+         eventbus.trigger('test:trigger');
+
+         assert.strictEqual(eventbus.eventCount, 0);
+
+         assert.strictEqual(callbacks.testTrigger, 4);
+      });
+
       it('trigger (listenToOnce)', () =>
       {
          const test = new Eventbus();

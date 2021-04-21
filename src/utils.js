@@ -57,6 +57,67 @@ export const objectKeys = (object) =>
 };
 
 /**
+ * Reduces the event callbacks into a map of `{event: beforeWrapper}`. `offer` unbinds the `beforeWrapper` after
+ * it has been called the number of times specified by options.count.
+ *
+ * @param {Events}   map      - Events object
+ * @param {string}   name     - Event name
+ * @param {Function} callback - Event callback
+ * @param {object}   options    - Function to invoke after event has been triggered once; `off()`
+ * @returns {Events} The Events object.
+ */
+export function beforeMap(map, name, callback, options)
+{
+   const offer = options.offer;
+   const count = options.count + 1;
+
+   if (callback)
+   {
+      const once = map[name] = s_BEFORE(count, function()
+      {
+         return callback.apply(this, arguments);
+      }, () => { offer(name, once); });
+
+      once._callback = callback;
+   }
+   return map;
+}
+
+/**
+ * Creates a function that invokes `func`, with the `this` binding and arguments
+ * of the created function, while it's called less than `n` times. Subsequent
+ * calls to the created function return the result of the last `func` invocation.
+ *
+ * @since 3.0.0
+ * @param {number} n The number of calls at which `func` is no longer invoked.
+ * @param {Function} func The function to restrict.
+ * @param {Function} after The function invoke after n number of calls.
+ * @returns {Function} Returns the new restricted function.
+ * @example
+ *
+ * jQuery(element).on('click', before(5, addContactToList))
+ * // => Allows adding up to 4 contacts to the list.
+ */
+const s_BEFORE = function(n, func, after)
+{
+   let result;
+
+   return function(...args)
+   {
+      if (--n > 0) { result = func.apply(this, args); }
+
+      if (n <= 1)
+      {
+         if (after) { after.apply(this, args); }
+         after = void 0;
+         func = void 0;
+      }
+
+      return result;
+   };
+};
+
+/**
  * @typedef {object} EventData The callback data for an event.
  *
  * @property {Function} callback - Callback function

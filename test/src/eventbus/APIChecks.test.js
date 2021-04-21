@@ -16,6 +16,9 @@ if (config.apichecks)
       {
          let result;
 
+         result = eventbus.before(2, 'test');
+         expect(result).to.equal(eventbus);
+
          // Empty generator
          result = eventbus.entries();
          expect(result.next()).to.eql({ done: true, value: void 0 });
@@ -23,6 +26,9 @@ if (config.apichecks)
          // Empty generator
          result = eventbus.keys();
          expect(result.next()).to.eql({ done: true, value: void 0 });
+
+         result = eventbus.listenToBefore(2, eventbus, 'test', () => {});
+         expect(result).to.equal(eventbus);
 
          result = eventbus.on('test');
          expect(result).to.equal(eventbus);
@@ -81,8 +87,10 @@ if (config.apichecks)
          assert.equal(eventbus, eventbus.stopListening('noeventssetyet'));
          assert.equal(eventbus, eventbus.on('a', fn));
          assert.equal(eventbus, eventbus.once('c', fn));
+         assert.equal(eventbus, eventbus.before(3, 'd', fn));
          assert.equal(eventbus, eventbus.trigger('a'));
          assert.equal(eventbus, eventbus.listenTo(eventbus, 'a', fn));
+         assert.equal(eventbus, eventbus.listenToBefore(2, eventbus, 'b', fn));
          assert.equal(eventbus, eventbus.listenToOnce(eventbus, 'b', fn));
          assert.equal(eventbus, eventbus.off('a c'));
          assert.equal(eventbus, eventbus.stopListening(eventbus, 'a'));

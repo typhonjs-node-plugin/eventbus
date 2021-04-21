@@ -25,6 +25,29 @@ if (config.eventbusproxy)
          assert(proxy.name === 'testname');
       });
 
+      it('before throws when count is not a number', () =>
+      {
+         expect(() => { proxy.before(false); }).to.throw(TypeError, `'count' is not an integer`);
+      });
+
+      it('before - count 3', () =>
+      {
+         proxy.before(3, 'test', () => { count++; });
+
+         proxy.trigger('test');
+         proxy.trigger('test');
+
+         assert.strictEqual(proxy.eventCount, 1);
+
+         proxy.trigger('test');
+
+         assert.strictEqual(proxy.eventCount, 0);
+
+         proxy.trigger('test');
+
+         assert.strictEqual(count, 3);
+      });
+
       it('entries throws when regex not instance of RegExp', () =>
       {
          expect(() =>
@@ -154,6 +177,50 @@ if (config.eventbusproxy)
          const eventNames = Array.from(proxy.keys(/test:trigger3/));
 
          assert.strictEqual(JSON.stringify(eventNames), '["test:trigger3","test:trigger3A"]');
+      });
+
+      it('once', () =>
+      {
+         proxy.once('test:trigger', () => { count++; });
+
+         proxy.trigger('test:trigger');
+         proxy.trigger('test:trigger');
+
+         assert.strictEqual(count, 1);
+      });
+
+      it('once / off called before trigger', () =>
+      {
+         proxy.once('test:trigger', () => { count++; });
+
+         proxy.off('test:trigger');
+
+         proxy.trigger('test:trigger');
+
+         assert.strictEqual(count, 0);
+      });
+
+      it('once only called once w/ trigger', () =>
+      {
+         proxy.once('test:trigger', function() { count++; this.trigger('test:trigger'); });
+
+         proxy.trigger('test:trigger');
+
+         assert.strictEqual(count, 1);
+      });
+
+      it('once correctly unregisters from proxy instance', () =>
+      {
+         eventbus.on('test:trigger', () => { count++; });
+         proxy.once('test:trigger', () => { count++; });
+
+         proxy.trigger('test:trigger');
+
+         assert.strictEqual(count, 2);
+
+         proxy.trigger('test:trigger');
+
+         assert.strictEqual(count, 3);
       });
 
       it('get - proxyEventCount', () =>
@@ -530,6 +597,9 @@ if (config.eventbusproxy)
          assert.strictEqual(callbacks.testTriggerCount, 7);
 
          // Multiple times calling destroy will not throw.
+         expect(() => proxy.before()).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
+
+         // Multiple times calling destroy will not throw.
          expect(() => proxy.destroy()).to.not.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
 
          expect(() =>
@@ -550,6 +620,9 @@ if (config.eventbusproxy)
 
          expect(() => proxy.on('test:bogus', () => {})).to.throw(ReferenceError,
             'This EventbusProxy instance has been destroyed.');
+
+         // Multiple times calling destroy will not throw.
+         expect(() => proxy.once()).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
 
          expect(() =>
          {

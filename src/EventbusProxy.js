@@ -1,6 +1,6 @@
 import Eventbus from './Eventbus.js';
 
-import { eventsAPI, objectKeys } from './utils.js';
+import * as Utils                from './utils.js';
 
 /**
  * EventbusProxy provides a protected proxy of another Eventbus instance.
@@ -48,6 +48,33 @@ export default class EventbusProxy
    }
 
    /**
+    * Just like `on`, but causes the bound callback to fire several times up to the count specified before being
+    * removed. When multiple events are passed in using the space separated syntax, the event
+    * will fire count times for every event you passed in, not once for a combination of all events.
+    *
+    * @param {number}         count    - Number of times the function will fire before being removed.
+    * @param {string|object}  name     - Event name(s)
+    * @param {Function}       callback - Event callback function
+    * @param {object}         context  - Event context
+    * @returns {EventbusProxy} This Eventbus instance.
+    */
+   before(count, name, callback, context = void 0)
+   {
+      if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
+      if (!Number.isInteger(count)) { throw new TypeError(`'count' is not an integer`); }
+
+      // Map the event into a `{event: once}` object.
+      const events = Utils.eventsAPI(Utils.beforeMap, {}, name, callback, {
+         count,
+         offer: this.off.bind(this)
+      });
+
+      if (typeof name === 'string' && (context === null || context === void 0)) { callback = void 0; }
+
+      return this.on(events, callback, context);
+   }
+
+   /**
     * Unregisters all proxied events from the target eventbus and removes any local references. All subsequent calls
     * after `destroy` has been called result in a ReferenceError thrown.
     */
@@ -58,7 +85,7 @@ export default class EventbusProxy
          this.off();
       }
 
-      this._events = [];
+      this._events = void 0;
 
       this._eventbus = null;
    }
@@ -149,7 +176,7 @@ export default class EventbusProxy
    {
       if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
-      this._events = eventsAPI(s_OFF_API, this._events || {}, name, callback, {
+      this._events = Utils.eventsAPI(s_OFF_API, this._events || {}, name, callback, {
          context,
          eventbus: this._eventbus
       });
@@ -167,9 +194,9 @@ export default class EventbusProxy
     *
     * Please see {@link Eventbus#on}.
     *
-    * @param {string|object}   name     - Event name(s)
-    * @param {Function} callback - Event callback function
-    * @param {object}   context  - Event context
+    * @param {string|object}  name     - Event name(s)
+    * @param {Function}       callback - Event callback function
+    * @param {object}         context  - Event context
     * @returns {EventbusProxy} This EventbusProxy.
     */
    on(name, callback, context = void 0)
@@ -179,11 +206,38 @@ export default class EventbusProxy
       // Handle the case of event maps and callback being the context.
       const targetContext = name !== null && typeof name === 'object' && callback ? callback : context || this;
 
-      this._events = eventsAPI(s_ON_API, this._events || {}, name, callback, { context: targetContext });
+      this._events = Utils.eventsAPI(s_ON_API, this._events || {}, name, callback, { context: targetContext });
 
       this._eventbus.on(name, callback, targetContext);
 
       return this;
+   }
+
+   /**
+    * Just like `on`, but causes the bound callback to fire only once before being removed. Handy for saying "the next
+    * time that X happens, do this". When multiple events are passed in using the space separated syntax, the event
+    * will fire once for every event you passed in, not once for a combination of all events
+    *
+    * @see http://backbonejs.org/#Events-once
+    *
+    * @param {string}   name     - Event name(s)
+    * @param {Function} callback - Event callback function
+    * @param {object}   context  - Event context
+    * @returns {EventbusProxy} This Eventbus instance.
+    */
+   once(name, callback, context = void 0)
+   {
+      if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
+
+      // Map the event into a `{event: once}` object.
+      const events = Utils.eventsAPI(Utils.beforeMap, {}, name, callback, {
+         count: 1,
+         offer: this.off.bind(this)
+      });
+
+      if (typeof name === 'string' && (context === null || context === void 0)) { callback = void 0; }
+
+      return this.on(events, callback, context);
    }
 
    /**
@@ -358,7 +412,7 @@ const s_OFF_API = (events, name, callback, options) =>
    const context = options.context;
    const eventbus = options.eventbus;
 
-   const names = name ? [name] : objectKeys(events);
+   const names = name ? [name] : Utils.objectKeys(events);
 
    for (let i = 0; i < names.length; i++)
    {

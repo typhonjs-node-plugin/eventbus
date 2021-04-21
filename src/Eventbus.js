@@ -42,6 +42,32 @@ export default class Eventbus
    }
 
    /**
+    * Just like `on`, but causes the bound callback to fire several times up to the count specified before being
+    * removed. When multiple events are passed in using the space separated syntax, the event
+    * will fire count times for every event you passed in, not once for a combination of all events.
+    *
+    * @param {number}         count    - Number of times the function will fire before being removed.
+    * @param {string|object}  name     - Event name(s)
+    * @param {Function}       callback - Event callback function
+    * @param {object}         context  - Event context
+    * @returns {Eventbus} This Eventbus instance.
+    */
+   before(count, name, callback, context = void 0)
+   {
+      if (!Number.isInteger(count)) { throw new TypeError(`'count' is not an integer`); }
+
+      // Map the event into a `{event: once}` object.
+      const events = Utils.eventsAPI(Utils.beforeMap, {}, name, callback, {
+         count,
+         offer: this.off.bind(this)
+      });
+
+      if (typeof name === 'string' && (context === null || context === void 0)) { callback = void 0; }
+
+      return this.on(events, callback, context);
+   }
+
+   /**
     * Creates an EventProxy wrapping this events instance. An EventProxy proxies events allowing all listeners added
     * to be easily removed from the wrapped Events instance.
     *
@@ -174,9 +200,6 @@ export default class Eventbus
       // Setup the necessary references to track the listening callbacks.
       if (!listening)
       {
-         // const thisId = this._listenId || (this._listenId = s_UNIQUE_ID('l'));
-         // listening = listeningTo[id] = { obj, objId: id, id: thisId, listeningTo, count: 0 };
-
          this._listenId || (this._listenId = s_UNIQUE_ID('l'));
          listening = _listening = listeningTo[id] = new Listening(this, obj);
       }
@@ -196,17 +219,42 @@ export default class Eventbus
    /**
     * Just like `listenTo`, but causes the bound callback to fire only once before being removed.
     *
+    * @param {number}         count    - Number of times the function will fire before being removed.
+    * @param {object}         obj      - Event context
+    * @param {string|object}  name     - Event name(s)
+    * @param {Function}       callback - Event callback function
+    * @returns {Eventbus} This Eventbus instance.
+    */
+   listenToBefore(count, obj, name, callback)
+   {
+      if (!Number.isInteger(count)) { throw new TypeError(`'count' is not an integer`); }
+
+      // Map the event into a `{event: once}` object.
+      const events = Utils.eventsAPI(Utils.beforeMap, {}, name, callback, {
+         count,
+         offer: this.stopListening.bind(this, obj)
+      });
+
+      return this.listenTo(obj, events);
+   }
+
+   /**
+    * Just like `listenTo`, but causes the bound callback to fire only once before being removed.
+    *
     * @see http://backbonejs.org/#Events-listenToOnce
     *
-    * @param {object}   obj      - Event context
-    * @param {string}   name     - Event name(s)
-    * @param {Function} callback - Event callback function
+    * @param {object}         obj      - Event context
+    * @param {string|object}  name     - Event name(s)
+    * @param {Function}       callback - Event callback function
     * @returns {Eventbus} This Eventbus instance.
     */
    listenToOnce(obj, name, callback)
    {
       // Map the event into a `{event: once}` object.
-      const events = Utils.eventsAPI(s_ONCE_MAP, {}, name, callback, this.stopListening.bind(this, obj));
+      const events = Utils.eventsAPI(Utils.beforeMap, {}, name, callback, {
+         count: 1,
+         offer: this.stopListening.bind(this, obj)
+      });
 
       return this.listenTo(obj, events);
    }
@@ -237,9 +285,9 @@ export default class Eventbus
     *
     * @see http://backbonejs.org/#Events-off
     *
-    * @param {string}   [name]     - Event name(s)
-    * @param {Function} [callback] - Event callback function
-    * @param {object}   [context]  - Event context
+    * @param {string|object}  [name]     - Event name(s)
+    * @param {Function}       [callback] - Event callback function
+    * @param {object}         [context]  - Event context
     * @returns {Eventbus} This Eventbus instance.
     */
    off(name, callback = void 0, context = void 0)
@@ -280,9 +328,9 @@ export default class Eventbus
     *
     * @see http://backbonejs.org/#Events-on
     *
-    * @param {string}   name     - Event name(s)
-    * @param {Function} callback - Event callback function
-    * @param {object}   context  - Event context
+    * @param {string|object}  name     - Event name(s)
+    * @param {Function}       callback - Event callback function
+    * @param {object}         [context]  - Event context
     * @returns {Eventbus} This Eventbus instance.
     */
    on(name, callback, context = void 0)
@@ -313,15 +361,18 @@ export default class Eventbus
     *
     * @see http://backbonejs.org/#Events-once
     *
-    * @param {string}   name     - Event name(s)
-    * @param {Function} callback - Event callback function
-    * @param {object}   context  - Event context
+    * @param {string|object}  name     - Event name(s)
+    * @param {Function}       callback - Event callback function
+    * @param {object}         [context]  - Event context
     * @returns {Eventbus} This Eventbus instance.
     */
    once(name, callback, context = void 0)
    {
       // Map the event into a `{event: once}` object.
-      const events = Utils.eventsAPI(s_ONCE_MAP, {}, name, callback, this.off.bind(this));
+      const events = Utils.eventsAPI(Utils.beforeMap, {}, name, callback, {
+         count: 1,
+         offer: this.off.bind(this)
+      });
 
       if (typeof name === 'string' && (context === null || context === void 0)) { callback = void 0; }
 
@@ -471,32 +522,6 @@ export default class Eventbus
 // Private / internal methods ---------------------------------------------------------------------------------------
 
 /**
- * Reduces the event callbacks into a map of `{event: onceWrapper}`. `offer` unbinds the `onceWrapper` after
- * it has been called.
- *
- * @param {Events}   map      - Events object
- * @param {string}   name     - Event name
- * @param {Function} callback - Event callback
- * @param {Function} offer    - Function to invoke after event has been triggered once; `off()`
- * @returns {Events} The Events object.
- * @ignore
- */
-const s_ONCE_MAP = (map, name, callback, offer) =>
-{
-   if (callback)
-   {
-      const once = map[name] = s_ONCE(function()
-      {
-         offer(name, once);
-         return callback.apply(this, arguments);
-      });
-
-      once._callback = callback;
-   }
-   return map;
-};
-
-/**
  * Global listening object
  *
  * @type {Listening}
@@ -528,9 +553,9 @@ class Listening
    /**
     * @see {@link Eventbus#on}
     *
-    * @param {string}   name     - Event name(s)
-    * @param {Function} callback - Event callback function
-    * @param {object}   context  - Event context
+    * @param {string|object}  name     - Event name(s)
+    * @param {Function}       callback - Event callback function
+    * @param {object}         [context] - Event context
     * @returns {Listening} This Listening instance.
     */
    on(name, callback, context = void 0)
@@ -660,28 +685,6 @@ const s_ON_API = (events, name, callback, options) =>
       handlers.push({ callback, context, ctx: context || ctx, listening });
    }
    return events;
-};
-
-/**
- * Only executes the given function once storing the result.
- *
- * @param {Function} func - Function to run once.
- *
- * @returns {Function} Wrapped function.
- */
-const s_ONCE = function(func)
-{
-   let result;
-   return function(...args)
-   {
-      if (func)
-      {
-         result = func.apply(this, args);
-         func = void 0;
-      }
-
-      return result;
-   };
 };
 
 /**

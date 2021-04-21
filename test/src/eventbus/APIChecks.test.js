@@ -46,7 +46,6 @@ if (config.apichecks)
       {
          let result;
 
-         // Empty generator
          result = eventbus.listenTo();
          expect(result).to.equal(eventbus);
 

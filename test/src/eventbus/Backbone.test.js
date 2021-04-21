@@ -9,7 +9,7 @@ import { size }            from '../../utils/functions.js';
 
 if (config.backbone)
 {
-   describe('Eventbus - listenTo / stop listening', () =>
+   describe('Eventbus - backbone tests', () =>
    {
       let a, b, count, count2, eventbus;
 
@@ -20,6 +20,121 @@ if (config.backbone)
          a = new Eventbus();
          b = new Eventbus();
          eventbus = new Eventbus();
+      });
+
+      it('listenToOnce with event maps binds the correct `this`', () =>
+      {
+         a.listenToOnce(b, {
+            one: function() { count++; assert.ok(this === a); },
+            two: function() { assert.ok(false); }
+         });
+         b.trigger('one');
+         b.trigger('one');
+         assert.strictEqual(count, 1);
+      });
+
+      it('bind a callback with a default context when none supplied', () =>
+      {
+         eventbus.assertTrue = function()
+         {
+            count++;
+            assert.equal(this, eventbus, '`this` was bound to the callback');
+         };
+
+         eventbus.once('event', eventbus.assertTrue);
+         eventbus.trigger('event');
+         eventbus.trigger('event');
+         assert.strictEqual(count, 1);
+      });
+
+      it('once with event maps', () =>
+      {
+         const increment = function() { this.counter += 1; };
+
+         eventbus.counter = 0;
+
+         eventbus.once({
+            a: increment,
+            b: increment,
+            c: increment
+         }, eventbus);
+
+         eventbus.trigger('a');
+         assert.equal(eventbus.counter, 1);
+
+         eventbus.trigger('a b');
+         assert.equal(eventbus.counter, 2);
+
+         eventbus.trigger('c');
+         assert.equal(eventbus.counter, 3);
+
+         eventbus.trigger('a b c');
+         assert.equal(eventbus.counter, 3);
+      });
+
+      it('bind a callback with a supplied context using once with object notation', () =>
+      {
+         const context = {};
+
+         eventbus.counter = 0;
+
+         eventbus.once({
+            a: function()
+            {
+               count++;
+               assert.strictEqual(this, context, 'defaults `context` to `callback` param');
+            }
+         }, context).trigger('a');
+
+         eventbus.trigger('a');
+         assert.strictEqual(count, 1);
+      });
+
+      it('listenToOnce with space-separated events', () =>
+      {
+         count = 1;
+         a.listenToOnce(b, 'x y', (n) => { assert.ok(n === count++); });
+         b.trigger('x', 1);
+         b.trigger('x', 1);
+         b.trigger('y', 2);
+         b.trigger('y', 2);
+      });
+
+      it('listenToOnce', () =>
+      {
+         // Same as the previous test, but we use once rather than having to explicitly unbind
+         const incrA = () => { count++; eventbus.trigger('event'); };
+         const incrB = () => { count2++; };
+         eventbus.listenToOnce(eventbus, 'event', incrA);
+         eventbus.listenToOnce(eventbus, 'event', incrB);
+         eventbus.trigger('event');
+         assert.equal(count, 1, 'count should have only been incremented once.');
+         assert.equal(count2, 1, 'count2 should have only been incremented once.');
+      });
+
+      it('once', () =>
+      {
+         const incrA = function() { count++; eventbus.trigger('event'); };
+         const incrB = function() { count2++; };
+         eventbus.once('event', incrA);
+         eventbus.once('event', incrB);
+         eventbus.trigger('event');
+         assert.strictEqual(eventbus.eventCount, 0);
+         assert.equal(count, 1, 'count should have only been incremented once.');
+         assert.equal(count2, 1, 'count2 should have only been incremented once.');
+      });
+
+      it('`once` on `all` should work as expected', () =>
+      {
+         eventbus.once('all', () =>
+         {
+            count++;
+            assert.ok(true);
+            eventbus.trigger('all');
+         });
+         eventbus.trigger('all');
+
+         assert.strictEqual(count, 1);
       });
 
       it('listenTo and stopListening', () =>

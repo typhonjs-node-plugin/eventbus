@@ -191,7 +191,7 @@ export default class Eventbus
    listenToOnce(obj, name, callback, context = this)
    {
       // Map the event into a `{event: once}` object.
-      const events = s_EVENTS_API(s_ONCE_MAP, {}, name, callback, this.stopListening.bind(this, obj));
+      const events = s_EVENTS_API(this._ONCE_MAP, {}, name, callback, this.stopListening.bind(this, obj));
 
       return this.listenTo(obj, events, void 0, context);
    }
@@ -291,7 +291,7 @@ export default class Eventbus
    once(name, callback, context = void 0)
    {
       // Map the event into a `{event: once}` object.
-      const events = s_EVENTS_API(s_ONCE_MAP, {}, name, callback, this.off.bind(this));
+      const events = s_EVENTS_API(this._ONCE_MAP, {}, name, callback, this.off.bind(this));
 
       if (typeof name === 'string' && (context === null || context === void 0)) { callback = void 0; }
 
@@ -436,9 +436,50 @@ export default class Eventbus
 
       return s_RESULTS_TARGET_API(s_TRIGGER_API, s_TRIGGER_SYNC_EVENTS, this._events, name, void 0, args);
    }
+
+   /**
+    * Reduces the event callbacks into a map of `{event: onceWrapper}`. `offer` unbinds the `onceWrapper` after
+    * it has been called.
+    *
+    * @param {Events}   map      - Events object
+    * @param {string}   name     - Event name
+    * @param {Function} callback - Event callback
+    * @param {Function} offer    - Function to invoke after event has been triggered once; `off()`
+    * @returns {Events} The Events object.
+    * @ignore
+    */
+   _ONCE_MAP(map, name, callback, offer)
+   {
+      if (callback)
+      {
+         const once = map[name] = s_ONCE(function()
+         {
+            offer(name, once);
+            return callback.apply(this, arguments);
+         });
+
+         once._callback = callback;
+      }
+      return map;
+   }
 }
 
 // Private / internal methods ---------------------------------------------------------------------------------------
+
+const s_ONCE = function(func)
+{
+   let result;
+   return function(...args)
+   {
+      if (func)
+      {
+         result = func.apply(this, args);
+         func = void 0;
+      }
+
+      return result;
+   };
+};
 
 /**
  * Regular expression used to split event strings.
@@ -691,30 +732,30 @@ const s_ON_API = (events, name, callback, options) =>
    return events;
 };
 
-/**
- * Reduces the event callbacks into a map of `{event: onceWrapper}`. `offer` unbinds the `onceWrapper` after
- * it has been called.
- *
- * @param {Events}   map      - Events object
- * @param {string}   name     - Event name
- * @param {Function} callback - Event callback
- * @param {Function} offer    - Function to invoke after event has been triggered once; `off()`
- * @returns {Events} The Events object.
- */
-const s_ONCE_MAP = function(map, name, callback, offer)
-{
-   if (callback)
-   {
-      const once = map[name] = () =>
-      {
-         offer(name, once);
-         return callback.apply(this, arguments);
-      };
-
-      once._callback = callback;
-   }
-   return map;
-};
+// /**
+//  * Reduces the event callbacks into a map of `{event: onceWrapper}`. `offer` unbinds the `onceWrapper` after
+//  * it has been called.
+//  *
+//  * @param {Events}   map      - Events object
+//  * @param {string}   name     - Event name
+//  * @param {Function} callback - Event callback
+//  * @param {Function} offer    - Function to invoke after event has been triggered once; `off()`
+//  * @returns {Events} The Events object.
+//  */
+// const s_ONCE_MAP = function(map, name, callback, offer)
+// {
+//    if (callback)
+//    {
+//       const once = map[name] = () =>
+//       {
+//          offer(name, once);
+//          return callback.apply(this, arguments);
+//       };
+//
+//       once._callback = callback;
+//    }
+//    return map;
+// };
 
 /**
  * Handles triggering the appropriate event callbacks.

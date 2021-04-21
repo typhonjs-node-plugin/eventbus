@@ -8,11 +8,12 @@ if (config.eventbusproxy)
 {
    describe('EventbusProxy', () =>
    {
-      let callbacks, eventbus, proxy;
+      let callbacks, count, eventbus, proxy;
 
       beforeEach(() =>
       {
          callbacks = {};
+         count = 0;
          eventbus = new Eventbus();
          proxy = eventbus.createProxy();
       });
@@ -217,6 +218,47 @@ if (config.eventbusproxy)
       {
          proxy.on('foo', () => {});
          proxy.off('bar');
+      });
+
+      it('on default context is the proxy', () =>
+      {
+         proxy.on('foo', function() { count++; assert.equal(this, proxy); });
+         proxy.trigger('foo');
+
+         assert.strictEqual(count, 1);
+      });
+
+      it('on w/ event map / off multiple', () =>
+      {
+         eventbus.on('can:not:see:this', () => {});
+
+         const ctx = {};
+
+         proxy.on({
+            test: function() { assert.equal(this, ctx); },
+            test2: function() { assert.equal(this, ctx); },
+            test3: function() { assert.equal(this, ctx); }
+         }, ctx).trigger('test');
+
+         assert.strictEqual(proxy.eventCount, 4);
+         assert.strictEqual(proxy.proxyEventCount, 3);
+
+         proxy.off('can:not:see:this');
+
+         assert.strictEqual(proxy.eventCount, 4);
+         assert.strictEqual(proxy.proxyEventCount, 3);
+
+         proxy.off('test test3');
+
+         assert.strictEqual(proxy.eventCount, 2);
+         assert.strictEqual(proxy.proxyEventCount, 1);
+      });
+
+      it('on w/ event map / default context is proxy', () =>
+      {
+         proxy.on({
+            test: function() { assert.equal(this, proxy); },
+         }).trigger('test');
       });
 
       it('proxyEntries() throws when regex not instance of RegExp', () =>

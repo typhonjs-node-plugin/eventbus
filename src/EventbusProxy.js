@@ -41,7 +41,7 @@ export default class EventbusProxy
       /**
        * Stores all proxied event bindings.
        *
-       * @type {Array<{name: string, callback: Function, context: *}>}
+       * @type {Events}
        * @private
        */
       this._events = void 0;
@@ -164,7 +164,7 @@ export default class EventbusProxy
     *
     * Please see {@link Eventbus#on}.
     *
-    * @param {string}   name     - Event name(s)
+    * @param {string|object}   name     - Event name(s)
     * @param {Function} callback - Event callback function
     * @param {object}   context  - Event context
     * @returns {EventbusProxy} This EventbusProxy.
@@ -173,7 +173,8 @@ export default class EventbusProxy
    {
       if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
-      const targetContext = context || this;
+      // Handle the case of event maps and callback being the context.
+      const targetContext = name !== null && typeof name === 'object' && callback ? callback : context || this;
 
       this._events = eventsAPI(s_ON_API, this._events || {}, name, callback, { context: targetContext });
 

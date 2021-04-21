@@ -22,17 +22,12 @@ import Eventbus from './Eventbus.js';
 export default class EventbusProxy
 {
    /**
-    * Creates the event proxy with an existing instance of TyphonEvents.
+    * Creates the event proxy with an existing instance of Eventbus.
     *
     * @param {Eventbus}   eventbus - The target eventbus instance.
     */
    constructor(eventbus)
    {
-      if (!(eventbus instanceof Eventbus))
-      {
-         throw new TypeError(`'eventbus' is not an instance of Eventbus.`);
-      }
-
       /**
        * Stores the target eventbus.
        *
@@ -262,8 +257,6 @@ export default class EventbusProxy
    get proxyEventNames()
    {
       if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
-
-      if (!this._events) { return []; }
 
       const eventNames = {};
 

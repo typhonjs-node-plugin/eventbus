@@ -1,64 +1,67 @@
-import { assert }             from 'chai';
+import { assert }          from 'chai';
 
-import mainEventbus           from '../../src/instances.js';
+import mainEventbus        from '../../src/instances.js';
 
-import { auxEventbus }        from '../../src/instances.js';
-import { pluginEventbus }     from '../../src/instances.js';
-import { testEventbus }       from '../../src/instances.js';
+import { auxEventbus }     from '../../src/instances.js';
+import { pluginEventbus }  from '../../src/instances.js';
+import { testEventbus }    from '../../src/instances.js';
 
-/* eslint-disable no-undef */
+import config              from '../utils/config.js';
 
-describe('Instances', () =>
+if (config.instances)
 {
-   let callbacks;
-
-   beforeEach(() => { callbacks = {}; });
-
-   it('get name', () =>
+   describe('Instances', () =>
    {
-      assert(auxEventbus.name === 'auxEventbus');
-      assert(mainEventbus.name === 'mainEventbus');
-      assert(pluginEventbus.name === 'pluginEventbus');
-      assert(testEventbus.name === 'testEventbus');
-   });
+      let callbacks;
 
-   it('trigger (auxEventbus)', () =>
-   {
-      callbacks.testTriggerCount = 0;
-      auxEventbus.on('test:trigger', () => { callbacks.testTriggerCount++; });
-      auxEventbus.trigger('test:trigger');
-      auxEventbus.off('test:trigger');
-      auxEventbus.trigger('test:trigger');
-      assert(callbacks.testTriggerCount === 1);
-   });
+      beforeEach(() => { callbacks = {}; });
 
-   it('trigger (mainEventbus)', () =>
-   {
-      callbacks.testTriggerCount = 0;
-      mainEventbus.on('test:trigger', () => { callbacks.testTriggerCount++; });
-      mainEventbus.trigger('test:trigger');
-      mainEventbus.off('test:trigger');
-      mainEventbus.trigger('test:trigger');
-      assert(callbacks.testTriggerCount === 1);
-   });
+      it('get name', () =>
+      {
+         assert(auxEventbus.name === 'auxEventbus');
+         assert(mainEventbus.name === 'mainEventbus');
+         assert(pluginEventbus.name === 'pluginEventbus');
+         assert(testEventbus.name === 'testEventbus');
+      });
 
-   it('trigger (pluginEventbus)', () =>
-   {
-      callbacks.testTriggerCount = 0;
-      pluginEventbus.on('test:trigger', () => { callbacks.testTriggerCount++; });
-      pluginEventbus.trigger('test:trigger');
-      pluginEventbus.off('test:trigger');
-      pluginEventbus.trigger('test:trigger');
-      assert(callbacks.testTriggerCount === 1);
-   });
+      it('trigger (auxEventbus)', () =>
+      {
+         callbacks.testTriggerCount = 0;
+         auxEventbus.on('test:trigger', () => { callbacks.testTriggerCount++; });
+         auxEventbus.trigger('test:trigger');
+         auxEventbus.off('test:trigger');
+         auxEventbus.trigger('test:trigger');
+         assert(callbacks.testTriggerCount === 1);
+      });
 
-   it('trigger (testEventbus)', () =>
-   {
-      callbacks.testTriggerCount = 0;
-      testEventbus.on('test:trigger', () => { callbacks.testTriggerCount++; });
-      testEventbus.trigger('test:trigger');
-      testEventbus.off('test:trigger');
-      testEventbus.trigger('test:trigger');
-      assert(callbacks.testTriggerCount === 1);
+      it('trigger (mainEventbus)', () =>
+      {
+         callbacks.testTriggerCount = 0;
+         mainEventbus.on('test:trigger', () => { callbacks.testTriggerCount++; });
+         mainEventbus.trigger('test:trigger');
+         mainEventbus.off('test:trigger');
+         mainEventbus.trigger('test:trigger');
+         assert(callbacks.testTriggerCount === 1);
+      });
+
+      it('trigger (pluginEventbus)', () =>
+      {
+         callbacks.testTriggerCount = 0;
+         pluginEventbus.on('test:trigger', () => { callbacks.testTriggerCount++; });
+         pluginEventbus.trigger('test:trigger');
+         pluginEventbus.off('test:trigger');
+         pluginEventbus.trigger('test:trigger');
+         assert(callbacks.testTriggerCount === 1);
+      });
+
+      it('trigger (testEventbus)', () =>
+      {
+         callbacks.testTriggerCount = 0;
+         testEventbus.on('test:trigger', () => { callbacks.testTriggerCount++; });
+         testEventbus.trigger('test:trigger');
+         testEventbus.off('test:trigger');
+         testEventbus.trigger('test:trigger');
+         assert(callbacks.testTriggerCount === 1);
+      });
    });
-});
+}

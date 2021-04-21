@@ -25,6 +25,18 @@ export default class Eventbus
        * @private
        */
       this._eventbusName = eventbusName;
+
+      /**
+       * @type {Events}
+       * @private
+       */
+      this._events = void 0;
+
+      /**
+       * @type {Listeners}
+       * @private
+       */
+      this._listeners = void 0;
    }
 
    /**
@@ -47,7 +59,6 @@ export default class Eventbus
     */
    *entries(eventName = void 0)
    {
-      /* c8 ignore next */
       if (!this._events) { return; }
 
       if (eventName)
@@ -90,7 +101,6 @@ export default class Eventbus
     */
    get eventNames()
    {
-      /* c8 ignore next */
       if (!this._events) { return []; }
 
       return Object.keys(this._events);
@@ -194,13 +204,8 @@ export default class Eventbus
     */
    off(name, callback = void 0, context = void 0)
    {
-      /* c8 ignore next */
       if (!this._events) { return this; }
 
-      /**
-       * @type {*}
-       * @protected
-       */
       this._events = s_EVENTS_API(s_OFF_API, this._events, name, callback, { context, listeners: this._listeners });
 
       return this;
@@ -242,7 +247,8 @@ export default class Eventbus
     */
    on(name, callback, context = void 0)
    {
-      return s_INTERNAL_ON(this, name, callback, context, void 0);
+      s_INTERNAL_ON(this, name, callback, context, void 0);
+      return this;
    }
 
    /**
@@ -262,9 +268,10 @@ export default class Eventbus
       // Map the event into a `{event: once}` object.
       const events = s_EVENTS_API(s_ONCE_MAP, {}, name, callback, this.off.bind(this));
 
-      if (typeof name === 'string' && (context === null || typeof context === 'undefined')) { callback = void 0; }
+      if (typeof name === 'string' && (context === null || context === void 0)) { callback = void 0; }
 
-      return this.on(events, callback, context);
+      s_INTERNAL_ON(this, events, callback, context, void 0);
+      return this;
    }
 
    /**
@@ -316,7 +323,6 @@ export default class Eventbus
     */
    trigger(name)
    {
-      /* c8 ignore next */
       if (!this._events) { return this; }
 
       const length = Math.max(0, arguments.length - 1);
@@ -324,7 +330,7 @@ export default class Eventbus
 
       for (let i = 0; i < length; i++) { args[i] = arguments[i + 1]; }
 
-      s_EVENTS_TARGET_API(s_TRIGGER_API, s_TRIGGER_EVENTS, this._events, name, void 0, args);
+      s_RESULTS_TARGET_API(s_TRIGGER_API, s_TRIGGER_EVENTS, this._events, name, void 0, args);
 
       return this;
    }
@@ -335,20 +341,44 @@ export default class Eventbus
     * a very useful mechanism to invoke asynchronous operations over an eventbus.
     *
     * @param {string}   name  - Event name(s)
-    * @returns {Promise} A Promise with any results.
+    * @returns {Promise<void|*|*[]>} A Promise with any results.
     */
    async triggerAsync(name)
    {
-      /* c8 ignore next */
-      if (!this._events) { return Promise.resolve([]); }
+      if (!this._events) { return void 0; }
 
       const length = Math.max(0, arguments.length - 1);
       const args = new Array(length);
       for (let i = 0; i < length; i++) { args[i] = arguments[i + 1]; }
 
-      const promise = s_EVENTS_TARGET_API(s_TRIGGER_API, s_TRIGGER_ASYNC_EVENTS, this._events, name, void 0, args);
+      const result = s_RESULTS_TARGET_API(s_TRIGGER_API, s_TRIGGER_ASYNC_EVENTS, this._events, name, void 0, args);
 
-      return promise !== void 0 ? promise : Promise.resolve();
+      // No event callbacks were triggered.
+      if (result === void 0) { return void 0; }
+
+      // A single Promise has been returned; just return it.
+      if (!Array.isArray(result)) { return result; }
+
+      // Multiple events & callbacks have been triggered so reduce the returned array of Promises and filter all
+      // values from each Promise result removing any undefined values.
+      return Promise.all(result).then((results) =>
+      {
+         let allResults = [];
+
+         for (const pResult of results)
+         {
+            if (Array.isArray(pResult))
+            {
+               allResults = allResults.concat(pResult);
+            }
+            else if (pResult !== void 0)
+            {
+               allResults.push(pResult);
+            }
+         }
+
+         return allResults.length > 1 ? allResults : allResults.length === 1 ? allResults[0] : void 0;
+      });
    }
 
    /**
@@ -368,11 +398,10 @@ export default class Eventbus
     * value or in an array and passes it back to the callee in a synchronous manner.
     *
     * @param {string}   name  - Event name(s)
-    * @returns {*|Array<*>} The results of the event invocation.
+    * @returns {void|*|*[]} The results of the event invocation.
     */
    triggerSync(name)
    {
-      /* c8 ignore next */
       if (!this._events) { return void 0; }
 
       const start = 1;
@@ -380,7 +409,7 @@ export default class Eventbus
       const args = new Array(length);
       for (let i = 0; i < length; i++) { args[i] = arguments[i + start]; }
 
-      return s_EVENTS_TARGET_API(s_TRIGGER_API, s_TRIGGER_SYNC_EVENTS, this._events, name, void 0, args);
+      return s_RESULTS_TARGET_API(s_TRIGGER_API, s_TRIGGER_SYNC_EVENTS, this._events, name, void 0, args);
    }
 }
 
@@ -398,11 +427,11 @@ const s_EVENT_SPLITTER = /\s+/;
  * callback` and jQuery-style event maps `{event: callback}`).
  *
  * @param {Function} iteratee    - Event operation to invoke.
- * @param {object.<{callback: Function, context: object, ctx: object, listening:{}}>} events - Events object
+ * @param {Events} events        - Events object
  * @param {string|object} name   - A single event name, compound event names, or a hash of event names.
  * @param {Function} callback    - Event callback function
  * @param {object}   opts        - Optional parameters
- * @returns {*} The Events object.
+ * @returns {Events} Events object
  */
 const s_EVENTS_API = (iteratee, events, name, callback, opts) =>
 {
@@ -438,52 +467,90 @@ const s_EVENTS_API = (iteratee, events, name, callback, opts) =>
  *
  * @param {Function} iteratee       - Trigger API
  * @param {Function} iterateeTarget - Internal function which is dispatched to.
- * @param {Array<*>} events         - Array of stored event callback data.
+ * @param {Events}   events         - Array of stored event callback data.
  * @param {string}   name           - Event name(s)
  * @param {Function} callback       - callback
  * @param {object}   opts           - Optional parameters
- * @returns {*} The Events object.
+ * @returns {*} The results of the callback if any.
  */
-const s_EVENTS_TARGET_API = (iteratee, iterateeTarget, events, name, callback, opts) =>
+const s_RESULTS_TARGET_API = (iteratee, iterateeTarget, events, name, callback, opts) =>
 {
+   let results = void 0;
    let i = 0, names;
 
-   if (name && typeof name === 'object')
-   {
-      // Handle event maps.
-      if (callback !== void 0 && 'context' in opts && opts.context === void 0) { opts.context = callback; }
-      for (names = Object.keys(name); i < names.length; i++)
-      {
-         events = s_EVENTS_API(iteratee, iterateeTarget, events, names[i], name[names[i]], opts);
-      }
-   }
-   else if (name && s_EVENT_SPLITTER.test(name))
+   // Handle the case of multiple events being triggered. The potential results of each event & callbacks must be
+   // processed into a single array of results.
+   if (name && s_EVENT_SPLITTER.test(name))
    {
       // Handle space-separated event names by delegating them individually.
       for (names = name.split(s_EVENT_SPLITTER); i < names.length; i++)
       {
-         events = iteratee(iterateeTarget, events, names[i], callback, opts);
+         const result = iteratee(iterateeTarget, events, names[i], callback, opts);
+
+         // Determine type of `results`; 0: undefined, 1: single value, 2: an array of values.
+         const resultsType = Array.isArray(results) ? 2 : results !== void 0 ? 1 : 0;
+
+         // Handle an array result depending on existing results value.
+         if (Array.isArray(result))
+         {
+            switch (resultsType)
+            {
+               case 0:
+                  // Simply set results.
+                  results = result;
+                  break;
+               case 1:
+                  // Create a new array from existing results then concat the new result array.
+                  results = [results].concat(result);
+                  break;
+               case 2:
+                  // `results` is already an array so concat the new result array.
+                  results = results.concat(result);
+                  break;
+            }
+         }
+         else if (result !== void 0)
+         {
+            switch (resultsType)
+            {
+               case 0:
+                  // Simply set results.
+                  results = result;
+                  break;
+               case 1: {
+                  // Create a new array from existing results then push the new result value.
+                  const newArray = [results];
+                  newArray.push(result);
+                  results = newArray;
+                  break;
+               }
+               case 2:
+                  // `results` is already an array so push the new result array.
+                  results.push(result);
+                  break;
+            }
+         }
       }
    }
    else
    {
-      // Finally, standard events.
-      events = iteratee(iterateeTarget, events, name, callback, opts);
+      // Just single event.
+      results = iteratee(iterateeTarget, events, name, callback, opts);
    }
 
-   return events;
+   return results;
 };
 
 /**
  * Guard the `listening` argument from the public API.
  *
- * @param {Eventbus}   obj    - The Eventbus instance
- * @param {string}   name     - Event name
- * @param {Function} callback - Event callback
- * @param {object}   context  - Event context
- * @param {object.<{obj: object, objId: string, id: string, listeningTo: object, count: number}>} listening -
- *                              Listening object
- * @returns {Eventbus} The Eventbus instance.
+ * @param {object}   obj            - Event context
+ * @param {string|object} name      - A single event name, compound event names, or a hash of event names.
+ * @param {Function} callback       - Event callback
+ * @param {object}   context        - Event context
+ * @param {ListeningData} listening - Listening object
+ *
+ * @returns {object} Event context.
  */
 const s_INTERNAL_ON = (obj, name, callback, context, listening) =>
 {
@@ -501,14 +568,15 @@ const s_INTERNAL_ON = (obj, name, callback, context, listening) =>
 /**
  * The reducing API that removes a callback from the `events` object.
  *
- * @param {object.<{callback: Function, context: object, ctx: object, listening:{}}>} events - Events object
+ * @param {Events}   events   - Events object
  * @param {string}   name     - Event name
  * @param {Function} callback - Event callback
  * @param {object}   options  - Optional parameters
- * @returns {Eventbus} The Eventbus object.
+ * @returns {void|Events} Events object
  */
 const s_OFF_API = (events, name, callback, options) =>
 {
+   /* c8 ignore next 1 */
    if (!events) { return; }
 
    let i = 0, listening;
@@ -578,11 +646,11 @@ const s_OFF_API = (events, name, callback, options) =>
 /**
  * The reducing API that adds a callback to the `events` object.
  *
- * @param {object.<{callback: Function, context: object, ctx: object, listening:{}}>} events - Events object
+ * @param {Events}   events   - Events object
  * @param {string}   name     - Event name
  * @param {Function} callback - Event callback
  * @param {object}   options  - Optional parameters
- * @returns {*} The Events object.
+ * @returns {Events} Events object.
  */
 const s_ON_API = (events, name, callback, options) =>
 {
@@ -602,11 +670,11 @@ const s_ON_API = (events, name, callback, options) =>
  * Reduces the event callbacks into a map of `{event: onceWrapper}`. `offer` unbinds the `onceWrapper` after
  * it has been called.
  *
- * @param {object.<{callback: Function, context: object, ctx: object, listening:{}}>} map - Events object
+ * @param {Events}   map      - Events object
  * @param {string}   name     - Event name
  * @param {Function} callback - Event callback
  * @param {Function} offer    - Function to invoke after event has been triggered once; `off()`
- * @returns {*} The Events object.
+ * @returns {Events} The Events object.
  */
 const s_ONCE_MAP = function(map, name, callback, offer)
 {
@@ -627,10 +695,10 @@ const s_ONCE_MAP = function(map, name, callback, offer)
  * Handles triggering the appropriate event callbacks.
  *
  * @param {Function} iterateeTarget - Internal function which is dispatched to.
- * @param {Array<*>} objEvents      - Array of stored event callback data.
+ * @param {Events}   objEvents      - Array of stored event callback data.
  * @param {string}   name           - Event name(s)
  * @param {Function} cb             - callback
- * @param {Array<*>} args           - Arguments supplied to a trigger method.
+ * @param {*[]}      args           - Arguments supplied to a trigger method.
  * @returns {*} The results from the triggered event.
  */
 const s_TRIGGER_API = (iterateeTarget, objEvents, name, cb, args) =>
@@ -653,8 +721,8 @@ const s_TRIGGER_API = (iterateeTarget, objEvents, name, cb, args) =>
  * A difficult-to-believe, but optimized internal dispatch function for triggering events. Tries to keep the usual
  * cases speedy (most internal Backbone events have 3 arguments).
  *
- * @param {object.<{callback: Function, context: object, ctx: object, listening:{}}>}  events - events array
- * @param {Array<*>} args - event argument array
+ * @param {EventData[]}  events - Array of stored event callback data.
+ * @param {*[]} args - event argument array
  */
 const s_TRIGGER_EVENTS = (events, args) =>
 {
@@ -688,9 +756,9 @@ const s_TRIGGER_EVENTS = (events, args) =>
  * waits until all Promises complete. Any target invoked may return a Promise or any result. This is very useful to
  * use for any asynchronous operations.
  *
- * @param {Array<*>} events   -  Array of stored event callback data.
- * @param {Array<*>} args     -  Arguments supplied to `triggerAsync`.
- * @returns {Promise} A Promise of the results from the triggered event.
+ * @param {EventData[]} events   - Array of stored event callback data.
+ * @param {*[]}         args     - Arguments supplied to `triggerAsync`.
+ * @returns {Promise<void|*|*[]>} A Promise of the results from the triggered event.
  */
 const s_TRIGGER_ASYNC_EVENTS = async (events, args) =>
 {
@@ -759,7 +827,7 @@ const s_TRIGGER_ASYNC_EVENTS = async (events, args) =>
       return Promise.reject(error);
    }
 
-   // If there are multiple results then use Promise.all otherwise Promise.resolve.
+   // If there are multiple results then use Promise.all otherwise Promise.resolve. Filter out any undefined results.
    return results.length > 1 ? Promise.all(results).then((values) =>
    {
       const filtered = values.filter((entry) => entry !== void 0);
@@ -777,9 +845,9 @@ const s_TRIGGER_ASYNC_EVENTS = async (events, args) =>
  * cases speedy (most internal Backbone events have 3 arguments). This dispatch method synchronously passes back a
  * single value or an array with all results returned by any invoked targets.
  *
- * @param {Array<*>} events   -  Array of stored event callback data.
- * @param {Array<*>} args     -  Arguments supplied to `triggerSync`.
- * @returns {*|Array<*>} The results from the triggered event.
+ * @param {EventData[]} events   - Array of stored event callback data.
+ * @param {*[]}         args     - Arguments supplied to `triggerSync`.
+ * @returns {void|*|*[]} The results from the triggered event.
  */
 const s_TRIGGER_SYNC_EVENTS = (events, args) =>
 {
@@ -857,5 +925,32 @@ let idCounter = 0;
 const s_UNIQUE_ID = (prefix = '') =>
 {
    const id = `${++idCounter}`;
-   return prefix ? `${prefix}${id}` : id;
+   return prefix ? `${prefix}${id}` /* c8 ignore next */ : id;
 };
+
+/**
+ * @typedef {object} EventData The callback data for an event.
+ *
+ * @property {Function} callback - Callback function
+ * @property {object} context -
+ * @property {object} ctx -
+ * @property {object} listening -
+ */
+
+/**
+ * @typedef {object.<string, EventData[]>} Events Event data stored by event name.
+ */
+
+/**
+ * @typedef {object} ListeningData The listening to data for a particular object.
+ *
+ * @property {object} obj -
+ * @property {string} objId -
+ * @property {string} id -
+ * @property {object} listeningTo -
+ * @property {number} count -
+ */
+
+/**
+ * @typedef {object.<string, ListeningData[]>} Listeners All listener data stored by id.
+ */

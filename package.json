@@ -36,6 +36,6 @@
     "eslint": "eslint .",
     "posttest": "npm run eslint",
     "prepublishOnly": "npm run test",
-    "test": "c8 --reporter=lcov --reporter=text-summary mocha -colors \"test/src/**/*.test.js\""
+    "test": "c8 --reporter=lcov --reporter=text-summary mocha -colors \"test/src/**/*.test.js\" --timeout 16000"
   }
 }

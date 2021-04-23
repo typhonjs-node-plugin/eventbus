@@ -1,6 +1,4 @@
-import Eventbus from './Eventbus.js';
-
-import * as Utils                from './utils.js';
+import * as Utils from './utils.js';
 
 /**
  * EventbusProxy provides a protected proxy of another Eventbus instance.
@@ -12,7 +10,7 @@ import * as Utils                from './utils.js';
  * management system can automatically unregister all events for the plugin without requiring the plugin author doing it
  * correctly if they had full control. IE This allows to plugin system to guarantee no dangling listeners.
  *
- * EventbusProxy provides the on / off, once, and trigger methods with the same signatures as found in
+ * EventbusProxy provides the on / off, before, once, and trigger methods with the same signatures as found in
  * Eventbus. However, the proxy tracks all added event bindings which is used to proxy between the target
  * eventbus which is passed in from the constructor. All registration methods (on / off / once) proxy. In addition
  * there is a `destroy` method which will unregister all of proxied events and remove references to the managed
@@ -52,10 +50,14 @@ export default class EventbusProxy
     * removed. When multiple events are passed in using the space separated syntax, the event
     * will fire count times for every event you passed in, not once for a combination of all events.
     *
-    * @param {number}         count    - Number of times the function will fire before being removed.
-    * @param {string|object}  name     - Event name(s)
-    * @param {Function}       callback - Event callback function
-    * @param {object}         context  - Event context
+    * @param {number}         count Number of times the function will fire before being removed.
+    *
+    * @param {string|object}  name Event name(s) or event map
+    *
+    * @param {Function}       callback Event callback function
+    *
+    * @param {object}         context Event context
+    *
     * @returns {EventbusProxy} This Eventbus instance.
     */
    before(count, name, callback, context = void 0)
@@ -63,10 +65,10 @@ export default class EventbusProxy
       if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
       if (!Number.isInteger(count)) { throw new TypeError(`'count' is not an integer`); }
 
-      // Map the event into a `{event: once}` object.
+      // Map the event into a `{event: beforeWrapper}` object.
       const events = Utils.eventsAPI(Utils.beforeMap, {}, name, callback, {
          count,
-         offer: this.off.bind(this)
+         after: this.off.bind(this)
       });
 
       if (typeof name === 'string' && (context === null || context === void 0)) { callback = void 0; }
@@ -91,8 +93,8 @@ export default class EventbusProxy
    }
 
    /**
-    * Iterates over all of events from the proxied eventbus yielding an array with event name, callback function, and
-    * event context.
+    * Returns an iterable for all events from the proxied eventbus yielding an array with event name, callback function,
+    * and event context.
     *
     * @param {RegExp} [regex] Optional regular expression to filter event names.
     *
@@ -164,13 +166,13 @@ export default class EventbusProxy
     *
     * Please see {@link Eventbus#off}.
     *
-    * @param {string}   [name]     - Event name(s)
+    * @param {string|object}  name Event name(s) or event map
     *
-    * @param {Function} [callback] - Event callback function
+    * @param {Function}       [callback] Event callback function
     *
-    * @param {object}   [context]  - Event context
+    * @param {object}         [context] Event context
     *
-    * @returns {EventbusProxy} This EventbusProxy.
+    * @returns {EventbusProxy} This EventbusProxy
     */
    off(name = void 0, callback = void 0, context = void 0)
    {
@@ -194,17 +196,30 @@ export default class EventbusProxy
     *
     * Please see {@link Eventbus#on}.
     *
-    * @param {string|object}  name     - Event name(s)
-    * @param {Function}       callback - Event callback function
-    * @param {object}         context  - Event context
-    * @returns {EventbusProxy} This EventbusProxy.
+    * @param {string|object}  name Event name(s) or event map
+    *
+    * @param {Function}       callback Event callback function
+    *
+    * @param {object}         context  Event context
+    *
+    * @returns {EventbusProxy} This EventbusProxy
     */
    on(name, callback, context = void 0)
    {
       if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
-      // Handle the case of event maps and callback being the context.
-      const targetContext = name !== null && typeof name === 'object' && callback ? callback : context || this;
+      let targetContext;
+
+      // Handle the case of event maps and callback being the context. Also applies this EventbusProxy as the default
+      // context when none supplied.
+      if (name !== null && typeof name === 'object')
+      {
+         targetContext = callback !== void 0 ? callback : this;
+      }
+      else
+      {
+         targetContext = context || this;
+      }
 
       this._events = Utils.eventsAPI(s_ON_API, this._events || {}, name, callback, { context: targetContext });
 
@@ -220,19 +235,22 @@ export default class EventbusProxy
     *
     * @see http://backbonejs.org/#Events-once
     *
-    * @param {string}   name     - Event name(s)
-    * @param {Function} callback - Event callback function
-    * @param {object}   context  - Event context
+    * @param {string|object}  name Event name(s) or event map
+    *
+    * @param {Function}       callback Event callback function
+    *
+    * @param {object}         context Event context
+    *
     * @returns {EventbusProxy} This Eventbus instance.
     */
    once(name, callback, context = void 0)
    {
       if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
-      // Map the event into a `{event: once}` object.
+      // Map the event into a `{event: beforeWrapper}` object.
       const events = Utils.eventsAPI(Utils.beforeMap, {}, name, callback, {
          count: 1,
-         offer: this.off.bind(this)
+         after: this.off.bind(this)
       });
 
       if (typeof name === 'string' && (context === null || context === void 0)) { callback = void 0; }
@@ -241,7 +259,8 @@ export default class EventbusProxy
    }
 
    /**
-    * Iterates over all stored proxy events yielding an array with event name, callback function, and event context.
+    * Returns an iterable for all stored locally proxied events yielding an array with event name, callback
+    * function, and event context.
     *
     * @param {RegExp} [regex] Optional regular expression to filter event names.
     *
@@ -298,7 +317,7 @@ export default class EventbusProxy
    }
 
    /**
-    * Returns an iterable for the event names / keys of the locally proxied event listeners.
+    * Returns an iterable for the event names / keys of the locally proxied event names.
     *
     * @param {RegExp} [regex] Optional regular expression to filter event names.
     *
@@ -398,19 +417,23 @@ export default class EventbusProxy
 /**
  * The reducing API that removes a callback from the `events` object.
  *
- * @param {Events}   events   - Events object
- * @param {string}   name     - Event name
- * @param {Function} callback - Event callback
- * @param {object}   options  - Optional parameters
+ * @param {Events}   events Events object
+ *
+ * @param {string}   name Event name
+ *
+ * @param {Function} callback Event callback
+ *
+ * @param {object}   opts  Optional parameters
+ *
  * @returns {void|Events} Events object
  */
-const s_OFF_API = (events, name, callback, options) =>
+const s_OFF_API = (events, name, callback, opts) =>
 {
    /* c8 ignore next 1 */
    if (!events) { return; }
 
-   const context = options.context;
-   const eventbus = options.eventbus;
+   const context = opts.context;
+   const eventbus = opts.eventbus;
 
    const names = name ? [name] : Utils.objectKeys(events);
 
@@ -453,18 +476,22 @@ const s_OFF_API = (events, name, callback, options) =>
 /**
  * The reducing API that adds a callback to the `events` object.
  *
- * @param {Events}   events   - Events object
- * @param {string}   name     - Event name
- * @param {Function} callback - Event callback
- * @param {object}   options  - Optional parameters
+ * @param {Events}   events Events object
+ *
+ * @param {string}   name Event name
+ *
+ * @param {Function} callback Event callback
+ *
+ * @param {object}   opts Optional parameters
+ *
  * @returns {Events} Events object.
  */
-const s_ON_API = (events, name, callback, options) =>
+const s_ON_API = (events, name, callback, opts) =>
 {
    if (callback)
    {
       const handlers = events[name] || (events[name] = []);
-      const context = options.context;
+      const context = opts.context;
 
       handlers.push({ callback, context });
    }

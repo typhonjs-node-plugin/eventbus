@@ -301,6 +301,16 @@ if (config.eventbusproxy)
          assert.strictEqual(count, 1);
       });
 
+      it('on / event map default context is the proxy', () =>
+      {
+         proxy.on({
+            foo: function() { count++; assert.equal(this, proxy); }
+         });
+         proxy.trigger('foo');
+
+         assert.strictEqual(count, 1);
+      });
+
       it('on w/ event map / off multiple', () =>
       {
          eventbus.on('can:not:see:this', () => {});

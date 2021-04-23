@@ -25,6 +25,11 @@ if (config.other)
          assert.strictEqual(eventbus.name, 'testname2');
       });
 
+      it('ctor throws when name is not a string', () =>
+      {
+         expect(() => { new Eventbus(false); }).to.throw(TypeError, `'eventbusName' is not a string`);
+      });
+
       it('before throws when count is not a number', () =>
       {
          expect(() => { eventbus.before(false); }).to.throw(TypeError, `'count' is not an integer`);
@@ -168,6 +173,34 @@ if (config.other)
       it('listenToBefore throws when count is not a number', () =>
       {
          expect(() => { eventbus.listenToBefore(false); }).to.throw(TypeError, `'count' is not an integer`);
+      });
+
+      it('listenToBefore - call function twice', () =>
+      {
+         const other = new Eventbus();
+
+         eventbus.listenToBefore(2, other, 'change', () => { count++; });
+
+         other.trigger('change');
+         other.trigger('change');
+         other.trigger('change');
+         other.trigger('change');
+
+         assert.strictEqual(count, 2);
+      });
+
+      it('listenToBefore works with event maps - call function twice', () =>
+      {
+         const other = new Eventbus();
+
+         eventbus.listenToBefore(2, other, { change: () => { count++; } });
+
+         other.trigger('change');
+         other.trigger('change');
+         other.trigger('change');
+         other.trigger('change');
+
+         assert.strictEqual(count, 2);
       });
    });
 }

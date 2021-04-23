@@ -18,8 +18,10 @@ export default class Eventbus
     *
     * @param {string}   eventbusName - Optional eventbus name.
     */
-   constructor(eventbusName = void 0)
+   constructor(eventbusName = '')
    {
+      if (typeof eventbusName !== 'string') { throw new TypeError(`'eventbusName' is not a string`); }
+
       /**
        * Stores the name of this eventbus.
        *
@@ -29,16 +31,28 @@ export default class Eventbus
       this._eventbusName = eventbusName;
 
       /**
+       * Stores the events map for associated events and callback / context data.
+       *
        * @type {Events}
        * @private
        */
       this._events = void 0;
 
       /**
-       * @type {Listeners}
+       * Stores the Listening instances for this context.
+       *
+       * @type {object.<string, Listening>}
        * @private
        */
       this._listeners = void 0;
+
+      /**
+       * Stores the Listening instances for other contexts.
+       *
+       * @type {object.<string, Listening>}
+       * @private
+       */
+      this._listeningTo = void 0;
    }
 
    /**
@@ -46,20 +60,24 @@ export default class Eventbus
     * removed. When multiple events are passed in using the space separated syntax, the event
     * will fire count times for every event you passed in, not once for a combination of all events.
     *
-    * @param {number}         count    - Number of times the function will fire before being removed.
-    * @param {string|object}  name     - Event name(s)
+    * @param {number}         count Number of times the function will fire before being removed.
+    *
+    * @param {string|object}  name Event name(s) or event map
+    *
     * @param {Function}       callback - Event callback function
+    *
     * @param {object}         context  - Event context
+    *
     * @returns {Eventbus} This Eventbus instance.
     */
    before(count, name, callback, context = void 0)
    {
       if (!Number.isInteger(count)) { throw new TypeError(`'count' is not an integer`); }
 
-      // Map the event into a `{event: once}` object.
+      // Map the event into a `{event: beforeWrapper}` object.
       const events = Utils.eventsAPI(Utils.beforeMap, {}, name, callback, {
          count,
-         offer: this.off.bind(this)
+         after: this.off.bind(this)
       });
 
       if (typeof name === 'string' && (context === null || context === void 0)) { callback = void 0; }
@@ -79,7 +97,7 @@ export default class Eventbus
    }
 
    /**
-    * Iterates over all stored events yielding an array with event name, callback function, and event context.
+    * Returns an iterable for all stored events yielding an array with event name, callback function, and event context.
     *
     * @param {RegExp} [regex] Optional regular expression to filter event names.
     *
@@ -119,7 +137,7 @@ export default class Eventbus
    /**
     * Returns the current event count.
     *
-    * @returns {number} The current proxied event count.
+    * @returns {number} The current event count.
     */
    get eventCount()
    {
@@ -184,9 +202,12 @@ export default class Eventbus
     *
     * @see http://backbonejs.org/#Events-listenTo
     *
-    * @param {object}   obj         - Event context
-    * @param {string}   name        - Event name(s)
-    * @param {Function} callback    - Event callback function
+    * @param {object}         obj Event context
+    *
+    * @param {string|object}  name Event name(s) or event map
+    *
+    * @param {Function}       callback Event callback function
+    *
     * @returns {Eventbus} This Eventbus instance.
     */
    listenTo(obj, name, callback)
@@ -210,29 +231,33 @@ export default class Eventbus
 
       if (error) { throw error; }
 
-      // If the target obj is not Backbone.Events, track events manually.
+      // If the target obj is not an Eventbus, track events manually.
       if (listening.interop) { listening.on(name, callback); }
 
       return this;
    }
 
    /**
-    * Just like `listenTo`, but causes the bound callback to fire only once before being removed.
+    * Just like `listenTo`, but causes the bound callback to fire count times before being removed.
     *
-    * @param {number}         count    - Number of times the function will fire before being removed.
-    * @param {object}         obj      - Event context
-    * @param {string|object}  name     - Event name(s)
-    * @param {Function}       callback - Event callback function
+    * @param {number}         count Number of times the function will fire before being removed.
+    *
+    * @param {object}         obj Event context
+    *
+    * @param {string|object}  name Event name(s) or event map
+    *
+    * @param {Function}       callback Event callback function
+    *
     * @returns {Eventbus} This Eventbus instance.
     */
    listenToBefore(count, obj, name, callback)
    {
       if (!Number.isInteger(count)) { throw new TypeError(`'count' is not an integer`); }
 
-      // Map the event into a `{event: once}` object.
+      // Map the event into a `{event: beforeWrapper}` object.
       const events = Utils.eventsAPI(Utils.beforeMap, {}, name, callback, {
          count,
-         offer: this.stopListening.bind(this, obj)
+         after: this.stopListening.bind(this, obj)
       });
 
       return this.listenTo(obj, events);
@@ -243,17 +268,20 @@ export default class Eventbus
     *
     * @see http://backbonejs.org/#Events-listenToOnce
     *
-    * @param {object}         obj      - Event context
-    * @param {string|object}  name     - Event name(s)
-    * @param {Function}       callback - Event callback function
+    * @param {object}         obj Event context
+    *
+    * @param {string|object}  name Event name(s) or event map
+    *
+    * @param {Function}       callback Event callback function
+    *
     * @returns {Eventbus} This Eventbus instance.
     */
    listenToOnce(obj, name, callback)
    {
-      // Map the event into a `{event: once}` object.
+      // Map the event into a `{event: beforeWrapper}` object.
       const events = Utils.eventsAPI(Utils.beforeMap, {}, name, callback, {
          count: 1,
-         offer: this.stopListening.bind(this, obj)
+         after: this.stopListening.bind(this, obj)
       });
 
       return this.listenTo(obj, events);
@@ -285,9 +313,12 @@ export default class Eventbus
     *
     * @see http://backbonejs.org/#Events-off
     *
-    * @param {string|object}  [name]     - Event name(s)
-    * @param {Function}       [callback] - Event callback function
-    * @param {object}         [context]  - Event context
+    * @param {string|object}  name Event name(s) or event map
+    *
+    * @param {Function}       [callback] Event callback function
+    *
+    * @param {object}         [context] Event context
+    *
     * @returns {Eventbus} This Eventbus instance.
     */
    off(name, callback = void 0, context = void 0)
@@ -328,9 +359,12 @@ export default class Eventbus
     *
     * @see http://backbonejs.org/#Events-on
     *
-    * @param {string|object}  name     - Event name(s)
-    * @param {Function}       callback - Event callback function
-    * @param {object}         [context]  - Event context
+    * @param {string|object}  name Event name(s) or event map
+    *
+    * @param {Function}       callback Event callback function
+    *
+    * @param {object}         [context] Event context
+    *
     * @returns {Eventbus} This Eventbus instance.
     */
    on(name, callback, context = void 0)
@@ -361,17 +395,20 @@ export default class Eventbus
     *
     * @see http://backbonejs.org/#Events-once
     *
-    * @param {string|object}  name     - Event name(s)
-    * @param {Function}       callback - Event callback function
-    * @param {object}         [context]  - Event context
+    * @param {string|object}  name Event name(s) or event map
+    *
+    * @param {Function}       callback Event callback function
+    *
+    * @param {object}         [context] Event context
+    *
     * @returns {Eventbus} This Eventbus instance.
     */
    once(name, callback, context = void 0)
    {
-      // Map the event into a `{event: once}` object.
+      // Map the event into a `{event: beforeWrapper}` object.
       const events = Utils.eventsAPI(Utils.beforeMap, {}, name, callback, {
          count: 1,
-         offer: this.off.bind(this)
+         after: this.off.bind(this)
       });
 
       if (typeof name === 'string' && (context === null || context === void 0)) { callback = void 0; }
@@ -391,9 +428,12 @@ export default class Eventbus
     *
     * @see http://backbonejs.org/#Events-stopListening
     *
-    * @param {object}   obj            - Event context
-    * @param {string}   name           - Event name(s)
-    * @param {Function} callback       - Event callback function
+    * @param {object}   obj Event context
+    *
+    * @param {string}   [name] Event name(s)
+    *
+    * @param {Function} [callback] Event callback function
+    *
     * @returns {Eventbus} This Eventbus instance.
     */
    stopListening(obj, name = void 0, callback = void 0)
@@ -424,7 +464,8 @@ export default class Eventbus
     *
     * @see http://backbonejs.org/#Events-trigger
     *
-    * @param {string}   name  - Event name(s)
+    * @param {string}   name Event name(s)
+    *
     * @returns {Eventbus} This Eventbus instance.
     */
    trigger(name)
@@ -446,7 +487,8 @@ export default class Eventbus
     * single Promise generated by `Promise.resolve` for a single value or `Promise.all` for multiple results. This is
     * a very useful mechanism to invoke asynchronous operations over an eventbus.
     *
-    * @param {string}   name  - Event name(s)
+    * @param {string}   name Event name(s)
+    *
     * @returns {Promise<void|*|*[]>} A Promise with any results.
     */
    async triggerAsync(name)
@@ -490,9 +532,11 @@ export default class Eventbus
    /**
     * Defers invoking `trigger`. This is useful for triggering events in the next clock tick.
     *
+    * @param {string}   name Event name(s)
+    *
     * @returns {Eventbus} This Eventbus instance.
     */
-   triggerDefer()
+   triggerDefer(name)   // eslint-disable-line  no-unused-vars
    {
       setTimeout(() => { this.trigger(...arguments); }, 0);
 
@@ -503,7 +547,8 @@ export default class Eventbus
     * Provides `trigger` functionality, but collects any returned result or results from invoked targets as a single
     * value or in an array and passes it back to the callee in a synchronous manner.
     *
-    * @param {string}   name  - Event name(s)
+    * @param {string}   name Event name(s)
+    *
     * @returns {void|*|*[]} The results of the event invocation.
     */
    triggerSync(name)
@@ -553,9 +598,12 @@ class Listening
    /**
     * @see {@link Eventbus#on}
     *
-    * @param {string|object}  name     - Event name(s)
-    * @param {Function}       callback - Event callback function
-    * @param {object}         [context] - Event context
+    * @param {string|object}  name Event name(s)
+    *
+    * @param {Function}       callback Event callback function
+    *
+    * @param {object}         [context] Event context
+    *
     * @returns {Listening} This Listening instance.
     */
    on(name, callback, context = void 0)
@@ -570,10 +618,14 @@ class Listening
       return this;
    }
 
-   // Offs a callback (or several).
-   // Uses an optimized counter if the listenee uses Backbone.Events.
-   // Otherwise, falls back to manual tracking to support events
-   // library interop.
+   /**
+    * Offs a callback (or several). Uses an optimized counter if the listenee uses Eventbus. Otherwise, falls back to
+    * manual tracking to support events library interop.
+    *
+    * @param {string|object}  name Event name(s)
+    *
+    * @param {Function}       callback Event callback function
+    */
    off(name, callback)
    {
       let cleanup;
@@ -599,10 +651,14 @@ class Listening
 /**
  * The reducing API that removes a callback from the `events` object.
  *
- * @param {Events}   events   - Events object
- * @param {string}   name     - Event name
- * @param {Function} callback - Event callback
- * @param {object}   options  - Optional parameters
+ * @param {Events}   events Events object
+ *
+ * @param {string}   name Event name
+ *
+ * @param {Function} callback Event callback
+ *
+ * @param {object}   options Optional parameters
+ *
  * @returns {void|Events} Events object
  */
 const s_OFF_API = (events, name, callback, options) =>
@@ -667,10 +723,14 @@ const s_OFF_API = (events, name, callback, options) =>
 /**
  * The reducing API that adds a callback to the `events` object.
  *
- * @param {Events}   events   - Events object
- * @param {string}   name     - Event name
- * @param {Function} callback - Event callback
- * @param {object}   options  - Optional parameters
+ * @param {Events}   events Events object
+ *
+ * @param {string}   name Event name
+ *
+ * @param {Function} callback Event callback
+ *
+ * @param {object}   options Optional parameters
+ *
  * @returns {Events} Events object.
  */
 const s_ON_API = (events, name, callback, options) =>
@@ -691,12 +751,18 @@ const s_ON_API = (events, name, callback, options) =>
  * Iterates over the standard `event, callback` (as well as the fancy multiple space-separated events `"change blur",
  * callback` and jQuery-style event maps `{event: callback}`).
  *
- * @param {Function} iteratee       - Trigger API
- * @param {Function} iterateeTarget - Internal function which is dispatched to.
- * @param {Events}   events         - Array of stored event callback data.
- * @param {string}   name           - Event name(s)
- * @param {Function} callback       - callback
- * @param {object}   opts           - Optional parameters
+ * @param {Function} iteratee Trigger API
+ *
+ * @param {Function} iterateeTarget Internal function which is dispatched to.
+ *
+ * @param {Events}   events Array of stored event callback data.
+ *
+ * @param {string}   name Event name(s)
+ *
+ * @param {Function} callback callback
+ *
+ * @param {object}   opts Optional parameters
+ *
  * @returns {*} The results of the callback if any.
  */
 const s_RESULTS_TARGET_API = (iteratee, iterateeTarget, events, name, callback, opts) =>
@@ -770,11 +836,16 @@ const s_RESULTS_TARGET_API = (iteratee, iterateeTarget, events, name, callback, 
 /**
  * Handles triggering the appropriate event callbacks.
  *
- * @param {Function} iterateeTarget - Internal function which is dispatched to.
- * @param {Events}   objEvents      - Array of stored event callback data.
- * @param {string}   name           - Event name(s)
- * @param {Function} callback       - callback
- * @param {*[]}      args           - Arguments supplied to a trigger method.
+ * @param {Function} iterateeTarget Internal function which is dispatched to.
+ *
+ * @param {Events}   objEvents Array of stored event callback data.
+ *
+ * @param {string}   name Event name(s)
+ *
+ * @param {Function} callback callback
+ *
+ * @param {*[]}      args Arguments supplied to a trigger method.
+ *
  * @returns {*} The results from the triggered event.
  */
 const s_TRIGGER_API = (iterateeTarget, objEvents, name, callback, args) =>
@@ -797,8 +868,9 @@ const s_TRIGGER_API = (iterateeTarget, objEvents, name, callback, args) =>
  * A difficult-to-believe, but optimized internal dispatch function for triggering events. Tries to keep the usual
  * cases speedy (most internal Backbone events have 3 arguments).
  *
- * @param {EventData[]}  events - Array of stored event callback data.
- * @param {*[]} args - event argument array
+ * @param {EventData[]} events Array of stored event callback data.
+ *
+ * @param {*[]}         args Event argument array
  */
 const s_TRIGGER_EVENTS = (events, args) =>
 {
@@ -832,8 +904,10 @@ const s_TRIGGER_EVENTS = (events, args) =>
  * waits until all Promises complete. Any target invoked may return a Promise or any result. This is very useful to
  * use for any asynchronous operations.
  *
- * @param {EventData[]} events   - Array of stored event callback data.
- * @param {*[]}         args     - Arguments supplied to `triggerAsync`.
+ * @param {EventData[]} events Array of stored event callback data.
+ *
+ * @param {*[]}         args Arguments supplied to `triggerAsync`.
+ *
  * @returns {Promise<void|*|*[]>} A Promise of the results from the triggered event.
  */
 const s_TRIGGER_ASYNC_EVENTS = async (events, args) =>
@@ -921,8 +995,10 @@ const s_TRIGGER_ASYNC_EVENTS = async (events, args) =>
  * cases speedy (most internal Backbone events have 3 arguments). This dispatch method synchronously passes back a
  * single value or an array with all results returned by any invoked targets.
  *
- * @param {EventData[]} events   - Array of stored event callback data.
- * @param {*[]}         args     - Arguments supplied to `triggerSync`.
+ * @param {EventData[]} events Array of stored event callback data.
+ *
+ * @param {*[]}         args Arguments supplied to `triggerSync`.
+ *
  * @returns {void|*|*[]} The results from the triggered event.
  */
 const s_TRIGGER_SYNC_EVENTS = (events, args) =>
@@ -986,12 +1062,16 @@ const s_TRIGGER_SYNC_EVENTS = (events, args) =>
 };
 
 /**
- * A try-catch guarded #on function, to prevent poisoning the global `_listening` variable.
+ * A try-catch guarded #on function, to prevent poisoning the global `_listening` variable. Used when attempting to
+ * invoke `on` from an other eventbus / context via `listenTo`.
  *
- * @param {Eventbus} obj -
- * @param {string}   name -
- * @param {Function} callback -
- * @param {object}   context -
+ * @param {object}         obj Event target / context
+ *
+ * @param {string|object}  name Event name(s)
+ *
+ * @param {Function}       callback Event callback function
+ *
+ * @param {object}         [context] Event context
  *
  * @returns {Error} Any error if thrown.
  */
@@ -1018,6 +1098,7 @@ let idCounter = 0;
  * Creates a new unique ID with a given prefix
  *
  * @param {string}   prefix - An optional prefix to add to unique ID.
+ *
  * @returns {string} A new unique ID with a given prefix.
  */
 const s_UNIQUE_ID = (prefix = '') =>
@@ -1030,25 +1111,14 @@ const s_UNIQUE_ID = (prefix = '') =>
  * @typedef {object} EventData The callback data for an event.
  *
  * @property {Function} callback - Callback function
- * @property {object} context -
- * @property {object} ctx -
- * @property {object} listening -
+ *
+ * @property {object} context - Event context
+ *
+ * @property {object} ctx - Event context or local eventbus instance.
+ *
+ * @property {object} listening - Any associated listening instance.
  */
 
 /**
  * @typedef {object.<string, EventData[]>} Events Event data stored by event name.
- */
-
-/**
- * @typedef {object} ListeningData The listening to data for a particular object.
- *
- * @property {object} obj -
- * @property {string} objId -
- * @property {string} id -
- * @property {object} listeningTo -
- * @property {number} count -
- */
-
-/**
- * @typedef {object.<string, ListeningData[]>} Listeners All listener data stored by id.
  */

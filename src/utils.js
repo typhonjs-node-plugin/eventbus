@@ -57,60 +57,57 @@ export const objectKeys = (object) =>
 };
 
 /**
- * Reduces the event callbacks into a map of `{event: beforeWrapper}`. `offer` unbinds the `beforeWrapper` after
+ * Reduces the event callbacks into a map of `{event: beforeWrapper}`. `after` unbinds the `beforeWrapper` after
  * it has been called the number of times specified by options.count.
  *
  * @param {Events}   map      - Events object
  * @param {string}   name     - Event name
  * @param {Function} callback - Event callback
- * @param {object}   options    - Function to invoke after event has been triggered once; `off()`
+ * @param {object}   opts    - Function to invoke after event has been triggered once; `off()`
  * @returns {Events} The Events object.
  */
-export function beforeMap(map, name, callback, options)
+export function beforeMap(map, name, callback, opts)
 {
-   const offer = options.offer;
-   const count = options.count + 1;
+   const after = opts.after;
+   const count = opts.count + 1;
 
    if (callback)
    {
-      const once = map[name] = s_BEFORE(count, function()
+      const beforeWrapper = map[name] = s_BEFORE(count, function()
       {
          return callback.apply(this, arguments);
-      }, () => { offer(name, once); });
+      }, () => { after(name, beforeWrapper); });
 
-      once._callback = callback;
+      beforeWrapper._callback = callback;
    }
    return map;
 }
 
 /**
- * Creates a function that invokes `func`, with the `this` binding and arguments
- * of the created function, while it's called less than `n` times. Subsequent
- * calls to the created function return the result of the last `func` invocation.
+ * Creates a function that invokes `before`, with the `this` binding and arguments of the created function, while
+ * it's called less than `count` times. Subsequent calls to the created function return the result of the last `before`
+ * invocation.
  *
- * @since 3.0.0
- * @param {number} n The number of calls at which `func` is no longer invoked.
- * @param {Function} func The function to restrict.
- * @param {Function} after The function invoke after n number of calls.
+ * `after` is invoked after the count is reduced.
+ *
+ * @param {number} count The number of calls at which `before` is no longer invoked and then `after` is invoked.
+ * @param {Function} before The function to restrict.
+ * @param {Function} after The function to invoke after count number of calls.
  * @returns {Function} Returns the new restricted function.
- * @example
- *
- * jQuery(element).on('click', before(5, addContactToList))
- * // => Allows adding up to 4 contacts to the list.
  */
-const s_BEFORE = function(n, func, after)
+const s_BEFORE = function(count, before, after)
 {
    let result;
 
    return function(...args)
    {
-      if (--n > 0) { result = func.apply(this, args); }
+      if (--count > 0) { result = before.apply(this, args); }
 
-      if (n <= 1)
+      if (count <= 1)
       {
          if (after) { after.apply(this, args); }
          after = void 0;
-         func = void 0;
+         before = void 0;
       }
 
       return result;

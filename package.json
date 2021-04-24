@@ -27,6 +27,7 @@
   "homepage": "https://github.com/typhonjs-plugin/eventbus",
   "keywords": [
     "typhonjs",
+    "plugin",
     "eventbus"
   ],
   "license": "MPL-2.0",

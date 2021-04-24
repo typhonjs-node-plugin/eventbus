@@ -503,9 +503,7 @@ const s_ON_API = (events, name, callback, opts) =>
  * @typedef {object} EventData The callback data for an event.
  *
  * @property {Function} callback - Callback function
- * @property {object} context -
- * @property {object} ctx -
- * @property {object} listening -
+ * @property {object} context - The context of the callback function.
  */
 
 /**

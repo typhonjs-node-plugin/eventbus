@@ -27,12 +27,17 @@ export default class EventbusSecure
       return {
          destroy: function()
          {
-            eventbusSecure.#eventbus = null;
+            if (eventbusSecure.#eventbus !== null)
+            {
+               eventbusSecure.#eventbus = null;
+
+               if (this) { this.eventbusSecure = void 0 }
+            }
          },
 
-         setEventbus: (eventbus) =>
+         setEventbus: function(eventbus)
          {
-            eventbusSecure.#eventbus = eventbus;
+            if (eventbusSecure.#eventbus !== null) { eventbusSecure.#eventbus = eventbus; }
          },
 
          eventbusSecure

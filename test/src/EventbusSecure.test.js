@@ -69,6 +69,29 @@ if (config.eventbussecure)
          assert.strictEqual(callbacks.testTriggerCount, 3);
       });
 
+      it('function - destroy - object ref undefined', () =>
+      {
+         callbacks.testTriggerCount = 0;
+
+         const obj = eventbus.createSecure();
+
+         eventbus.on('test:trigger', () => { callbacks.testTriggerCount++; });
+
+         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(obj.eventbusSecure.eventCount, 1);
+
+         obj.eventbusSecure.trigger('test:trigger');
+         eventbus.trigger('test:trigger');
+
+         assert.strictEqual(callbacks.testTriggerCount, 2);
+
+         assert.isFalse(obj.eventbusSecure.isDestroyed);
+
+         obj.destroy();
+
+         assert.isUndefined(obj.eventbusSecure);
+      });
+
       it('function - setEventbus - with trigger', () =>
       {
          callbacks.testTriggerCount = 0;

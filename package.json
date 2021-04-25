@@ -9,6 +9,7 @@
   "exports": {
     ".": "./src/index.js",
     "./EventbusProxy": "./src/EventbusProxy.js",
+    "./EventbusSecure": "./src/EventbusSecure.js",
     "./instances": "./src/instances.js"
   },
   "contributors": [

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Mocha Tests</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="lib/mocha.css" />
+</head>
+<body>
+<div id="mocha"></div>
+
+<script src="lib/mocha.js"></script>
+
+<script type="module">
+   import chai              from './lib/chai.js';
+   import chaiAsPromised    from './lib/chai-as-promised.js';
+
+   import * as Module       from './Eventbus.js';
+
+   import TestSuiteRunner   from './TestSuiteRunner.js';
+
+   import mochaConsoleLog   from './lib/mochaConsoleLog.js';
+
+   chai.use(chaiAsPromised);
+
+   const port = window.location.port;
+
+   const hostname = 'localhost'; // When testing on a different box set this to the live server IP.
+
+   const data = {
+      suitePrefix: 'browser/Eventbus',
+      isBrowser: true,
+   };
+
+   mocha.setup({
+      timeout: '16000',
+      ui: 'bdd'
+   });
+
+   mocha.checkLeaks();
+
+   TestSuiteRunner.run(Module, data, chai);
+
+   mochaConsoleLog(mocha.run());
+</script>
+</body>
+</html>

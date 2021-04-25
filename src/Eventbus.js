@@ -14,6 +14,14 @@ import * as Utils    from './utils.js';
 export default class Eventbus
 {
    /**
+    * Stores the name of this eventbus.
+    *
+    * @type {string}
+    * @private
+    */
+   #eventbusName = void 0;
+
+   /**
     * Provides a constructor which optionally takes the eventbus name.
     *
     * @param {string}   eventbusName - Optional eventbus name.
@@ -22,13 +30,7 @@ export default class Eventbus
    {
       if (typeof eventbusName !== 'string') { throw new TypeError(`'eventbusName' is not a string`); }
 
-      /**
-       * Stores the name of this eventbus.
-       *
-       * @type {string}
-       * @private
-       */
-      this._eventbusName = eventbusName;
+      this.#eventbusName = eventbusName;
 
       /**
        * Stores the events map for associated events and callback / context data.
@@ -189,7 +191,7 @@ export default class Eventbus
     */
    get name()
    {
-      return this._eventbusName;
+      return this.#eventbusName;
    }
 
    /**

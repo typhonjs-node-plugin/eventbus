@@ -135,6 +135,18 @@ export default class EventbusProxy
    }
 
    /**
+    * Returns the current proxied eventbus callback count.
+    *
+    * @returns {number} Returns the current proxied callback count.
+    */
+   get callbackCount()
+   {
+      if (this.isDestroyed) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
+
+      return this.#eventbus.callbackCount;
+   }
+
+   /**
     * Returns an iterable for the event names / keys of proxied eventbus event listeners.
     *
     * @param {RegExp} [regex] Optional regular expression to filter event names.
@@ -171,6 +183,38 @@ export default class EventbusProxy
       if (this.isDestroyed) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
       return this.#eventbus.name;
+   }
+
+   /**
+    * Returns the current proxied event count.
+    *
+    * @returns {number} Returns the current proxied event count.
+    */
+   get proxyEventCount()
+   {
+      if (this.isDestroyed) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
+
+      if (!this.#events) { return 0; }
+
+      return Object.keys(this.#events).length;
+   }
+
+   /**
+    * Returns the current proxied callback count.
+    *
+    * @returns {number} Returns the current proxied callback count.
+    */
+   get proxyCallbackCount()
+   {
+      if (this.isDestroyed) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
+
+      if (!this.#events) { return 0; }
+
+      let count = 0;
+
+      for (const name in this.#events) { count += this.#events[name].length; }
+
+      return count;
    }
 
    /**
@@ -344,24 +388,6 @@ export default class EventbusProxy
             }
          }
       }
-   }
-
-   /**
-    * Returns the current proxied event count.
-    *
-    * @returns {number} Returns the current proxied event count.
-    */
-   get proxyEventCount()
-   {
-      if (this.isDestroyed) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
-
-      if (!this.#events) { return 0; }
-
-      let count = 0;
-
-      for (const name in this.#events) { count += this.#events[name].length; }
-
-      return count;
    }
 
    /**

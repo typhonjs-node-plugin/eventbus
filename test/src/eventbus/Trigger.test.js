@@ -21,7 +21,7 @@ if (config.trigger)
          eventbus.on('test:trigger', () => { callbacks.testTrigger = true; });
          eventbus.trigger('test:trigger');
 
-         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(eventbus.callbackCount, 1);
 
          assert.isTrue(callbacks.testTrigger);
       });
@@ -39,13 +39,13 @@ if (config.trigger)
          anObject.register();
          anObject.triggerTest();
 
-         assert.strictEqual(anObject.events.eventCount, 1);
+         assert.strictEqual(anObject.events.callbackCount, 1);
 
          assert.strictEqual(anObject.testTrigger, 1);
 
          anObject.events.off();
 
-         assert.strictEqual(anObject.events.eventCount, 0);
+         assert.strictEqual(anObject.events.callbackCount, 0);
 
          anObject.triggerTest();
          anObject.triggerTest();
@@ -59,13 +59,13 @@ if (config.trigger)
          eventbus.on('test:trigger', () => { callbacks.testTrigger++; });
          eventbus.trigger('test:trigger');
 
-         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(eventbus.callbackCount, 1);
 
          assert.strictEqual(callbacks.testTrigger, 1);
 
          eventbus.off();
 
-         assert.strictEqual(eventbus.eventCount, 0);
+         assert.strictEqual(eventbus.callbackCount, 0);
 
          eventbus.trigger('test:trigger');
          eventbus.trigger('test:trigger');
@@ -115,7 +115,7 @@ if (config.trigger)
          eventbus.trigger('test:trigger:3', 1, 2, 3);
          eventbus.trigger('test:trigger:4', 1, 2, 3, 4);
 
-         assert.strictEqual(eventbus.eventCount, 4);
+         assert.strictEqual(eventbus.callbackCount, 4);
 
          assert.strictEqual(callbacks.testTrigger1, 1);
          assert.strictEqual(callbacks.testTrigger2, 1);
@@ -220,15 +220,15 @@ if (config.trigger)
          callbacks.testTriggerOnce = 0;
          eventbus.once('test:trigger:once', () => { callbacks.testTriggerOnce++; });
 
-         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(eventbus.callbackCount, 1);
 
          eventbus.trigger('test:trigger:once');
 
-         assert.strictEqual(eventbus.eventCount, 0);
+         assert.strictEqual(eventbus.callbackCount, 0);
 
          eventbus.trigger('test:trigger:once');
 
-         assert.strictEqual(eventbus.eventCount, 0);
+         assert.strictEqual(eventbus.callbackCount, 0);
 
          assert.strictEqual(callbacks.testTriggerOnce, 1);
       });
@@ -243,7 +243,7 @@ if (config.trigger)
 
          eventbus.trigger('test:trigger');
 
-         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(eventbus.callbackCount, 1);
 
          assert.strictEqual(callbacks.testTriggerCount, 1);
 
@@ -252,7 +252,7 @@ if (config.trigger)
 
          eventbus.trigger('test:trigger');
 
-         assert.strictEqual(eventbus.eventCount, 0);
+         assert.strictEqual(eventbus.callbackCount, 0);
 
          assert.strictEqual(callbacks.testTriggerCount, 1);
       });
@@ -265,23 +265,23 @@ if (config.trigger)
 
          test.listenToBefore(4, eventbus, 'test:trigger', () => { callbacks.testTrigger++; });
 
-         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(eventbus.callbackCount, 1);
 
          eventbus.trigger('test:trigger');
          eventbus.trigger('test:trigger');
          eventbus.trigger('test:trigger');
 
-         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(eventbus.callbackCount, 1);
 
          eventbus.trigger('test:trigger');
 
-         assert.strictEqual(eventbus.eventCount, 0);
+         assert.strictEqual(eventbus.callbackCount, 0);
 
          assert.strictEqual(callbacks.testTrigger, 4);
 
          eventbus.trigger('test:trigger');
 
-         assert.strictEqual(eventbus.eventCount, 0);
+         assert.strictEqual(eventbus.callbackCount, 0);
 
          assert.strictEqual(callbacks.testTrigger, 4);
       });
@@ -294,17 +294,17 @@ if (config.trigger)
 
          test.listenToOnce(eventbus, 'test:trigger', () => { callbacks.testTriggerOnce++; });
 
-         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(eventbus.callbackCount, 1);
 
          eventbus.trigger('test:trigger');
 
-         assert.strictEqual(eventbus.eventCount, 0);
+         assert.strictEqual(eventbus.callbackCount, 0);
 
          assert.strictEqual(callbacks.testTriggerOnce, 1);
 
          eventbus.trigger('test:trigger');
 
-         assert.strictEqual(eventbus.eventCount, 0);
+         assert.strictEqual(eventbus.callbackCount, 0);
 
          assert.strictEqual(callbacks.testTriggerOnce, 1);
       });

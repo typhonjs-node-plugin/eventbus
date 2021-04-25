@@ -119,7 +119,7 @@ if (config.backbone)
          eventbus.once('event', incrA);
          eventbus.once('event', incrB);
          eventbus.trigger('event');
-         assert.strictEqual(eventbus.eventCount, 0);
+         assert.strictEqual(eventbus.callbackCount, 0);
          assert.equal(count, 1, 'count should have only been incremented once.');
          assert.equal(count2, 1, 'count2 should have only been incremented once.');
       });
@@ -231,19 +231,19 @@ if (config.backbone)
          b.on('event', fn);
          a.listenTo(b, 'event', fn).stopListening();
          assert.equal(size(a._listeningTo), 0);
-         assert.equal(b.eventCount, 1);
+         assert.equal(b.callbackCount, 1);
          assert.equal(size(b._listeners), 0);
          a.listenTo(b, 'event', fn).stopListening(b);
          assert.equal(size(a._listeningTo), 0);
-         assert.equal(b.eventCount, 1);
+         assert.equal(b.callbackCount, 1);
          assert.equal(size(b._listeners), 0);
          a.listenTo(b, 'event', fn).stopListening(b, 'event');
          assert.equal(size(a._listeningTo), 0);
-         assert.equal(b.eventCount, 1);
+         assert.equal(b.callbackCount, 1);
          assert.equal(size(b._listeners), 0);
          a.listenTo(b, 'event', fn).stopListening(b, 'event', fn);
          assert.equal(size(a._listeningTo), 0);
-         assert.equal(b.eventCount, 1);
+         assert.equal(b.callbackCount, 1);
          assert.equal(size(b._listeners), 0);
       });
 
@@ -253,19 +253,19 @@ if (config.backbone)
          b.on('event', fn);
          a.listenToOnce(b, 'event', fn).stopListening();
          assert.equal(size(a._listeningTo), 0);
-         assert.equal(b.eventCount, 1);
+         assert.equal(b.callbackCount, 1);
          assert.equal(size(b._listeners), 0);
          a.listenToOnce(b, 'event', fn).stopListening(b);
          assert.equal(size(a._listeningTo), 0);
-         assert.equal(b.eventCount, 1);
+         assert.equal(b.callbackCount, 1);
          assert.equal(size(b._listeners), 0);
          a.listenToOnce(b, 'event', fn).stopListening(b, 'event');
          assert.equal(size(a._listeningTo), 0);
-         assert.equal(b.eventCount, 1);
+         assert.equal(b.callbackCount, 1);
          assert.equal(size(b._listeners), 0);
          a.listenToOnce(b, 'event', fn).stopListening(b, 'event', fn);
          assert.equal(size(a._listeningTo), 0);
-         assert.equal(b.eventCount, 1);
+         assert.equal(b.callbackCount, 1);
          assert.equal(size(b._listeners), 0);
       });
 

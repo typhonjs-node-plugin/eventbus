@@ -42,11 +42,11 @@ if (config.other)
          eventbus.trigger('test');
          eventbus.trigger('test');
 
-         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(eventbus.callbackCount, 1);
 
          eventbus.trigger('test');
 
-         assert.strictEqual(eventbus.eventCount, 0);
+         assert.strictEqual(eventbus.callbackCount, 0);
 
          eventbus.trigger('test');
 
@@ -145,23 +145,23 @@ if (config.other)
 
          eventbus.on('test:trigger', callback, context, true);
 
-         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(eventbus.callbackCount, 1);
 
          eventbus.on('test:trigger', callback, context, true);
 
-         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(eventbus.callbackCount, 1);
 
          eventbus.on('test:trigger2', callback, context2);
 
-         assert.strictEqual(eventbus.eventCount, 2);
+         assert.strictEqual(eventbus.callbackCount, 2);
 
          eventbus.on('test:trigger3', callback, context3, true);
 
-         assert.strictEqual(eventbus.eventCount, 3);
+         assert.strictEqual(eventbus.callbackCount, 3);
 
          eventbus.on('test:trigger3', callback);
 
-         assert.strictEqual(eventbus.eventCount, 3);
+         assert.strictEqual(eventbus.callbackCount, 3);
 
          eventbus.trigger('test:trigger');
 
@@ -193,23 +193,23 @@ if (config.other)
 
          eventbus.before(2, 'test:trigger', callback, context, true);
 
-         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(eventbus.callbackCount, 1);
 
          eventbus.before(2, 'test:trigger', callback, context, true);
 
-         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(eventbus.callbackCount, 1);
 
          eventbus.on('test:trigger2', callback, context2);
 
-         assert.strictEqual(eventbus.eventCount, 2);
+         assert.strictEqual(eventbus.callbackCount, 2);
 
          eventbus.trigger('test:trigger');
 
-         assert.strictEqual(eventbus.eventCount, 2);
+         assert.strictEqual(eventbus.callbackCount, 2);
 
          eventbus.trigger('test:trigger');
 
-         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(eventbus.callbackCount, 1);
 
          eventbus.trigger('test:trigger');
 
@@ -245,22 +245,22 @@ if (config.other)
 
          eventbus.once('test:trigger', callback, context, true);
 
-         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(eventbus.callbackCount, 1);
          assert.isTrue(eventbus.isGuarded('test:trigger'));
 
          eventbus.once('test:trigger', callback, context, true);
 
-         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(eventbus.callbackCount, 1);
 
          eventbus.on('test:trigger2', callback, context2);
 
-         assert.strictEqual(eventbus.eventCount, 2);
+         assert.strictEqual(eventbus.callbackCount, 2);
          assert.isFalse(eventbus.isGuarded('test:trigger2'));
 
          eventbus.trigger('test:trigger');
 
          assert.strictEqual(count, 1);
-         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(eventbus.callbackCount, 1);
 
          assert.strictEqual(Array.from(eventbus.entries()).length, 1);
 
@@ -290,11 +290,11 @@ if (config.other)
 
          eventbus.on('test:trigger', callback, context);
 
-         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(eventbus.callbackCount, 1);
 
          eventbus.on('test:trigger2', callback, context2);
 
-         assert.strictEqual(eventbus.eventCount, 2);
+         assert.strictEqual(eventbus.callbackCount, 2);
 
          const events = Array.from(eventbus.entries());
 
@@ -303,7 +303,7 @@ if (config.other)
          eventbus.trigger('test:trigger');
 
          assert.strictEqual(count, 0);
-         assert.strictEqual(eventbus.eventCount, 0);
+         assert.strictEqual(eventbus.callbackCount, 0);
 
          for (const event of events)
          {
@@ -313,7 +313,7 @@ if (config.other)
          eventbus.trigger('test:trigger');
 
          assert.strictEqual(count, 1);
-         assert.strictEqual(eventbus.eventCount, 2);
+         assert.strictEqual(eventbus.callbackCount, 2);
 
          assert.strictEqual(Array.from(eventbus.entries()).length, 2);
 
@@ -343,11 +343,11 @@ if (config.other)
 
          eventbus.once('test:trigger', callback, context);
 
-         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(eventbus.callbackCount, 1);
 
          eventbus.on('test:trigger2', callback, context2);
 
-         assert.strictEqual(eventbus.eventCount, 2);
+         assert.strictEqual(eventbus.callbackCount, 2);
 
          // Store events
          const events = Array.from(eventbus.entries());
@@ -358,7 +358,7 @@ if (config.other)
          eventbus.trigger('test:trigger');
 
          assert.strictEqual(count, 0);
-         assert.strictEqual(eventbus.eventCount, 0);
+         assert.strictEqual(eventbus.callbackCount, 0);
 
          // Add back all events
          for (const event of events)
@@ -366,12 +366,12 @@ if (config.other)
             eventbus.on(...event);
          }
 
-         assert.strictEqual(eventbus.eventCount, 2);
+         assert.strictEqual(eventbus.callbackCount, 2);
 
          eventbus.trigger('test:trigger');
 
          assert.strictEqual(count, 1);
-         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(eventbus.callbackCount, 1);
 
          eventbus.trigger('test:trigger');
 
@@ -389,6 +389,19 @@ if (config.other)
             assert.strictEqual(guarded, allGuarded[cntr]);
             cntr++;
          }
+      });
+
+      it('get - eventCount / callbackCount', () =>
+      {
+         assert.strictEqual(eventbus.eventCount, 0);
+         assert.strictEqual(eventbus.callbackCount, 0);
+
+         eventbus.on('test:trigger', () => {});
+         eventbus.on('test:trigger2', () => {});
+         eventbus.on('test:trigger2', () => {});
+
+         assert.strictEqual(eventbus.eventCount, 2);
+         assert.strictEqual(eventbus.callbackCount, 3);
       });
 
       it('keys has early out when no events are set', () =>

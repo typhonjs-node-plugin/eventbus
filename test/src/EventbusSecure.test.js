@@ -25,7 +25,7 @@ if (config.eventbussecure)
 
          eventbus.on('test:trigger', () => { callbacks.testTriggerCount++; });
 
-         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(eventbus.callbackCount, 1);
          assert.strictEqual(eventbusSecure.eventCount, 1);
 
          eventbusSecure.trigger('test:trigger');
@@ -77,7 +77,7 @@ if (config.eventbussecure)
 
          eventbus.on('test:trigger', () => { callbacks.testTriggerCount++; });
 
-         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(eventbus.callbackCount, 1);
          assert.strictEqual(obj.eventbusSecure.eventCount, 1);
 
          obj.eventbusSecure.trigger('test:trigger');
@@ -106,7 +106,7 @@ if (config.eventbussecure)
 
          eventbus2.on('test:trigger3', () => { callbacks.testTriggerCount++; });
 
-         assert.strictEqual(eventbus.eventCount, 2);
+         assert.strictEqual(eventbus.callbackCount, 2);
          assert.strictEqual(eventbusSecure.eventCount, 2);
 
          eventbusSecure.trigger('test:trigger');
@@ -138,7 +138,7 @@ if (config.eventbussecure)
          assert(eventbusSecure.name === 'testname');
       });
 
-      it('get - eventCount', () =>
+      it('get - callbackCount', () =>
       {
          eventbus.on('can:see:this', () => {});
 
@@ -215,7 +215,7 @@ if (config.eventbussecure)
 
          eventbus.on('test:trigger', () => { callbacks.testTriggerCount++; });
 
-         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(eventbus.callbackCount, 1);
          assert.strictEqual(eventbusSecure.eventCount, 1);
 
          eventbusSecure.triggerDefer('test:trigger');
@@ -248,7 +248,7 @@ if (config.eventbussecure)
             return 'foo';
          });
 
-         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(eventbus.callbackCount, 1);
          assert.strictEqual(eventbusSecure.eventCount, 1);
 
          const result = eventbusSecure.triggerSync('test:trigger:sync1');
@@ -273,7 +273,7 @@ if (config.eventbussecure)
             return 'bar';
          });
 
-         assert.strictEqual(eventbus.eventCount, 2);
+         assert.strictEqual(eventbus.callbackCount, 2);
          assert.strictEqual(eventbusSecure.eventCount, 2);
 
          const results = eventbusSecure.triggerSync('test:trigger:sync2');
@@ -290,7 +290,7 @@ if (config.eventbussecure)
       {
          const { eventbusSecure } = eventbus.createSecure();
 
-         assert.strictEqual(eventbus.eventCount, 0);
+         assert.strictEqual(eventbus.callbackCount, 0);
          assert.strictEqual(eventbusSecure.eventCount, 0);
 
          eventbus.on('test:trigger:sync:off', () =>
@@ -299,12 +299,12 @@ if (config.eventbussecure)
             return true;
          });
 
-         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(eventbus.callbackCount, 1);
          assert.strictEqual(eventbusSecure.eventCount, 1);
 
          eventbus.off('test:trigger:sync:off');
 
-         assert.strictEqual(eventbus.eventCount, 0);
+         assert.strictEqual(eventbus.callbackCount, 0);
          assert.strictEqual(eventbusSecure.eventCount, 0);
 
          assert.isUndefined(eventbusSecure.triggerSync('test:trigger:sync:off'));
@@ -321,7 +321,7 @@ if (config.eventbussecure)
             return Promise.resolve('foobar');
          });
 
-         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(eventbus.callbackCount, 1);
          assert.strictEqual(eventbusSecure.eventCount, 1);
 
          const promise = eventbusSecure.triggerSync('test:trigger:sync:then');
@@ -351,7 +351,7 @@ if (config.eventbussecure)
             return 'bar';
          });
 
-         assert.strictEqual(eventbus.eventCount, 2);
+         assert.strictEqual(eventbus.callbackCount, 2);
          assert.strictEqual(eventbusSecure.eventCount, 2);
 
          const promise = eventbusSecure.triggerAsync('test:trigger:async');

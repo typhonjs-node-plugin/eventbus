@@ -59,7 +59,7 @@ export default class EventbusSecure
    {
       if (this.isDestroyed) { throw new ReferenceError('This EventbusSecure instance has been destroyed.'); }
 
-      return this.#eventbus.eventCount;
+      return this.#eventbus.callbackCount;
    }
 
    /**

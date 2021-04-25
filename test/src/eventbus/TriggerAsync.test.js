@@ -22,7 +22,7 @@ if (config.triggerAsync)
       {
          const result = await eventbus.triggerAsync('test:trigger:async');
 
-         assert.strictEqual(eventbus.eventCount, 0);
+         assert.strictEqual(eventbus.callbackCount, 0);
          assert.isNotArray(result);
          assert.isUndefined(result);
       });
@@ -37,7 +37,7 @@ if (config.triggerAsync)
          const result = await eventbus.triggerAsync('test:trigger:async');
 
          assert.isTrue(callbacks.testTriggerAsync);
-         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(eventbus.callbackCount, 1);
          assert.isNotArray(result);
          assert.isUndefined(result);
       });
@@ -88,7 +88,7 @@ if (config.triggerAsync)
          assert.isTrue(await eventbus.triggerAsync('test:trigger:3', 1, 2, 3));
          assert.isTrue(await eventbus.triggerAsync('test:trigger:4', 1, 2, 3, 4));
 
-         assert.strictEqual(eventbus.eventCount, 4);
+         assert.strictEqual(eventbus.callbackCount, 4);
 
          assert.strictEqual(callbacks.testTrigger1, 1);
          assert.strictEqual(callbacks.testTrigger2, 1);
@@ -193,7 +193,7 @@ if (config.triggerAsync)
                resolve('bar');
             }));
 
-         assert.strictEqual(eventbus.eventCount, 2);
+         assert.strictEqual(eventbus.callbackCount, 2);
 
          const promise = eventbus.triggerAsync('test:trigger:async');
 
@@ -233,7 +233,7 @@ if (config.triggerAsync)
                resolve('bar');
             }));
 
-         assert.strictEqual(eventbus.eventCount, 3);
+         assert.strictEqual(eventbus.callbackCount, 3);
 
          const promise = eventbus.triggerAsync('test:trigger:async');
 
@@ -257,7 +257,7 @@ if (config.triggerAsync)
       {
          callbacks.testTriggerOnce = 0;
 
-         assert.strictEqual(eventbus.eventCount, 0);
+         assert.strictEqual(eventbus.callbackCount, 0);
 
          eventbus.once('test:trigger:once',
             createTimedFunction((resolve) =>
@@ -266,11 +266,11 @@ if (config.triggerAsync)
                resolve('foo');
             }));
 
-         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(eventbus.callbackCount, 1);
 
          const promise = eventbus.triggerAsync('test:trigger:once');
 
-         assert.strictEqual(eventbus.eventCount, 0);
+         assert.strictEqual(eventbus.callbackCount, 0);
 
          assert(promise instanceof Promise);
 
@@ -300,7 +300,7 @@ if (config.triggerAsync)
                resolve('foo');
             }));
 
-         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(eventbus.callbackCount, 1);
 
          let promise = eventbus.triggerAsync('test:trigger:async');
 
@@ -314,7 +314,7 @@ if (config.triggerAsync)
          {
             test.stopListening(eventbus, 'test:trigger:async');
 
-            assert.strictEqual(eventbus.eventCount, 0);
+            assert.strictEqual(eventbus.callbackCount, 0);
 
             promise = eventbus.triggerAsync('test:trigger:async');
             assert(promise instanceof Promise);
@@ -335,7 +335,7 @@ if (config.triggerAsync)
 
          callbacks.testTriggerOnce = 0;
 
-         assert.strictEqual(eventbus.eventCount, 0);
+         assert.strictEqual(eventbus.callbackCount, 0);
 
          test.listenToOnce(eventbus, 'test:trigger:once',
             createTimedFunction((resolve) =>
@@ -344,12 +344,12 @@ if (config.triggerAsync)
                resolve('foo');
             }));
 
-         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(eventbus.callbackCount, 1);
 
          const promise = eventbus.triggerAsync('test:trigger:once');
 
          assert(promise instanceof Promise);
-         assert.strictEqual(eventbus.eventCount, 0);
+         assert.strictEqual(eventbus.callbackCount, 0);
 
          const promise2 = eventbus.triggerAsync('test:trigger:once');
 
@@ -380,7 +380,7 @@ if (config.triggerAsync)
                resolve('bar');
             }));
 
-         assert.strictEqual(eventbus.eventCount, 2);
+         assert.strictEqual(eventbus.callbackCount, 2);
 
          const result = await eventbus.triggerAsync('test:trigger:async');
 
@@ -406,7 +406,7 @@ if (config.triggerAsync)
                resolve();
             }));
 
-         assert.strictEqual(eventbus.eventCount, 2);
+         assert.strictEqual(eventbus.callbackCount, 2);
 
          const result = await eventbus.triggerAsync('test:trigger:async');
 
@@ -431,7 +431,7 @@ if (config.triggerAsync)
                resolve();
             }));
 
-         assert.strictEqual(eventbus.eventCount, 2);
+         assert.strictEqual(eventbus.callbackCount, 2);
 
          const result = await eventbus.triggerAsync('test:trigger:async');
 
@@ -445,7 +445,7 @@ if (config.triggerAsync)
       {
          callbacks.testTriggerOnce = 0;
 
-         assert.strictEqual(eventbus.eventCount, 0);
+         assert.strictEqual(eventbus.callbackCount, 0);
 
          eventbus.once('test:trigger:once',
             createTimedFunction((resolve) =>
@@ -454,11 +454,11 @@ if (config.triggerAsync)
                resolve('foo');
             }));
 
-         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(eventbus.callbackCount, 1);
 
          const result = await eventbus.triggerAsync('test:trigger:once');
 
-         assert.strictEqual(eventbus.eventCount, 0);
+         assert.strictEqual(eventbus.callbackCount, 0);
 
          assert.strictEqual(callbacks.testTriggerOnce, 1);
 
@@ -485,7 +485,7 @@ if (config.triggerAsync)
                resolve('foo');
             }));
 
-         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(eventbus.callbackCount, 1);
 
          let result = await eventbus.triggerAsync('test:trigger:async');
 
@@ -494,7 +494,7 @@ if (config.triggerAsync)
 
          test.stopListening(eventbus, 'test:trigger:async');
 
-         assert.strictEqual(eventbus.eventCount, 0);
+         assert.strictEqual(eventbus.callbackCount, 0);
 
          result = await eventbus.triggerAsync('test:trigger:async');
 
@@ -509,7 +509,7 @@ if (config.triggerAsync)
 
          callbacks.testTriggerOnce = 0;
 
-         assert.strictEqual(eventbus.eventCount, 0);
+         assert.strictEqual(eventbus.callbackCount, 0);
 
          // test.listenToOnce(eventbus, 'test:trigger:once', () => { callbacks.testTriggerOnce++; return 'foo'; });
          test.listenToOnce(eventbus, 'test:trigger:once',
@@ -519,11 +519,11 @@ if (config.triggerAsync)
                resolve('foo');
             }));
 
-         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(eventbus.callbackCount, 1);
 
          const result = await eventbus.triggerAsync('test:trigger:once');
 
-         assert.strictEqual(eventbus.eventCount, 0);
+         assert.strictEqual(eventbus.callbackCount, 0);
 
          assert.strictEqual(callbacks.testTriggerOnce, 1);
 
@@ -548,7 +548,7 @@ if (config.triggerAsync)
 
          eventbus.on('test:trigger:async', createTimedFunction((resolve, reject) => { reject('bar'); }));
 
-         assert.strictEqual(eventbus.eventCount, 2);
+         assert.strictEqual(eventbus.callbackCount, 2);
 
          await expect(eventbus.triggerAsync('test:trigger:async')).to.be.rejectedWith('bar');
       });
@@ -565,7 +565,7 @@ if (config.triggerAsync)
          eventbus.on('test:trigger:async',
             createTimedFunction((resolve, reject) => { reject(new Error('An Error!')); }));
 
-         assert.strictEqual(eventbus.eventCount, 2);
+         assert.strictEqual(eventbus.callbackCount, 2);
 
          await expect(eventbus.triggerAsync('test:trigger:async')).to.be.rejectedWith(Error, 'An Error!');
       });
@@ -581,7 +581,7 @@ if (config.triggerAsync)
 
          eventbus.on('test:trigger:async', () => { throw new Error('An Error!'); });
 
-         assert.strictEqual(eventbus.eventCount, 2);
+         assert.strictEqual(eventbus.callbackCount, 2);
 
          await expect(eventbus.triggerAsync('test:trigger:async')).to.be.rejectedWith(Error, 'An Error!');
       });

@@ -169,9 +169,21 @@ export default class Eventbus
    /**
     * Returns the current event count.
     *
-    * @returns {number} The current event count.
+    * @returns {number} Returns the current event count.
     */
    get eventCount()
+   {
+      if (!this.#events) { return 0; }
+
+      return Object.keys(this.#events).length;
+   }
+
+   /**
+    * Returns the current callback count.
+    *
+    * @returns {number} The current callback count.
+    */
+   get callbackCount()
    {
       if (!this.#events) { return 0; }
 

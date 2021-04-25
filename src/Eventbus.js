@@ -19,7 +19,15 @@ export default class Eventbus
     * @type {string}
     * @private
     */
-   #eventbusName = void 0;
+   #eventbusName = '';
+
+   /**
+    * Stores the events map for associated events and callback / context data.
+    *
+    * @type {Events}
+    * @private
+    */
+   #events;
 
    /**
     * Provides a constructor which optionally takes the eventbus name.
@@ -33,20 +41,20 @@ export default class Eventbus
       this.#eventbusName = eventbusName;
 
       /**
-       * Stores the events map for associated events and callback / context data.
-       *
-       * @type {Events}
-       * @private
-       */
-      this._events = void 0;
-
-      /**
        * Stores the Listening instances for this context.
        *
        * @type {object.<string, Listening>}
        * @private
        */
       this._listeners = void 0;
+
+      /**
+       * A unique ID set when listened to.
+       *
+       * @type {string}
+       * @private
+       */
+      this._listenId = void 0;
 
       /**
        * Stores the Listening instances for other contexts.
@@ -109,15 +117,15 @@ export default class Eventbus
    {
       if (regex !== void 0 && !(regex instanceof RegExp)) { throw new TypeError(`'regex' is not a RegExp`); }
 
-      if (!this._events) { return; }
+      if (!this.#events) { return; }
 
       if (regex)
       {
-         for (const name in this._events)
+         for (const name in this.#events)
          {
             if (regex.test(name))
             {
-               for (const event of this._events[name])
+               for (const event of this.#events[name])
                {
                   yield [name, event.callback, event.ctx];
                }
@@ -126,9 +134,9 @@ export default class Eventbus
       }
       else
       {
-         for (const name in this._events)
+         for (const name in this.#events)
          {
-            for (const event of this._events[name])
+            for (const event of this.#events[name])
             {
                yield [name, event.callback, event.ctx];
             }
@@ -143,11 +151,11 @@ export default class Eventbus
     */
    get eventCount()
    {
-      if (!this._events) { return 0; }
+      if (!this.#events) { return 0; }
 
       let count = 0;
 
-      for (const name in this._events) { count += this._events[name].length; }
+      for (const name in this.#events) { count += this.#events[name].length; }
 
       return count;
    }
@@ -163,11 +171,11 @@ export default class Eventbus
    {
       if (regex !== void 0 && !(regex instanceof RegExp)) { throw new TypeError(`'regex' is not a RegExp`); }
 
-      if (!this._events) { return; }
+      if (!this.#events) { return; }
 
       if (regex)
       {
-         for (const name in this._events)
+         for (const name in this.#events)
          {
             if (regex.test(name))
             {
@@ -177,7 +185,7 @@ export default class Eventbus
       }
       else
       {
-         for (const name in this._events)
+         for (const name in this.#events)
          {
             yield name;
          }
@@ -325,9 +333,9 @@ export default class Eventbus
     */
    off(name, callback = void 0, context = void 0)
    {
-      if (!this._events) { return this; }
+      if (!this.#events) { return this; }
 
-      this._events = Utils.eventsAPI(s_OFF_API, this._events, name, callback, { context, listeners: this._listeners });
+      this.#events = Utils.eventsAPI(s_OFF_API, this.#events, name, callback, { context, listeners: this._listeners });
 
       return this;
    }
@@ -371,7 +379,7 @@ export default class Eventbus
     */
    on(name, callback, context = void 0)
    {
-      this._events = Utils.eventsAPI(s_ON_API, this._events || {}, name, callback,
+      this.#events = Utils.eventsAPI(s_ON_API, this.#events || {}, name, callback,
       {
          context,
          ctx: this,
@@ -472,14 +480,14 @@ export default class Eventbus
     */
    trigger(name)
    {
-      if (!this._events) { return this; }
+      if (!this.#events) { return this; }
 
       const length = Math.max(0, arguments.length - 1);
       const args = new Array(length);
 
       for (let i = 0; i < length; i++) { args[i] = arguments[i + 1]; }
 
-      s_RESULTS_TARGET_API(s_TRIGGER_API, s_TRIGGER_EVENTS, this._events, name, void 0, args);
+      s_RESULTS_TARGET_API(s_TRIGGER_API, s_TRIGGER_EVENTS, this.#events, name, void 0, args);
 
       return this;
    }
@@ -495,13 +503,13 @@ export default class Eventbus
     */
    async triggerAsync(name)
    {
-      if (!this._events) { return void 0; }
+      if (!this.#events) { return void 0; }
 
       const length = Math.max(0, arguments.length - 1);
       const args = new Array(length);
       for (let i = 0; i < length; i++) { args[i] = arguments[i + 1]; }
 
-      const result = s_RESULTS_TARGET_API(s_TRIGGER_API, s_TRIGGER_ASYNC_EVENTS, this._events, name, void 0, args);
+      const result = s_RESULTS_TARGET_API(s_TRIGGER_API, s_TRIGGER_ASYNC_EVENTS, this.#events, name, void 0, args);
 
       // No event callbacks were triggered.
       if (result === void 0) { return void 0; }
@@ -555,14 +563,14 @@ export default class Eventbus
     */
    triggerSync(name)
    {
-      if (!this._events) { return void 0; }
+      if (!this.#events) { return void 0; }
 
       const start = 1;
       const length = Math.max(0, arguments.length - 1);
       const args = new Array(length);
       for (let i = 0; i < length; i++) { args[i] = arguments[i + start]; }
 
-      return s_RESULTS_TARGET_API(s_TRIGGER_API, s_TRIGGER_SYNC_EVENTS, this._events, name, void 0, args);
+      return s_RESULTS_TARGET_API(s_TRIGGER_API, s_TRIGGER_SYNC_EVENTS, this.#events, name, void 0, args);
    }
 }
 
@@ -580,22 +588,60 @@ let _listening;
  */
 class Listening
 {
+   /**
+    * @type {Events}
+    */
+   #events;
+
+   /**
+    * @type {string}
+    */
+   #id;
+
+   /**
+    * @type {object}
+    */
+   #listener;
+
+   /**
+    * @type {object}
+    */
+   #obj;
+
+   /**
+    * @type {boolean}
+    */
+   #interop;
+
+   /**
+    * Current listening count.
+    *
+    * @type {number}
+    */
+   #count = 0;
+
    constructor(listener, obj)
    {
-      this.id = listener._listenId;
-      this.listener = listener;
-      this.obj = obj;
-      this.interop = true;
-      this.count = 0;
-      this._events = void 0;
+      this.#id = listener._listenId;
+      this.#listener = listener;
+      this.#obj = obj;
+      this.#interop = true;
    }
 
    // Cleans up memory bindings between the listener and the listenee.
    cleanup()
    {
-      delete this.listener._listeningTo[this.obj._listenId];
-      if (!this.interop) { delete this.obj._listeners[this.id]; }
+      delete this.#listener._listeningTo[this.#obj._listenId];
+      if (!this.#interop) { delete this.#obj._listeners[this.#id]; }
    }
+
+   get id() { return this.#id; }
+
+   get interop() { return this.#interop; }
+
+   get obj() { return this.#obj; }
+
+   incrementCount() { this.#count++; }
 
    /**
     * @see {@link Eventbus#on}
@@ -610,7 +656,7 @@ class Listening
     */
    on(name, callback, context = void 0)
    {
-      this._events = Utils.eventsAPI(s_ON_API, this._events || {}, name, callback,
+      this.#events = Utils.eventsAPI(s_ON_API, this.#events || {}, name, callback,
       {
          context,
          ctx: this,
@@ -632,21 +678,33 @@ class Listening
    {
       let cleanup;
 
-      if (this.interop)
+      if (this.#interop)
       {
-         this._events = Utils.eventsAPI(s_OFF_API, this._events, name, callback, {
+         this.#events = Utils.eventsAPI(s_OFF_API, this.#events, name, callback, {
             context: void 0,
             listeners: void 0
          });
-         cleanup = !this._events;
+         cleanup = !this.#events;
       }
       else
       {
-         this.count--;
-         cleanup = this.count === 0;
+         this.#count--;
+         cleanup = this.#count === 0;
       }
 
       if (cleanup) { this.cleanup(); }
+   }
+
+   /**
+    * Sets interop.
+    *
+    * @param {boolean} value Value to set.
+    */
+   set interop(value)
+   {
+      /* c8 ignore next 1 */
+      if (typeof value !== 'boolean') { throw new TypeError(`'value' is not a boolean`); }
+      this.#interop = value
    }
 }
 
@@ -742,7 +800,7 @@ const s_ON_API = (events, name, callback, options) =>
       const handlers = events[name] || (events[name] = []);
       const context = options.context, ctx = options.ctx, listening = options.listening;
 
-      if (listening) { listening.count++; }
+      if (listening) { listening.incrementCount(); }
 
       handlers.push({ callback, context, ctx: context || ctx, listening });
    }

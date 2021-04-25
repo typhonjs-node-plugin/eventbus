@@ -22,27 +22,29 @@ import * as Utils from './utils.js';
 export default class EventbusProxy
 {
    /**
+    * Stores the target eventbus.
+    *
+    * @type {Eventbus}
+    * @private
+    */
+   #eventbus;
+
+   /**
+    * Stores all proxied event bindings.
+    *
+    * @type {Events}
+    * @private
+    */
+   #events;
+
+   /**
     * Creates the event proxy with an existing instance of Eventbus.
     *
     * @param {Eventbus}   eventbus - The target eventbus instance.
     */
    constructor(eventbus)
    {
-      /**
-       * Stores the target eventbus.
-       *
-       * @type {Eventbus}
-       * @private
-       */
-      this._eventbus = eventbus;
-
-      /**
-       * Stores all proxied event bindings.
-       *
-       * @type {Events}
-       * @private
-       */
-      this._events = void 0;
+      this.#eventbus = eventbus;
    }
 
    /**
@@ -62,7 +64,7 @@ export default class EventbusProxy
     */
    before(count, name, callback, context = void 0)
    {
-      if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
+      if (this.isDestroyed) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
       if (!Number.isInteger(count)) { throw new TypeError(`'count' is not an integer`); }
 
       // Map the event into a `{event: beforeWrapper}` object.
@@ -82,14 +84,14 @@ export default class EventbusProxy
     */
    destroy()
    {
-      if (this._eventbus !== null)
+      if (this.#eventbus !== null)
       {
          this.off();
       }
 
-      this._events = void 0;
+      this.#events = void 0;
 
-      this._eventbus = null;
+      this.#eventbus = null;
    }
 
    /**
@@ -102,9 +104,9 @@ export default class EventbusProxy
     */
    *entries(regex = void 0)
    {
-      if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
+      if (this.isDestroyed) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
-      for (const entry of this._eventbus.entries(regex))
+      for (const entry of this.#eventbus.entries(regex))
       {
          yield entry;
       }
@@ -117,9 +119,9 @@ export default class EventbusProxy
     */
    get eventCount()
    {
-      if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
+      if (this.isDestroyed) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
-      return this._eventbus.eventCount;
+      return this.#eventbus.eventCount;
    }
 
    /**
@@ -131,9 +133,9 @@ export default class EventbusProxy
     */
    *keys(regex = void 0)
    {
-      if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
+      if (this.isDestroyed) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
-      for (const entry of this._eventbus.keys(regex))
+      for (const entry of this.#eventbus.keys(regex))
       {
          yield entry;
       }
@@ -146,7 +148,7 @@ export default class EventbusProxy
     */
    get isDestroyed()
    {
-      return this._eventbus === null;
+      return this.#eventbus === null;
    }
 
    /**
@@ -156,9 +158,9 @@ export default class EventbusProxy
     */
    get name()
    {
-      if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
+      if (this.isDestroyed) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
-      return this._eventbus.name;
+      return this.#eventbus.name;
    }
 
    /**
@@ -176,11 +178,11 @@ export default class EventbusProxy
     */
    off(name = void 0, callback = void 0, context = void 0)
    {
-      if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
+      if (this.isDestroyed) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
-      this._events = Utils.eventsAPI(s_OFF_API, this._events || {}, name, callback, {
+      this.#events = Utils.eventsAPI(s_OFF_API, this.#events || {}, name, callback, {
          context,
-         eventbus: this._eventbus
+         eventbus: this.#eventbus
       });
 
       return this;
@@ -206,7 +208,7 @@ export default class EventbusProxy
     */
    on(name, callback, context = void 0)
    {
-      if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
+      if (this.isDestroyed) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
       let targetContext;
 
@@ -221,9 +223,9 @@ export default class EventbusProxy
          targetContext = context || this;
       }
 
-      this._events = Utils.eventsAPI(s_ON_API, this._events || {}, name, callback, { context: targetContext });
+      this.#events = Utils.eventsAPI(s_ON_API, this.#events || {}, name, callback, { context: targetContext });
 
-      this._eventbus.on(name, callback, targetContext);
+      this.#eventbus.on(name, callback, targetContext);
 
       return this;
    }
@@ -245,7 +247,7 @@ export default class EventbusProxy
     */
    once(name, callback, context = void 0)
    {
-      if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
+      if (this.isDestroyed) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
       // Map the event into a `{event: beforeWrapper}` object.
       const events = Utils.eventsAPI(Utils.beforeMap, {}, name, callback, {
@@ -268,18 +270,18 @@ export default class EventbusProxy
     */
    *proxyEntries(regex = void 0)
    {
-      if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
+      if (this.isDestroyed) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
       if (regex !== void 0 && !(regex instanceof RegExp)) { throw new TypeError(`'regex' is not a RegExp`); }
 
-      if (!this._events) { return; }
+      if (!this.#events) { return; }
 
       if (regex)
       {
-         for (const name in this._events)
+         for (const name in this.#events)
          {
             if (regex.test(name))
             {
-               for (const event of this._events[name])
+               for (const event of this.#events[name])
                {
                   yield [name, event.callback, event.context];
                }
@@ -288,9 +290,9 @@ export default class EventbusProxy
       }
       else
       {
-         for (const name in this._events)
+         for (const name in this.#events)
          {
-            for (const event of this._events[name])
+            for (const event of this.#events[name])
             {
                yield [name, event.callback, event.context];
             }
@@ -305,13 +307,13 @@ export default class EventbusProxy
     */
    get proxyEventCount()
    {
-      if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
+      if (this.isDestroyed) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
-      if (!this._events) { return 0; }
+      if (!this.#events) { return 0; }
 
       let count = 0;
 
-      for (const name in this._events) { count += this._events[name].length; }
+      for (const name in this.#events) { count += this.#events[name].length; }
 
       return count;
    }
@@ -325,14 +327,14 @@ export default class EventbusProxy
     */
    *proxyKeys(regex = void 0)
    {
-      if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
+      if (this.isDestroyed) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
       if (regex !== void 0 && !(regex instanceof RegExp)) { throw new TypeError(`'regex' is not a RegExp`); }
 
-      if (!this._events) { return; }
+      if (!this.#events) { return; }
 
       if (regex)
       {
-         for (const name in this._events)
+         for (const name in this.#events)
          {
             if (regex.test(name))
             {
@@ -342,7 +344,7 @@ export default class EventbusProxy
       }
       else
       {
-         for (const name in this._events)
+         for (const name in this.#events)
          {
             yield name;
          }
@@ -359,9 +361,9 @@ export default class EventbusProxy
     */
    trigger()
    {
-      if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
+      if (this.isDestroyed) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
-      this._eventbus.trigger(...arguments);
+      this.#eventbus.trigger(...arguments);
 
       return this;
    }
@@ -377,9 +379,9 @@ export default class EventbusProxy
     */
    triggerAsync()
    {
-      if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
+      if (this.isDestroyed) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
-      return this._eventbus.triggerAsync(...arguments);
+      return this.#eventbus.triggerAsync(...arguments);
    }
 
    /**
@@ -391,9 +393,9 @@ export default class EventbusProxy
     */
    triggerDefer()
    {
-      if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
+      if (this.isDestroyed) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
-      this._eventbus.triggerDefer(...arguments);
+      this.#eventbus.triggerDefer(...arguments);
 
       return this;
    }
@@ -408,9 +410,9 @@ export default class EventbusProxy
     */
    triggerSync()
    {
-      if (this._eventbus === null) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
+      if (this.isDestroyed) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
-      return this._eventbus.triggerSync(...arguments);
+      return this.#eventbus.triggerSync(...arguments);
    }
 }
 

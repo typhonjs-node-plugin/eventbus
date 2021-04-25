@@ -1,7 +1,7 @@
 import EventbusProxy    from './EventbusProxy.js';
 import EventbusSecure   from './EventbusSecure.js';
 
-import * as Utils       from './utils.js';
+import * as Utils        from './utils.js';
 
 /**
  * `@typhonjs-plugin/eventbus` / Provides the ability to bind and trigger custom named events.
@@ -79,11 +79,21 @@ export default class Eventbus
     *
     * @param {object}         context  - Event context
     *
+    * @param {boolean}        [guarded=false] When set to true this registration is guarded.
+    *
     * @returns {Eventbus} This Eventbus instance.
     */
-   before(count, name, callback, context = void 0)
+   before(count, name, callback, context = void 0, guarded = false)
    {
       if (!Number.isInteger(count)) { throw new TypeError(`'count' is not an integer`); }
+
+      const data = {};
+      if (this.isGuarded(name, data))
+      {
+         console.warn(`@typhonjs-plugin/eventbus - before() failed as event name(s) are guarded: `
+          + `${JSON.stringify(data.names)}`);
+         return this;
+      }
 
       // Map the event into a `{event: beforeWrapper}` object.
       const events = Utils.eventsAPI(Utils.beforeMap, {}, name, callback, {
@@ -93,11 +103,11 @@ export default class Eventbus
 
       if (typeof name === 'string' && (context === null || context === void 0)) { callback = void 0; }
 
-      return this.on(events, callback, context);
+      return this.on(events, callback, context, guarded);
    }
 
    /**
-    * Creates an EventProxy wrapping this events instance. An EventProxy proxies events allowing all listeners added
+    * Creates an EventbusProxy wrapping this events instance. An EventProxy proxies events allowing all listeners added
     * to be easily removed from the wrapped Events instance.
     *
     * @returns {EventbusProxy} A new EventbusProxy for this eventbus.
@@ -108,10 +118,10 @@ export default class Eventbus
    }
 
    /**
-    * Creates an EventProxy wrapping this events instance. An EventProxy proxies events allowing all listeners added
+    * Creates an EventbusSecure wrapping this events instance. An EventSecure instance provides a secure
     * to be easily removed from the wrapped Events instance.
     *
-    * @returns {object} A new EventbusProxy for this eventbus.
+    * @returns {EventbusSecureObj} An EventbusSecure control object for this eventbus.
     */
    createSecure()
    {
@@ -139,7 +149,7 @@ export default class Eventbus
             {
                for (const event of this.#events[name])
                {
-                  yield [name, event.callback, event.ctx];
+                  yield [name, event.callback, event.ctx, event.guarded];
                }
             }
          }
@@ -150,7 +160,7 @@ export default class Eventbus
          {
             for (const event of this.#events[name])
             {
-               yield [name, event.callback, event.ctx];
+               yield [name, event.callback, event.ctx, event.guarded];
             }
          }
       }
@@ -170,6 +180,25 @@ export default class Eventbus
       for (const name in this.#events) { count += this.#events[name].length; }
 
       return count;
+   }
+
+   /**
+    * Returns whether an event name is guarded.
+    *
+    * @param {string|object}  name Event name(s) or event map to verify.
+    *
+    * @param {object}         [data] Stores the output of which names are guarded.
+    *
+    * @returns {boolean} Whether the given event name is guarded.
+    */
+   isGuarded(name, data = {})
+   {
+      data.names = [];
+      data.guarded = false;
+
+      const result = Utils.eventsAPI(s_IS_GUARDED, data, name, void 0, { events: this.#events });
+
+      return result.guarded;
    }
 
    /**
@@ -235,6 +264,15 @@ export default class Eventbus
    listenTo(obj, name, callback)
    {
       if (!obj) { return this; }
+
+      const data = {};
+      if (s_TRY_CATCH_IS_GUARDED(obj, name, data))
+      {
+         console.warn(`@typhonjs-plugin/eventbus - listenTo() failed as event name(s) are guarded for target object: `
+          + `${JSON.stringify(data.names)}`);
+         return this;
+      }
+
       const id = obj._listenId || (obj._listenId = s_UNIQUE_ID('l'));
       const listeningTo = this._listeningTo || (this._listeningTo = {});
       let listening = _listening = listeningTo[id];
@@ -335,7 +373,7 @@ export default class Eventbus
     *
     * @see http://backbonejs.org/#Events-off
     *
-    * @param {string|object}  name Event name(s) or event map
+    * @param {string|object}  [name] Event name(s) or event map
     *
     * @param {Function}       [callback] Event callback function
     *
@@ -387,14 +425,25 @@ export default class Eventbus
     *
     * @param {object}         [context] Event context
     *
+    * @param {boolean}        [guarded=false] When set to true this registration is guarded.
+    *
     * @returns {Eventbus} This Eventbus instance.
     */
-   on(name, callback, context = void 0)
+   on(name, callback, context = void 0, guarded = false)
    {
+      const data = {};
+      if (this.isGuarded(name, data))
+      {
+         console.warn(`@typhonjs-plugin/eventbus - on() failed as event name(s) are guarded: `
+          + `${JSON.stringify(data.names)}`);
+         return this;
+      }
+
       this.#events = Utils.eventsAPI(s_ON_API, this.#events || {}, name, callback,
       {
          context,
          ctx: this,
+         guarded,
          listening: _listening
       });
 
@@ -423,10 +472,20 @@ export default class Eventbus
     *
     * @param {object}         [context] Event context
     *
+    * @param {boolean}        [guarded=false] When set to true this registration is guarded.
+    *
     * @returns {Eventbus} This Eventbus instance.
     */
-   once(name, callback, context = void 0)
+   once(name, callback, context = void 0, guarded = false)
    {
+      const data = {};
+      if (this.isGuarded(name, data))
+      {
+         console.warn(`@typhonjs-plugin/eventbus - once() failed as event name(s) are guarded: `
+          + `${JSON.stringify(data.names)}`);
+         return this;
+      }
+
       // Map the event into a `{event: beforeWrapper}` object.
       const events = Utils.eventsAPI(Utils.beforeMap, {}, name, callback, {
          count: 1,
@@ -435,7 +494,7 @@ export default class Eventbus
 
       if (typeof name === 'string' && (context === null || context === void 0)) { callback = void 0; }
 
-      return this.on(events, callback, context);
+      return this.on(events, callback, context, guarded);
    }
 
    /**
@@ -721,6 +780,38 @@ class Listening
 }
 
 /**
+ * The reducing API that tests if an event name is guarded. The name will be added to the output names array.
+ *
+ * @param {object}   output The output object.
+ *
+ * @param {string}   name Event name
+ *
+ * @param {Function} callback Event callback
+ *
+ * @param {object}   opts Optional parameters
+ *
+ * @returns {object} The output object.
+ */
+const s_IS_GUARDED = (output, name, callback, opts) =>
+{
+   const events = opts.events;
+
+   if (events)
+   {
+      const handlers = events[name];
+
+      if (Array.isArray(handlers) && handlers.length === 1 && typeof handlers[0].guarded === 'boolean' &&
+         handlers[0].guarded)
+      {
+         output.names.push(name);
+         output.guarded = true;
+      }
+   }
+
+   return output;
+}
+
+/**
  * The reducing API that removes a callback from the `events` object.
  *
  * @param {Events}   events Events object
@@ -729,16 +820,16 @@ class Listening
  *
  * @param {Function} callback Event callback
  *
- * @param {object}   options Optional parameters
+ * @param {object}   opts Optional parameters
  *
  * @returns {void|Events} Events object
  */
-const s_OFF_API = (events, name, callback, options) =>
+const s_OFF_API = (events, name, callback, opts) =>
 {
    /* c8 ignore next 1 */
    if (!events) { return; }
 
-   const context = options.context, listeners = options.listeners;
+   const context = opts.context, listeners = opts.listeners;
    let i = 0, names;
 
    // Delete all event listeners and "drop" events.
@@ -801,20 +892,29 @@ const s_OFF_API = (events, name, callback, options) =>
  *
  * @param {Function} callback Event callback
  *
- * @param {object}   options Optional parameters
+ * @param {object}   opts Optional parameters
  *
  * @returns {Events} Events object.
  */
-const s_ON_API = (events, name, callback, options) =>
+const s_ON_API = (events, name, callback, opts) =>
 {
    if (callback)
    {
       const handlers = events[name] || (events[name] = []);
-      const context = options.context, ctx = options.ctx, listening = options.listening;
+      const context = opts.context, ctx = opts.ctx, listening = opts.listening;
+      const guarded = typeof opts.guarded === 'boolean' ? opts.guarded : false;
+
+      // Extra sanity check for guarded event registrations.
+      /* c8 ignore next 5 */
+      if (handlers.length === 1 && typeof handlers[0].guarded === 'boolean' && handlers[0].guarded)
+      {
+         console.warn(`@typhonjs-plugin/eventbus - s_ON_API failed as event name is guarded.`);
+         return events;
+      }
 
       if (listening) { listening.incrementCount(); }
 
-      handlers.push({ callback, context, ctx: context || ctx, listening });
+      handlers.push({ callback, context, ctx: context || ctx, guarded, listening });
    }
    return events;
 };
@@ -1131,6 +1231,37 @@ const s_TRIGGER_SYNC_EVENTS = (events, args) =>
 
    // Return the results array if there are more than one or just a single result.
    return results.length > 1 ? results : results.length === 1 ? results[0] : void 0;
+};
+
+/**
+ * A try-catch guarded function. Used when attempting to invoke `isGuarded` from an other eventbus / context via
+ * `listenTo`.
+ *
+ * @param {object}         obj Event target / context
+ *
+ * @param {string|object}  name Event name(s) or event map.
+ *
+ * @param {object}         data Output data.
+ *
+ * @returns {boolean} Any error if thrown.
+ */
+const s_TRY_CATCH_IS_GUARDED = (obj, name, data = {}) =>
+{
+   let guarded = false;
+
+   try
+   {
+      const result = obj.isGuarded(name, data);
+      if (typeof result === 'boolean') { guarded = result; }
+   }
+   catch (err)
+   {
+      guarded = false;
+      data.names = [];
+      data.guarded = false;
+   }
+
+   return guarded;
 };
 
 /**

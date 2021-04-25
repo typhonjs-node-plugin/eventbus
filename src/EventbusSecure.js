@@ -15,9 +15,15 @@ export default class EventbusSecure
    #eventbus;
 
    /**
-    * Creates the EventbusSecure instance with an existing instance of Eventbus.
+    * Creates the EventbusSecure instance with an existing instance of Eventbus. An object / EventbusSecureObj is
+    * returned with an EventbusSecure reference and two functions for controlling the underlying Eventbus reference.
+    *
+    * `destroy()` will destroy the underlying Eventbus reference.
+    * `setEventbus(<eventbus>)` will set the underlying reference.
     *
     * @param {Eventbus}   eventbus - The target eventbus instance.
+    *
+    * @returns {EventbusSecureObj} The control object which contains an EventbusSecure reference and
     */
    static initialize(eventbus)
    {
@@ -159,3 +165,13 @@ export default class EventbusSecure
       return this.#eventbus.triggerSync(...arguments);
    }
 }
+
+/**
+ * @typedef {object} EventbusSecureObj The control object returned by `EventbusSecure.initialize`.
+ *
+ * @property {Function} destroy A function which destroys the underlying Eventbus reference.
+ *
+ * @property {EventbusSecure} eventbusSecure The EventbusSecure instance.
+ *
+ * @property {Function} setEventbus A function to set the underlying Eventbus reference.
+ */

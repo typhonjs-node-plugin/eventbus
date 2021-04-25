@@ -128,6 +128,292 @@ if (config.eventbusproxy)
          }
       });
 
+      it('entries - guarded - on', () =>
+      {
+         const callback = () => { count++ };
+
+         const context = {};
+         const context2 = {};
+         const context3 = {};
+
+         const allCallbacks = [callback, callback, callback];
+         const allContexts = [context, context2, context3];
+         const allNames = ['test:trigger', 'test:trigger2', 'test:trigger3'];
+         const allGuarded = [true, false, true];
+
+
+         assert.isFalse(proxy.isGuarded('test:trigger'));
+
+         proxy.on('test:trigger', callback, context, true);
+         assert.isTrue(proxy.isGuarded('test:trigger'));
+         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(proxy.proxyEventCount, 1);
+
+         proxy.on('test:trigger', callback, context, true);
+
+         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(proxy.proxyEventCount, 1);
+
+         proxy.on('test:trigger2', callback, context2);
+
+         assert.isFalse(proxy.isGuarded('test:trigger2'));
+         assert.strictEqual(eventbus.eventCount, 2);
+         assert.strictEqual(proxy.proxyEventCount, 2);
+         assert.isFalse(proxy.isGuarded('test:trigger3'));
+
+         proxy.on('test:trigger3', callback, context3, true);
+
+         assert.isTrue(proxy.isGuarded('test:trigger3'));
+         assert.strictEqual(eventbus.eventCount, 3);
+         assert.strictEqual(proxy.proxyEventCount, 3);
+
+         proxy.on('test:trigger3', callback);
+
+         assert.strictEqual(eventbus.eventCount, 3);
+         assert.strictEqual(proxy.proxyEventCount, 3);
+
+         proxy.trigger('test:trigger');
+
+         assert.strictEqual(count, 1);
+
+         let cntr = 0;
+
+         for (const [name, callback, context, guarded] of proxy.proxyEntries())
+         {
+            assert.strictEqual(name, allNames[cntr]);
+            assert.strictEqual(callback, allCallbacks[cntr]);
+            assert.strictEqual(context, allContexts[cntr]);
+            assert.strictEqual(guarded, allGuarded[cntr]);
+            cntr++;
+         }
+      });
+
+      it('entries - guarded - before', () =>
+      {
+         const callback = () => { count++ };
+
+         const context = {};
+         const context2 = {};
+
+         const allCallbacks = [callback];
+         const allContexts = [context2];
+         const allNames = ['test:trigger2'];
+         const allGuarded = [false];
+
+         proxy.before(2, 'test:trigger', callback, context, true);
+
+         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(proxy.proxyEventCount, 1);
+
+         proxy.before(2, 'test:trigger', callback, context, true);
+
+         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(proxy.proxyEventCount, 1);
+
+         proxy.on('test:trigger2', callback, context2);
+
+         assert.strictEqual(eventbus.eventCount, 2);
+         assert.strictEqual(proxy.proxyEventCount, 2);
+
+         proxy.trigger('test:trigger');
+
+         assert.strictEqual(eventbus.eventCount, 2);
+         assert.strictEqual(proxy.proxyEventCount, 2);
+
+         proxy.trigger('test:trigger');
+
+         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(proxy.proxyEventCount, 1);
+
+         proxy.trigger('test:trigger');
+
+         assert.strictEqual(count, 2);
+
+         assert.strictEqual(Array.from(proxy.proxyEntries()).length, 1);
+
+         let cntr = 0;
+
+         for (const [name, callback, context, guarded] of proxy.proxyEntries())
+         {
+            assert.strictEqual(name, allNames[cntr]);
+            assert.strictEqual(callback, allCallbacks[cntr]);
+            assert.strictEqual(context, allContexts[cntr]);
+            assert.strictEqual(guarded, allGuarded[cntr]);
+            cntr++;
+         }
+      });
+
+      it('entries - guarded - once', () =>
+      {
+         const callback = () => { count++ };
+
+         const context = {};
+         const context2 = {};
+
+         const allCallbacks = [callback];
+         const allContexts = [context2];
+         const allNames = ['test:trigger2'];
+         const allGuarded = [false];
+
+         proxy.once('test:trigger', callback, context, true);
+
+         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(proxy.proxyEventCount, 1);
+
+         proxy.once('test:trigger', callback, context, true);
+
+         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(proxy.proxyEventCount, 1);
+
+         proxy.on('test:trigger2', callback, context2);
+
+         assert.strictEqual(eventbus.eventCount, 2);
+         assert.strictEqual(proxy.proxyEventCount, 2);
+
+         proxy.trigger('test:trigger');
+         assert.strictEqual(eventbus.eventCount, 1);
+         proxy.trigger('test:trigger');
+
+         assert.strictEqual(count, 1);
+
+         assert.strictEqual(Array.from(proxy.proxyEntries()).length, 1);
+
+         let cntr = 0;
+
+         for (const [name, callback, context, guarded] of proxy.proxyEntries())
+         {
+            assert.strictEqual(name, allNames[cntr]);
+            assert.strictEqual(callback, allCallbacks[cntr]);
+            assert.strictEqual(context, allContexts[cntr]);
+            assert.strictEqual(guarded, allGuarded[cntr]);
+            cntr++;
+         }
+      });
+
+      it('entries - remove / add (on)', () =>
+      {
+         const callback = () => { count++ };
+
+         const context = {};
+         const context2 = {};
+
+         const allCallbacks = [callback, callback];
+         const allContexts = [context, context2];
+         const allNames = ['test:trigger', 'test:trigger2'];
+         const allGuarded = [false, false];
+
+         eventbus.on('can:not:see:this', () => { count++; });
+
+         proxy.on('test:trigger', callback, context);
+
+         assert.strictEqual(eventbus.eventCount, 2);
+         assert.strictEqual(proxy.proxyEventCount, 1);
+
+         proxy.on('test:trigger2', callback, context2);
+
+         assert.strictEqual(eventbus.eventCount, 3);
+         assert.strictEqual(proxy.proxyEventCount, 2);
+
+         const events = Array.from(proxy.proxyEntries());
+
+         proxy.off();
+
+         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(proxy.proxyEventCount, 0);
+
+         proxy.trigger('test:trigger');
+
+         assert.strictEqual(count, 0);
+
+         for (const event of events)
+         {
+            proxy.on(...event);
+         }
+
+         assert.strictEqual(eventbus.eventCount, 3);
+         assert.strictEqual(proxy.proxyEventCount, 2);
+
+         proxy.trigger('test:trigger');
+
+         assert.strictEqual(count, 1);
+
+         assert.strictEqual(Array.from(proxy.proxyEntries()).length, 2);
+
+         let cntr = 0;
+
+         for (const [name, callback, context, guarded] of proxy.proxyEntries())
+         {
+            assert.strictEqual(name, allNames[cntr]);
+            assert.strictEqual(callback, allCallbacks[cntr]);
+            assert.strictEqual(context, allContexts[cntr]);
+            assert.strictEqual(guarded, allGuarded[cntr]);
+            cntr++;
+         }
+      });
+
+      it('entries - remove / add (once)', () =>
+      {
+         const callback = () => { count++ };
+
+         const context = {};
+         const context2 = {};
+
+         const allCallbacks = [callback];
+         const allContexts = [context2];
+         const allNames = ['test:trigger2'];
+         const allGuarded = [false];
+
+         eventbus.on('can:not:see:this', () => { count++; });
+
+         proxy.once('test:trigger', callback, context);
+
+         assert.strictEqual(eventbus.eventCount, 2);
+         assert.strictEqual(proxy.proxyEventCount, 1);
+
+         proxy.on('test:trigger2', callback, context2);
+
+         assert.strictEqual(eventbus.eventCount, 3);
+         assert.strictEqual(proxy.proxyEventCount, 2);
+
+         const events = Array.from(proxy.proxyEntries());
+
+         proxy.off();
+
+         assert.strictEqual(eventbus.eventCount, 1);
+         assert.strictEqual(proxy.proxyEventCount, 0);
+
+         proxy.trigger('test:trigger');
+
+         assert.strictEqual(count, 0);
+
+         for (const event of events)
+         {
+            proxy.on(...event);
+         }
+
+         assert.strictEqual(eventbus.eventCount, 3);
+         assert.strictEqual(proxy.proxyEventCount, 2);
+
+         proxy.trigger('test:trigger');
+
+         assert.strictEqual(count, 1);
+         assert.strictEqual(eventbus.eventCount, 2);
+         assert.strictEqual(proxy.proxyEventCount, 1);
+
+         assert.strictEqual(Array.from(proxy.proxyEntries()).length, 1);
+
+         let cntr = 0;
+
+         for (const [name, callback, context, guarded] of proxy.proxyEntries())
+         {
+            assert.strictEqual(name, allNames[cntr]);
+            assert.strictEqual(callback, allCallbacks[cntr]);
+            assert.strictEqual(context, allContexts[cntr]);
+            assert.strictEqual(guarded, allGuarded[cntr]);
+            cntr++;
+         }
+      });
+
       it('get - eventCount', () =>
       {
          eventbus.on('can:see:this', () => {});
@@ -619,6 +905,9 @@ if (config.eventbusproxy)
 
          expect(() => proxy.eventCount).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
 
+         expect(() => proxy.isGuarded('name')).to.throw(ReferenceError,
+          'This EventbusProxy instance has been destroyed.');
+
          expect(() =>
          {
             for (const entry of proxy.keys()) { console.log(entry); }
@@ -629,7 +918,7 @@ if (config.eventbusproxy)
          expect(() => proxy.off()).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
 
          expect(() => proxy.on('test:bogus', () => {})).to.throw(ReferenceError,
-            'This EventbusProxy instance has been destroyed.');
+          'This EventbusProxy instance has been destroyed.');
 
          // Multiple times calling destroy will not throw.
          expect(() => proxy.once()).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
@@ -640,7 +929,7 @@ if (config.eventbusproxy)
          }).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
 
          expect(() => proxy.proxyEventCount).to.throw(ReferenceError,
-            'This EventbusProxy instance has been destroyed.');
+          'This EventbusProxy instance has been destroyed.');
 
          expect(() =>
          {
@@ -648,16 +937,16 @@ if (config.eventbusproxy)
          }).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
 
          expect(() => proxy.trigger('test:trigger')).to.throw(ReferenceError,
-            'This EventbusProxy instance has been destroyed.');
+          'This EventbusProxy instance has been destroyed.');
 
          expect(() => proxy.triggerAsync('test:trigger')).to.throw(ReferenceError,
-            'This EventbusProxy instance has been destroyed.');
+          'This EventbusProxy instance has been destroyed.');
 
          expect(() => proxy.triggerDefer('test:trigger')).to.throw(ReferenceError,
-            'This EventbusProxy instance has been destroyed.');
+          'This EventbusProxy instance has been destroyed.');
 
          expect(() => proxy.triggerSync('test:trigger')).to.throw(ReferenceError,
-            'This EventbusProxy instance has been destroyed.');
+          'This EventbusProxy instance has been destroyed.');
 
          assert.strictEqual(callbacks.testTriggerCount, 7);
       });

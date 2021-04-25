@@ -130,7 +130,268 @@ if (config.other)
          }
       });
 
-      it('entries has early out when no events are set', () =>
+      it('entries - guarded - on', () =>
+      {
+         const callback = () => { count++ };
+
+         const context = {};
+         const context2 = {};
+         const context3 = {};
+
+         const allCallbacks = [callback, callback, callback];
+         const allContexts = [context, context2, context3];
+         const allNames = ['test:trigger', 'test:trigger2', 'test:trigger3'];
+         const allGuarded = [true, false, true];
+
+         eventbus.on('test:trigger', callback, context, true);
+
+         assert.strictEqual(eventbus.eventCount, 1);
+
+         eventbus.on('test:trigger', callback, context, true);
+
+         assert.strictEqual(eventbus.eventCount, 1);
+
+         eventbus.on('test:trigger2', callback, context2);
+
+         assert.strictEqual(eventbus.eventCount, 2);
+
+         eventbus.on('test:trigger3', callback, context3, true);
+
+         assert.strictEqual(eventbus.eventCount, 3);
+
+         eventbus.on('test:trigger3', callback);
+
+         assert.strictEqual(eventbus.eventCount, 3);
+
+         eventbus.trigger('test:trigger');
+
+         assert.strictEqual(count, 1);
+
+         let cntr = 0;
+
+         for (const [name, callback, context, guarded] of eventbus.entries())
+         {
+            assert.strictEqual(name, allNames[cntr]);
+            assert.strictEqual(callback, allCallbacks[cntr]);
+            assert.strictEqual(context, allContexts[cntr]);
+            assert.strictEqual(guarded, allGuarded[cntr]);
+            cntr++;
+         }
+      });
+
+      it('entries - guarded - before', () =>
+      {
+         const callback = () => { count++ };
+
+         const context = {};
+         const context2 = {};
+
+         const allCallbacks = [callback];
+         const allContexts = [context2];
+         const allNames = ['test:trigger2'];
+         const allGuarded = [false];
+
+         eventbus.before(2, 'test:trigger', callback, context, true);
+
+         assert.strictEqual(eventbus.eventCount, 1);
+
+         eventbus.before(2, 'test:trigger', callback, context, true);
+
+         assert.strictEqual(eventbus.eventCount, 1);
+
+         eventbus.on('test:trigger2', callback, context2);
+
+         assert.strictEqual(eventbus.eventCount, 2);
+
+         eventbus.trigger('test:trigger');
+
+         assert.strictEqual(eventbus.eventCount, 2);
+
+         eventbus.trigger('test:trigger');
+
+         assert.strictEqual(eventbus.eventCount, 1);
+
+         eventbus.trigger('test:trigger');
+
+         assert.strictEqual(count, 2);
+
+         assert.strictEqual(Array.from(eventbus.entries()).length, 1);
+
+         let cntr = 0;
+
+         for (const [name, callback, context, guarded] of eventbus.entries())
+         {
+            assert.strictEqual(name, allNames[cntr]);
+            assert.strictEqual(callback, allCallbacks[cntr]);
+            assert.strictEqual(context, allContexts[cntr]);
+            assert.strictEqual(guarded, allGuarded[cntr]);
+            cntr++;
+         }
+      });
+
+      it('entries - guarded - once', () =>
+      {
+         const callback = () => { count++ };
+
+         const context = {};
+         const context2 = {};
+
+         const allCallbacks = [callback];
+         const allContexts = [context2];
+         const allNames = ['test:trigger2'];
+         const allGuarded = [false];
+
+         assert.isFalse(eventbus.isGuarded('test:trigger'));
+
+         eventbus.once('test:trigger', callback, context, true);
+
+         assert.strictEqual(eventbus.eventCount, 1);
+         assert.isTrue(eventbus.isGuarded('test:trigger'));
+
+         eventbus.once('test:trigger', callback, context, true);
+
+         assert.strictEqual(eventbus.eventCount, 1);
+
+         eventbus.on('test:trigger2', callback, context2);
+
+         assert.strictEqual(eventbus.eventCount, 2);
+         assert.isFalse(eventbus.isGuarded('test:trigger2'));
+
+         eventbus.trigger('test:trigger');
+
+         assert.strictEqual(count, 1);
+         assert.strictEqual(eventbus.eventCount, 1);
+
+         assert.strictEqual(Array.from(eventbus.entries()).length, 1);
+
+         let cntr = 0;
+
+         for (const [name, callback, context, guarded] of eventbus.entries())
+         {
+            assert.strictEqual(name, allNames[cntr]);
+            assert.strictEqual(callback, allCallbacks[cntr]);
+            assert.strictEqual(context, allContexts[cntr]);
+            assert.strictEqual(guarded, allGuarded[cntr]);
+            cntr++;
+         }
+      });
+
+      it('entries - remove / add (on)', () =>
+      {
+         const callback = () => { count++ };
+
+         const context = {};
+         const context2 = {};
+
+         const allCallbacks = [callback, callback];
+         const allContexts = [context, context2];
+         const allNames = ['test:trigger', 'test:trigger2'];
+         const allGuarded = [false, false];
+
+         eventbus.on('test:trigger', callback, context);
+
+         assert.strictEqual(eventbus.eventCount, 1);
+
+         eventbus.on('test:trigger2', callback, context2);
+
+         assert.strictEqual(eventbus.eventCount, 2);
+
+         const events = Array.from(eventbus.entries());
+
+         eventbus.off();
+
+         eventbus.trigger('test:trigger');
+
+         assert.strictEqual(count, 0);
+         assert.strictEqual(eventbus.eventCount, 0);
+
+         for (const event of events)
+         {
+            eventbus.on(...event);
+         }
+
+         eventbus.trigger('test:trigger');
+
+         assert.strictEqual(count, 1);
+         assert.strictEqual(eventbus.eventCount, 2);
+
+         assert.strictEqual(Array.from(eventbus.entries()).length, 2);
+
+         let cntr = 0;
+
+         for (const [name, callback, context, guarded] of eventbus.entries())
+         {
+            assert.strictEqual(name, allNames[cntr]);
+            assert.strictEqual(callback, allCallbacks[cntr]);
+            assert.strictEqual(context, allContexts[cntr]);
+            assert.strictEqual(guarded, allGuarded[cntr]);
+            cntr++;
+         }
+      });
+
+      it('entries - remove / add (once)', () =>
+      {
+         const callback = () => { count++ };
+
+         const context = {};
+         const context2 = {};
+
+         const allCallbacks = [callback];
+         const allContexts = [context2];
+         const allNames = ['test:trigger2'];
+         const allGuarded = [false];
+
+         eventbus.once('test:trigger', callback, context);
+
+         assert.strictEqual(eventbus.eventCount, 1);
+
+         eventbus.on('test:trigger2', callback, context2);
+
+         assert.strictEqual(eventbus.eventCount, 2);
+
+         // Store events
+         const events = Array.from(eventbus.entries());
+
+         // Remove all events
+         eventbus.off();
+
+         eventbus.trigger('test:trigger');
+
+         assert.strictEqual(count, 0);
+         assert.strictEqual(eventbus.eventCount, 0);
+
+         // Add back all events
+         for (const event of events)
+         {
+            eventbus.on(...event);
+         }
+
+         assert.strictEqual(eventbus.eventCount, 2);
+
+         eventbus.trigger('test:trigger');
+
+         assert.strictEqual(count, 1);
+         assert.strictEqual(eventbus.eventCount, 1);
+
+         eventbus.trigger('test:trigger');
+
+         assert.strictEqual(count, 1);
+
+         assert.strictEqual(Array.from(eventbus.entries()).length, 1);
+
+         let cntr = 0;
+
+         for (const [name, callback, context, guarded] of eventbus.entries())
+         {
+            assert.strictEqual(name, allNames[cntr]);
+            assert.strictEqual(callback, allCallbacks[cntr]);
+            assert.strictEqual(context, allContexts[cntr]);
+            assert.strictEqual(guarded, allGuarded[cntr]);
+            cntr++;
+         }
+      });
+
+      it('keys has early out when no events are set', () =>
       {
          Array.from(eventbus.keys());
       });
@@ -170,6 +431,18 @@ if (config.other)
          assert.strictEqual(JSON.stringify(eventNames), '["test:trigger3","test:trigger3A"]');
       });
 
+      it('guarded listenTo - listenTo does not register', () =>
+      {
+         const other = new Eventbus();
+
+         other.on('change', () => { count++; }, void 0, true);
+         eventbus.listenTo(other, 'change', () => { count++; assert.ok(false); });
+
+         other.trigger('change');
+
+         assert.strictEqual(count, 1);
+      });
+
       it('listenToBefore throws when count is not a number', () =>
       {
          expect(() => { eventbus.listenToBefore(false); }).to.throw(TypeError, `'count' is not an integer`);
@@ -201,6 +474,26 @@ if (config.other)
          other.trigger('change');
 
          assert.strictEqual(count, 2);
+      });
+
+      it('on - guarded', () =>
+      {
+         eventbus.on('test:trigger', () => { count++; }, void 0, true);
+         eventbus.on('test:trigger', () => { count++; assert.ok(false); }, void 0, true);
+
+         eventbus.trigger('test:trigger');
+
+         assert.strictEqual(count, 1);
+      });
+
+      it('on - guarded - event map', () =>
+      {
+         eventbus.on('test:trigger', () => { count++; }, void 0, true);
+         eventbus.on({ 'test:trigger': () => { count++; assert.ok(false); } });
+
+         eventbus.trigger('test:trigger');
+
+         assert.strictEqual(count, 1);
       });
    });
 }

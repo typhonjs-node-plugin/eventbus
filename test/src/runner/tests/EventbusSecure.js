@@ -24,9 +24,6 @@ export default class EventbusSecure
 
             eventbus.on('test:trigger', () => { callbacks.testTriggerCount++; });
 
-            assert.strictEqual(eventbus.callbackCount, 1);
-            assert.strictEqual(eventbusSecure.eventCount, 1);
-
             eventbusSecure.trigger('test:trigger');
             eventbus.trigger('test:trigger');
 
@@ -42,16 +39,13 @@ export default class EventbusSecure
 
             assert.strictEqual(callbacks.testTriggerCount, 3);
 
-            // Multiple times calling destroy will not throw.
-            expect(() => eventbusSecure.eventCount).to.throw(ReferenceError,
-             'This EventbusSecure instance has been destroyed.');
-
             expect(() =>
             {
                for (const entry of eventbusSecure.keys()) { console.log(entry); }
             }).to.throw(ReferenceError, 'This EventbusSecure instance has been destroyed.');
 
-            expect(() => eventbusSecure.name).to.throw(ReferenceError, 'This EventbusSecure instance has been destroyed.');
+            expect(() => eventbusSecure.name).to.throw(ReferenceError,
+             'This EventbusSecure instance has been destroyed.');
 
             expect(() => eventbusSecure.trigger('test:trigger')).to.throw(ReferenceError,
              'This EventbusSecure instance has been destroyed.');
@@ -75,9 +69,6 @@ export default class EventbusSecure
             const obj = eventbus.createSecure();
 
             eventbus.on('test:trigger', () => { callbacks.testTriggerCount++; });
-
-            assert.strictEqual(eventbus.callbackCount, 1);
-            assert.strictEqual(obj.eventbusSecure.eventCount, 1);
 
             obj.eventbusSecure.trigger('test:trigger');
             eventbus.trigger('test:trigger');
@@ -104,9 +95,6 @@ export default class EventbusSecure
             eventbus.on('test:trigger2', () => { callbacks.testTriggerCount++; });
 
             eventbus2.on('test:trigger3', () => { callbacks.testTriggerCount++; });
-
-            assert.strictEqual(eventbus.callbackCount, 2);
-            assert.strictEqual(eventbusSecure.eventCount, 2);
 
             eventbusSecure.trigger('test:trigger');
             eventbus.trigger('test:trigger');
@@ -135,15 +123,6 @@ export default class EventbusSecure
             eventbus = new Eventbus('testname');
             const { eventbusSecure } = eventbus.createSecure();
             assert(eventbusSecure.name === 'testname');
-         });
-
-         it('get - callbackCount', () =>
-         {
-            eventbus.on('can:see:this', () => {});
-
-            const { eventbusSecure } = eventbus.createSecure();
-
-            assert.strictEqual(eventbusSecure.eventCount, 1);
          });
 
          it('keys throws when regex not instance of RegExp', () =>
@@ -194,11 +173,7 @@ export default class EventbusSecure
 
             assert.strictEqual(callbacks.testTriggerCount, 2);
 
-            assert.strictEqual(eventbusSecure.eventCount, 1);
-
             eventbus.off();
-
-            assert.strictEqual(eventbusSecure.eventCount, 0);
 
             eventbusSecure.trigger('test:trigger');
             eventbus.trigger('test:trigger');
@@ -213,9 +188,6 @@ export default class EventbusSecure
             const { eventbusSecure } = eventbus.createSecure();
 
             eventbus.on('test:trigger', () => { callbacks.testTriggerCount++; });
-
-            assert.strictEqual(eventbus.callbackCount, 1);
-            assert.strictEqual(eventbusSecure.eventCount, 1);
 
             eventbusSecure.triggerDefer('test:trigger');
             eventbus.triggerDefer('test:trigger');
@@ -247,9 +219,6 @@ export default class EventbusSecure
                return 'foo';
             });
 
-            assert.strictEqual(eventbus.callbackCount, 1);
-            assert.strictEqual(eventbusSecure.eventCount, 1);
-
             const result = eventbusSecure.triggerSync('test:trigger:sync1');
 
             assert.isTrue(callbacks.testTriggerSync1);
@@ -272,9 +241,6 @@ export default class EventbusSecure
                return 'bar';
             });
 
-            assert.strictEqual(eventbus.callbackCount, 2);
-            assert.strictEqual(eventbusSecure.eventCount, 2);
-
             const results = eventbusSecure.triggerSync('test:trigger:sync2');
 
             assert.isTrue(callbacks.testTriggerSync2A);
@@ -289,22 +255,13 @@ export default class EventbusSecure
          {
             const { eventbusSecure } = eventbus.createSecure();
 
-            assert.strictEqual(eventbus.callbackCount, 0);
-            assert.strictEqual(eventbusSecure.eventCount, 0);
-
             eventbus.on('test:trigger:sync:off', () =>
             {
                callbacks.testTriggerSyncOff = true;
                return true;
             });
 
-            assert.strictEqual(eventbus.callbackCount, 1);
-            assert.strictEqual(eventbusSecure.eventCount, 1);
-
             eventbus.off('test:trigger:sync:off');
-
-            assert.strictEqual(eventbus.callbackCount, 0);
-            assert.strictEqual(eventbusSecure.eventCount, 0);
 
             assert.isUndefined(eventbusSecure.triggerSync('test:trigger:sync:off'));
             assert.isUndefined(callbacks.testTriggerSyncOff);
@@ -319,9 +276,6 @@ export default class EventbusSecure
                callbacks.testTriggerSyncThen = true;
                return Promise.resolve('foobar');
             });
-
-            assert.strictEqual(eventbus.callbackCount, 1);
-            assert.strictEqual(eventbusSecure.eventCount, 1);
 
             const promise = eventbusSecure.triggerSync('test:trigger:sync:then');
 
@@ -349,9 +303,6 @@ export default class EventbusSecure
                callbacks.testTriggerAsync2 = true;
                return 'bar';
             });
-
-            assert.strictEqual(eventbus.callbackCount, 2);
-            assert.strictEqual(eventbusSecure.eventCount, 2);
 
             const promise = eventbusSecure.triggerAsync('test:trigger:async');
 

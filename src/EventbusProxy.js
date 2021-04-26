@@ -473,7 +473,8 @@ export default class EventbusProxy
 }
 
 /**
- * The reducing API that removes a callback from the `events` object.
+ * The reducing API that removes a callback from the `events` object. And delegates invoking off to the eventbus
+ * reference.
  *
  * @param {Events}   events Events object
  *

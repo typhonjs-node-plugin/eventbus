@@ -3,6 +3,12 @@
  *
  * The main use case of EventbusSecure is to provide a secure eventbus window for general public consumption. Only
  * events can be triggered, but not registered / unregistered.
+ *
+ * You must use the initialize method passing in an existing Eventbus instance as the eventbus reference is private.
+ * In order to secure the eventbus from unwanted access there is no way to access the eventbus reference externally from
+ * the EventbusSecure instance. The initialize method returns an {@link EventbusSecureObj} object which contains two
+ * functions to control the secure eventbus externally; `destroy` and `setEventbus`. Expose to end consumers just the
+ * `eventbusSecure` instance.
  */
 export default class EventbusSecure
 {
@@ -23,7 +29,7 @@ export default class EventbusSecure
     *
     * @param {Eventbus}   eventbus - The target eventbus instance.
     *
-    * @returns {EventbusSecureObj} The control object which contains an EventbusSecure reference and
+    * @returns {EventbusSecureObj} The control object which contains an EventbusSecure reference and control functions.
     */
    static initialize(eventbus)
    {
@@ -48,18 +54,6 @@ export default class EventbusSecure
 
          eventbusSecure
       };
-   }
-
-   /**
-    * Returns the current secured eventbus event count.
-    *
-    * @returns {number} Returns the current event count.
-    */
-   get eventCount()
-   {
-      if (this.isDestroyed) { throw new ReferenceError('This EventbusSecure instance has been destroyed.'); }
-
-      return this.#eventbus.callbackCount;
    }
 
    /**

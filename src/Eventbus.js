@@ -71,15 +71,15 @@ export default class Eventbus
     * removed. When multiple events are passed in using the space separated syntax, the event
     * will fire count times for every event you passed in, not once for a combination of all events.
     *
-    * @param {number}         count Number of times the function will fire before being removed.
+    * @param {number}         count - Number of times the function will fire before being removed.
     *
-    * @param {string|object}  name Event name(s) or event map
+    * @param {string|object}  name - Event name(s) or event map.
     *
     * @param {Function}       callback - Event callback function
     *
-    * @param {object}         context  - Event context
+    * @param {object}         context - Event context
     *
-    * @param {boolean}        [guarded=false] When set to true this registration is guarded.
+    * @param {boolean}        [guarded=false] - When set to true this registration is guarded.
     *
     * @returns {Eventbus} This Eventbus instance.
     */
@@ -104,8 +104,8 @@ export default class Eventbus
    }
 
    /**
-    * Creates an EventbusProxy wrapping this events instance. An EventProxy proxies events allowing all listeners added
-    * to be easily removed from the wrapped Events instance.
+    * Creates an EventbusProxy wrapping this Eventbus instance. An EventbusProxy proxies events allowing all listeners
+    * added to be easily removed from the wrapped Eventbus.
     *
     * @returns {EventbusProxy} A new EventbusProxy for this eventbus.
     */
@@ -115,20 +115,22 @@ export default class Eventbus
    }
 
    /**
-    * Creates an EventbusSecure wrapping this events instance. An EventSecure instance provides a secure
-    * to be easily removed from the wrapped Events instance.
+    * Creates an EventbusSecure instance wrapping this Eventbus. An EventbusSecure instance provides a secure window to
+    * public consumers with only trigger dispatch available.
+    *
+    * @param {string}   [name] - Optional name for the EventbusSecure instance.
     *
     * @returns {EventbusSecureObj} An EventbusSecure control object for this eventbus.
     */
-   createSecure()
+   createSecure(name = void 0)
    {
-      return EventbusSecure.initialize(this);
+      return EventbusSecure.initialize(this, name);
    }
 
    /**
     * Returns an iterable for all stored events yielding an array with event name, callback function, and event context.
     *
-    * @param {RegExp} [regex] Optional regular expression to filter event names.
+    * @param {RegExp} [regex] - Optional regular expression to filter event names.
     *
     * @yields
     */
@@ -194,9 +196,9 @@ export default class Eventbus
    /**
     * Returns whether an event name is guarded.
     *
-    * @param {string|object}  name Event name(s) or event map to verify.
+    * @param {string|object}  name - Event name(s) or event map to verify.
     *
-    * @param {object}         [data] Stores the output of which names are guarded.
+    * @param {object}         [data] - Stores the output of which names are guarded.
     *
     * @returns {boolean} Whether the given event name is guarded.
     */
@@ -213,7 +215,7 @@ export default class Eventbus
    /**
     * Returns an iterable for the event names / keys of registered event listeners.
     *
-    * @param {RegExp} [regex] Optional regular expression to filter event names.
+    * @param {RegExp} [regex] - Optional regular expression to filter event names.
     *
     * @yields
     */
@@ -260,13 +262,11 @@ export default class Eventbus
     * @example
     * view.listenTo(model, 'change', view.render);
     *
-    * @see http://backbonejs.org/#Events-listenTo
+    * @param {object}         obj - Event context
     *
-    * @param {object}         obj Event context
+    * @param {string|object}  name - Event name(s) or event map.
     *
-    * @param {string|object}  name Event name(s) or event map
-    *
-    * @param {Function}       callback Event callback function
+    * @param {Function}       callback - Event callback function
     *
     * @returns {Eventbus} This Eventbus instance.
     */
@@ -309,13 +309,13 @@ export default class Eventbus
    /**
     * Just like `listenTo`, but causes the bound callback to fire count times before being removed.
     *
-    * @param {number}         count Number of times the function will fire before being removed.
+    * @param {number}         count - Number of times the function will fire before being removed.
     *
-    * @param {object}         obj Event context
+    * @param {object}         obj - Event context
     *
-    * @param {string|object}  name Event name(s) or event map
+    * @param {string|object}  name - Event name(s) or event map.
     *
-    * @param {Function}       callback Event callback function
+    * @param {Function}       callback - Event callback function
     *
     * @returns {Eventbus} This Eventbus instance.
     */
@@ -335,13 +335,11 @@ export default class Eventbus
    /**
     * Just like `listenTo`, but causes the bound callback to fire only once before being removed.
     *
-    * @see http://backbonejs.org/#Events-listenToOnce
+    * @param {object}         obj - Event context
     *
-    * @param {object}         obj Event context
+    * @param {string|object}  name - Event name(s) or event map.
     *
-    * @param {string|object}  name Event name(s) or event map
-    *
-    * @param {Function}       callback Event callback function
+    * @param {Function}       callback - Event callback function
     *
     * @returns {Eventbus} This Eventbus instance.
     */
@@ -380,13 +378,11 @@ export default class Eventbus
     * // Removes all callbacks on `object`.
     * object.off();
     *
-    * @see http://backbonejs.org/#Events-off
+    * @param {string|object}  [name] - Event name(s) or event map.
     *
-    * @param {string|object}  [name] Event name(s) or event map
+    * @param {Function}       [callback] - Event callback function
     *
-    * @param {Function}       [callback] Event callback function
-    *
-    * @param {object}         [context] Event context
+    * @param {object}         [context] - Event context
     *
     * @returns {Eventbus} This Eventbus instance.
     */
@@ -426,15 +422,13 @@ export default class Eventbus
     *    "destroy": bookView.remove
     * });
     *
-    * @see http://backbonejs.org/#Events-on
+    * @param {string|object}  name - Event name(s) or event map.
     *
-    * @param {string|object}  name Event name(s) or event map
+    * @param {Function}       callback - Event callback function
     *
-    * @param {Function}       callback Event callback function
+    * @param {object}         [context] - Event context
     *
-    * @param {object}         [context] Event context
-    *
-    * @param {boolean}        [guarded=false] When set to true this registration is guarded.
+    * @param {boolean}        [guarded=false] - When set to true this registration is guarded.
     *
     * @returns {Eventbus} This Eventbus instance.
     */
@@ -472,15 +466,13 @@ export default class Eventbus
     * time that X happens, do this". When multiple events are passed in using the space separated syntax, the event
     * will fire once for every event you passed in, not once for a combination of all events
     *
-    * @see http://backbonejs.org/#Events-once
+    * @param {string|object}  name - Event name(s) or event map.
     *
-    * @param {string|object}  name Event name(s) or event map
+    * @param {Function}       callback - Event callback function
     *
-    * @param {Function}       callback Event callback function
+    * @param {object}         [context] - Event context
     *
-    * @param {object}         [context] Event context
-    *
-    * @param {boolean}        [guarded=false] When set to true this registration is guarded.
+    * @param {boolean}        [guarded=false] - When set to true this registration is guarded.
     *
     * @returns {Eventbus} This Eventbus instance.
     */
@@ -512,13 +504,11 @@ export default class Eventbus
     *
     * view.stopListening(model);
     *
-    * @see http://backbonejs.org/#Events-stopListening
+    * @param {object}   obj - Event context
     *
-    * @param {object}   obj Event context
+    * @param {string}   [name] - Event name(s)
     *
-    * @param {string}   [name] Event name(s)
-    *
-    * @param {Function} [callback] Event callback function
+    * @param {Function} [callback] - Event callback function
     *
     * @returns {Eventbus} This Eventbus instance.
     */
@@ -548,9 +538,7 @@ export default class Eventbus
     * Trigger callbacks for the given event, or space-delimited list of events. Subsequent arguments to trigger will be
     * passed along to the event callbacks.
     *
-    * @see http://backbonejs.org/#Events-trigger
-    *
-    * @param {string}   name Event name(s)
+    * @param {string}   name - Event name(s)
     *
     * @returns {Eventbus} This Eventbus instance.
     */
@@ -573,7 +561,7 @@ export default class Eventbus
     * single Promise generated by `Promise.resolve` for a single value or `Promise.all` for multiple results. This is
     * a very useful mechanism to invoke asynchronous operations over an eventbus.
     *
-    * @param {string}   name Event name(s)
+    * @param {string}   name - Event name(s)
     *
     * @returns {Promise<void|*|*[]>} A Promise with any results.
     */
@@ -618,7 +606,7 @@ export default class Eventbus
    /**
     * Defers invoking `trigger`. This is useful for triggering events in the next clock tick.
     *
-    * @param {string}   name Event name(s)
+    * @param {string}   name - Event name(s)
     *
     * @returns {Eventbus} This Eventbus instance.
     */
@@ -633,7 +621,7 @@ export default class Eventbus
     * Provides `trigger` functionality, but collects any returned result or results from invoked targets as a single
     * value or in an array and passes it back to the callee in a synchronous manner.
     *
-    * @param {string}   name Event name(s)
+    * @param {string}   name - Event name(s)
     *
     * @returns {void|*|*[]} The results of the event invocation.
     */
@@ -722,11 +710,11 @@ class Listening
    /**
     * @see {@link Eventbus#on}
     *
-    * @param {string|object}  name Event name(s)
+    * @param {string|object}  name - Event name(s)
     *
-    * @param {Function}       callback Event callback function
+    * @param {Function}       callback - Event callback function
     *
-    * @param {object}         [context] Event context
+    * @param {object}         [context] - Event context
     *
     * @returns {Listening} This Listening instance.
     */
@@ -746,9 +734,9 @@ class Listening
     * Offs a callback (or several). Uses an optimized counter if the listenee uses Eventbus. Otherwise, falls back to
     * manual tracking to support events library interop.
     *
-    * @param {string|object}  name Event name(s)
+    * @param {string|object}  name - Event name(s)
     *
-    * @param {Function}       callback Event callback function
+    * @param {Function}       callback - Event callback function
     */
    off(name, callback)
    {
@@ -788,13 +776,13 @@ class Listening
  * The reducing API that tests if an event name is guarded. Any event data of a give event name can have the guarded
  * state set. If so the event name will be added to the output names array and `output.guarded` set to true.
  *
- * @param {object}   output The output object.
+ * @param {object}   output - The output object.
  *
- * @param {string}   name Event name
+ * @param {string}   name - Event name
  *
- * @param {Function} callback Event callback
+ * @param {Function} callback - Event callback
  *
- * @param {object}   opts Optional parameters
+ * @param {object}   opts - Optional parameters
  *
  * @returns {object} The output object.
  */
@@ -826,13 +814,13 @@ const s_IS_GUARDED = (output, name, callback, opts) =>
 /**
  * The reducing API that removes a callback from the `events` object.
  *
- * @param {Events}   events Events object
+ * @param {Events}   events - Events object
  *
- * @param {string}   name Event name
+ * @param {string}   name - Event name
  *
- * @param {Function} callback Event callback
+ * @param {Function} callback - Event callback
  *
- * @param {object}   opts Optional parameters
+ * @param {object}   opts - Optional parameters
  *
  * @returns {void|Events} Events object
  */
@@ -898,13 +886,13 @@ const s_OFF_API = (events, name, callback, opts) =>
 /**
  * The reducing API that adds a callback to the `events` object.
  *
- * @param {Events}   events Events object
+ * @param {Events}   events - Events object
  *
- * @param {string}   name Event name
+ * @param {string}   name - Event name
  *
- * @param {Function} callback Event callback
+ * @param {Function} callback - Event callback
  *
- * @param {object}   opts Optional parameters
+ * @param {object}   opts - Optional parameters
  *
  * @returns {Events} Events object.
  */
@@ -927,17 +915,17 @@ const s_ON_API = (events, name, callback, opts) =>
  * Iterates over the standard `event, callback` (as well as the fancy multiple space-separated events `"change blur",
  * callback` and jQuery-style event maps `{event: callback}`).
  *
- * @param {Function} iteratee Trigger API
+ * @param {Function} iteratee - Trigger API
  *
- * @param {Function} iterateeTarget Internal function which is dispatched to.
+ * @param {Function} iterateeTarget - Internal function which is dispatched to.
  *
- * @param {Events}   events Array of stored event callback data.
+ * @param {Events}   events - Array of stored event callback data.
  *
- * @param {string}   name Event name(s)
+ * @param {string}   name - Event name(s)
  *
- * @param {Function} callback callback
+ * @param {Function} callback - callback
  *
- * @param {object}   opts Optional parameters
+ * @param {object}   opts - Optional parameters
  *
  * @returns {*} The results of the callback if any.
  */
@@ -1012,15 +1000,15 @@ const s_RESULTS_TARGET_API = (iteratee, iterateeTarget, events, name, callback, 
 /**
  * Handles triggering the appropriate event callbacks.
  *
- * @param {Function} iterateeTarget Internal function which is dispatched to.
+ * @param {Function} iterateeTarget - Internal function which is dispatched to.
  *
- * @param {Events}   objEvents Array of stored event callback data.
+ * @param {Events}   objEvents - Array of stored event callback data.
  *
- * @param {string}   name Event name(s)
+ * @param {string}   name - Event name(s)
  *
- * @param {Function} callback callback
+ * @param {Function} callback - callback
  *
- * @param {*[]}      args Arguments supplied to a trigger method.
+ * @param {*[]}      args - Arguments supplied to a trigger method.
  *
  * @returns {*} The results from the triggered event.
  */
@@ -1044,9 +1032,9 @@ const s_TRIGGER_API = (iterateeTarget, objEvents, name, callback, args) =>
  * A difficult-to-believe, but optimized internal dispatch function for triggering events. Tries to keep the usual
  * cases speedy (most internal Backbone events have 3 arguments).
  *
- * @param {EventData[]} events Array of stored event callback data.
+ * @param {EventData[]} events - Array of stored event callback data.
  *
- * @param {*[]}         args Event argument array
+ * @param {*[]}         args - Event argument array
  */
 const s_TRIGGER_EVENTS = (events, args) =>
 {
@@ -1080,9 +1068,9 @@ const s_TRIGGER_EVENTS = (events, args) =>
  * waits until all Promises complete. Any target invoked may return a Promise or any result. This is very useful to
  * use for any asynchronous operations.
  *
- * @param {EventData[]} events Array of stored event callback data.
+ * @param {EventData[]} events - Array of stored event callback data.
  *
- * @param {*[]}         args Arguments supplied to `triggerAsync`.
+ * @param {*[]}         args - Arguments supplied to `triggerAsync`.
  *
  * @returns {Promise<void|*|*[]>} A Promise of the results from the triggered event.
  */
@@ -1171,9 +1159,9 @@ const s_TRIGGER_ASYNC_EVENTS = async (events, args) =>
  * cases speedy (most internal Backbone events have 3 arguments). This dispatch method synchronously passes back a
  * single value or an array with all results returned by any invoked targets.
  *
- * @param {EventData[]} events Array of stored event callback data.
+ * @param {EventData[]} events - Array of stored event callback data.
  *
- * @param {*[]}         args Arguments supplied to `triggerSync`.
+ * @param {*[]}         args - Arguments supplied to `triggerSync`.
  *
  * @returns {void|*|*[]} The results from the triggered event.
  */
@@ -1241,11 +1229,11 @@ const s_TRIGGER_SYNC_EVENTS = (events, args) =>
  * A try-catch guarded function. Used when attempting to invoke `isGuarded` from an other eventbus / context via
  * `listenTo`.
  *
- * @param {object}         obj Event target / context
+ * @param {object}         obj - Event target / context
  *
- * @param {string|object}  name Event name(s) or event map.
+ * @param {string|object}  name - Event name(s) or event map.
  *
- * @param {object}         data Output data.
+ * @param {object}         data - Output data.
  *
  * @returns {boolean} Any error if thrown.
  */
@@ -1272,13 +1260,13 @@ const s_TRY_CATCH_IS_GUARDED = (obj, name, data = {}) =>
  * A try-catch guarded #on function, to prevent poisoning the global `_listening` variable. Used when attempting to
  * invoke `on` from an other eventbus / context via `listenTo`.
  *
- * @param {object}         obj Event target / context
+ * @param {object}         obj - Event target / context
  *
- * @param {string|object}  name Event name(s)
+ * @param {string|object}  name - Event name(s) or event map.
  *
- * @param {Function}       callback Event callback function
+ * @param {Function}       callback - Event callback function
  *
- * @param {object}         [context] Event context
+ * @param {object}         [context] - Event context
  *
  * @returns {Error} Any error if thrown.
  */

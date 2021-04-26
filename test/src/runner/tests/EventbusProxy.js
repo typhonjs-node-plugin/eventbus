@@ -21,7 +21,7 @@ export default class EventbusProxy
          {
             eventbus = new Eventbus('testname');
             proxy = eventbus.createProxy();
-            assert(proxy.name === 'testname');
+            assert.strictEqual(proxy.name, 'proxy-testname');
          });
 
          it('before throws when count is not a number', () =>
@@ -45,6 +45,18 @@ export default class EventbusProxy
             proxy.trigger('test');
 
             assert.strictEqual(count, 3);
+         });
+
+         it('createSecure', () =>
+         {
+            eventbus = new Eventbus('testname');
+
+            proxy = eventbus.createProxy();
+            assert.strictEqual(proxy.name, 'proxy-testname');
+
+            const { eventbusSecure } = proxy.createSecure('secure');
+
+            assert.strictEqual(eventbusSecure.name, 'secure');
          });
 
          it('entries throws when regex not instance of RegExp', () =>
@@ -934,6 +946,9 @@ export default class EventbusProxy
             }).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
 
             expect(() => proxy.callbackCount).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
+
+            expect(() => proxy.createSecure(eventbus)).to.throw(ReferenceError,
+             'This EventbusProxy instance has been destroyed.');
 
             expect(() => proxy.eventCount).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
 

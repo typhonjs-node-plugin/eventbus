@@ -16,11 +16,11 @@ export default class EventbusSecure
             eventbus = new Eventbus();
          });
 
-         it('function - destroy - with trigger', () =>
+         it('function - destroy - with trigger (all exception states)', () =>
          {
             callbacks.testTriggerCount = 0;
 
-            const { destroy, eventbusSecure } = eventbus.createSecure();
+            const { destroy, setEventbus, eventbusSecure } = eventbus.createSecure();
 
             eventbus.on('test:trigger', () => { callbacks.testTriggerCount++; });
 
@@ -31,6 +31,8 @@ export default class EventbusSecure
 
             assert.isFalse(eventbusSecure.isDestroyed);
 
+            expect(() => setEventbus(eventbus, false)).to.throw(TypeError, `'name' is not a string`);
+
             destroy();
 
             assert.isTrue(eventbusSecure.isDestroyed);
@@ -38,6 +40,8 @@ export default class EventbusSecure
             eventbus.trigger('test:trigger');
 
             assert.strictEqual(callbacks.testTriggerCount, 3);
+
+            expect(() => eventbus.createSecure(false)).to.throw(TypeError, `'name' is not a string`);
 
             expect(() =>
             {
@@ -116,6 +120,32 @@ export default class EventbusSecure
             eventbusSecure.trigger('test:trigger3');
 
             assert.strictEqual(callbacks.testTriggerCount, 3);
+         });
+
+         it('function - name w/ initialize and setEventbus', () =>
+         {
+            const eventbus = new Eventbus('eventbus');
+            const eventbus2 = new Eventbus('eventbus2');
+
+            const { eventbusSecure, setEventbus } = eventbus.createSecure();
+            const { eventbusSecure: eventbusSecure2, setEventbus: setEventbus2 } = eventbus.createSecure('secure');
+
+            setEventbus(eventbus2);
+
+            assert.strictEqual(eventbusSecure.name, 'eventbus2');
+
+            setEventbus(eventbus, 'secure2');
+
+            assert.strictEqual(eventbusSecure.name, 'secure2');
+
+
+            setEventbus2(eventbus2);
+
+            assert.strictEqual(eventbusSecure2.name, 'secure');
+
+            setEventbus2(eventbus2, 'secure2');
+
+            assert.strictEqual(eventbusSecure2.name, 'secure2');
          });
 
          it('get name', () =>

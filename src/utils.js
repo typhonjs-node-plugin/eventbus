@@ -9,15 +9,15 @@ export const eventSplitter = /\s+/;
  * Iterates over the standard `event, callback` (as well as the fancy multiple space-separated events `"change blur",
  * callback` and jQuery-style event maps `{event: callback}`).
  *
- * @param {Function}       iteratee Event operation to invoke.
+ * @param {Function}       iteratee - Event operation to invoke.
  *
- * @param {object}         events Events object
+ * @param {object}         events - Events object
  *
- * @param {string|object}  name A single event name, compound event names, or a hash of event names.
+ * @param {string|object}  name - A single event name, compound event names, or a hash of event names.
  *
- * @param {Function}       callback Event callback function
+ * @param {Function}       callback - Event callback function
  *
- * @param {object}         opts Optional parameters
+ * @param {object}         opts - Optional parameters
  *
  * @returns {object|Events} Events object or processed data.
  */
@@ -52,7 +52,7 @@ export function eventsAPI(iteratee, events, name, callback, opts)
 /**
  * Provides  protected Object.keys functionality.
  *
- * @param {object}   object Object to retrieve keys.
+ * @param {object}   object - Object to retrieve keys.
  *
  * @returns {string[]} Keys of object if any.
  */
@@ -65,13 +65,13 @@ export const objectKeys = (object) =>
  * Reduces the event callbacks into a map of `{event: beforeWrapper}`. `after` unbinds the `beforeWrapper` after
  * it has been called the number of times specified by options.count.
  *
- * @param {Events}   map Events object
+ * @param {Events}   map - Events object
  *
- * @param {string}   name Event name
+ * @param {string}   name - Event name
  *
- * @param {Function} callback Event callback
+ * @param {Function} callback - Event callback
  *
- * @param {object}   opts Function to invoke after event has been triggered once; `off()`
+ * @param {object}   opts - Function to invoke after event has been triggered once; `off()`
  *
  * @returns {Events} The Events object.
  */
@@ -101,11 +101,11 @@ export function beforeMap(map, name, callback, opts)
  *
  * `after` is invoked after the count is reduced.
  *
- * @param {number}   count The number of calls at which `before` is no longer invoked and then `after` is invoked.
+ * @param {number}   count - The number of calls at which `before` is no longer invoked and then `after` is invoked.
  *
- * @param {Function} before The function to restrict.
+ * @param {Function} before - The function to restrict.
  *
- * @param {Function} after The function to invoke after count number of calls.
+ * @param {Function} after - The function to invoke after count number of calls.
  *
  * @returns {Function} Returns the new restricted function.
  */

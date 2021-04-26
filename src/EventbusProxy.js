@@ -1,4 +1,5 @@
-import * as Utils from './utils.js';
+import * as Utils     from './utils.js';
+import EventbusSecure from './EventbusSecure.js';
 
 /**
  * EventbusProxy provides a protected proxy of another Eventbus instance.
@@ -52,15 +53,15 @@ export default class EventbusProxy
     * removed. When multiple events are passed in using the space separated syntax, the event
     * will fire count times for every event you passed in, not once for a combination of all events.
     *
-    * @param {number}         count Number of times the function will fire before being removed.
+    * @param {number}         count - Number of times the function will fire before being removed.
     *
-    * @param {string|object}  name Event name(s) or event map
+    * @param {string|object}  name - Event name(s) or event map
     *
-    * @param {Function}       callback Event callback function
+    * @param {Function}       callback - Event callback function
     *
-    * @param {object}         context Event context
+    * @param {object}         context - Event context
     *
-    * @param {boolean}        [guarded=false] When set to true this registration is guarded.
+    * @param {boolean}        [guarded=false] - When set to true this registration is guarded.
     *
     * @returns {EventbusProxy} This EventbusProxy instance.
     */
@@ -86,6 +87,21 @@ export default class EventbusProxy
    }
 
    /**
+    * Creates an EventbusSecure instance wrapping the proxied Eventbus reference. An EventbusSecure instance provides a
+    * secure window to public consumers with only trigger dispatch available.
+    *
+    * @param {string}   [name] - Optional name for the EventbusSecure instance.
+    *
+    * @returns {EventbusSecureObj} An EventbusSecure control object for this eventbus.
+    */
+   createSecure(name = void 0)
+   {
+      if (this.isDestroyed) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
+
+      return EventbusSecure.initialize(this.#eventbus, name);
+   }
+
+   /**
     * Unregisters all proxied events from the target eventbus and removes any local references. All subsequent calls
     * after `destroy` has been called result in a ReferenceError thrown.
     */
@@ -105,7 +121,7 @@ export default class EventbusProxy
     * Returns an iterable for all events from the proxied eventbus yielding an array with event name, callback function,
     * and event context.
     *
-    * @param {RegExp} [regex] Optional regular expression to filter event names.
+    * @param {RegExp} [regex] - Optional regular expression to filter event names.
     *
     * @yields
     */
@@ -146,7 +162,7 @@ export default class EventbusProxy
    /**
     * Returns an iterable for the event names / keys of proxied eventbus event listeners.
     *
-    * @param {RegExp} [regex] Optional regular expression to filter event names.
+    * @param {RegExp} [regex] - Optional regular expression to filter event names.
     *
     * @yields
     */
@@ -179,7 +195,7 @@ export default class EventbusProxy
    {
       if (this.isDestroyed) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
-      return this.#eventbus.name;
+      return `proxy-${this.#eventbus.name}`;
    }
 
    /**
@@ -217,9 +233,9 @@ export default class EventbusProxy
    /**
     * Returns whether an event name is guarded.
     *
-    * @param {string|object}  name Event name(s) or event map to verify.
+    * @param {string|object}  name - Event name(s) or event map to verify.
     *
-    * @param {object}         [data] Stores the output of which names are guarded.
+    * @param {object}         [data] - Stores the output of which names are guarded.
     *
     * @returns {boolean} Whether the given event name is guarded.
     */
@@ -235,11 +251,11 @@ export default class EventbusProxy
     *
     * Please see {@link Eventbus#off}.
     *
-    * @param {string|object}  name Event name(s) or event map
+    * @param {string|object}  name - Event name(s) or event map
     *
-    * @param {Function}       [callback] Event callback function
+    * @param {Function}       [callback] - Event callback function
     *
-    * @param {object}         [context] Event context
+    * @param {object}         [context] - Event context
     *
     * @returns {EventbusProxy} This EventbusProxy
     */
@@ -265,13 +281,13 @@ export default class EventbusProxy
     *
     * Please see {@link Eventbus#on}.
     *
-    * @param {string|object}  name Event name(s) or event map
+    * @param {string|object}  name - Event name(s) or event map
     *
-    * @param {Function}       callback Event callback function
+    * @param {Function}       callback - Event callback function
     *
-    * @param {object}         context  Event context
+    * @param {object}         context - Event context
     *
-    * @param {boolean}        [guarded=false] When set to true this registration is guarded.
+    * @param {boolean}        [guarded=false] - When set to true this registration is guarded.
     *
     * @returns {EventbusProxy} This EventbusProxy
     */
@@ -302,15 +318,13 @@ export default class EventbusProxy
     * time that X happens, do this". When multiple events are passed in using the space separated syntax, the event
     * will fire once for every event you passed in, not once for a combination of all events
     *
-    * @see http://backbonejs.org/#Events-once
+    * @param {string|object}  name - Event name(s) or event map
     *
-    * @param {string|object}  name Event name(s) or event map
+    * @param {Function}       callback - Event callback function
     *
-    * @param {Function}       callback Event callback function
+    * @param {object}         context - Event context
     *
-    * @param {object}         context Event context
-    *
-    * @param {boolean}        [guarded=false] When set to true this registration is guarded.
+    * @param {boolean}        [guarded=false] - When set to true this registration is guarded.
     *
     * @returns {EventbusProxy} This EventbusProxy instance.
     */
@@ -338,7 +352,7 @@ export default class EventbusProxy
     * Returns an iterable for all stored locally proxied events yielding an array with event name, callback
     * function, and event context.
     *
-    * @param {RegExp} [regex] Optional regular expression to filter event names.
+    * @param {RegExp} [regex] - Optional regular expression to filter event names.
     *
     * @yields
     */
@@ -377,7 +391,7 @@ export default class EventbusProxy
    /**
     * Returns an iterable for the event names / keys of the locally proxied event names.
     *
-    * @param {RegExp} [regex] Optional regular expression to filter event names.
+    * @param {RegExp} [regex] - Optional regular expression to filter event names.
     *
     * @yields
     */
@@ -411,7 +425,7 @@ export default class EventbusProxy
     * Trigger callbacks for the given event, or space-delimited list of events. Subsequent arguments to trigger will be
     * passed along to the event callbacks.
     *
-    * Please see {@link Eventbus#trigger}.
+    * Please see {@link Eventbus#trigger} as this method takes the same arguments.
     *
     * @returns {EventbusProxy} This EventbusProxy.
     */
@@ -429,9 +443,9 @@ export default class EventbusProxy
     * single Promise generated by `Promise.resolve` for a single value or `Promise.all` for multiple results. This is
     * a very useful mechanism to invoke asynchronous operations over an eventbus.
     *
-    * Please see {@link Eventbus#triggerAsync}.
+    * Please see {@link Eventbus#triggerAsync} as this method takes the same arguments.
     *
-    * @returns {Promise} A Promise to returning any results.
+    * @returns {Promise} A Promise returning any results.
     */
    triggerAsync()
    {
@@ -443,7 +457,7 @@ export default class EventbusProxy
    /**
     * Defers invoking `trigger`. This is useful for triggering events in the next clock tick.
     *
-    * Please see {@link Eventbus#triggerDefer}.
+    * Please see {@link Eventbus#triggerDefer} as this method takes the same arguments.
     *
     * @returns {EventbusProxy} This EventbusProxy.
     */
@@ -460,7 +474,7 @@ export default class EventbusProxy
     * Provides `trigger` functionality, but collects any returned result or results from invoked targets as a single
     * value or in an array and passes it back to the callee in a synchronous manner.
     *
-    * Please see {@link Eventbus#triggerSync}.
+    * Please see {@link Eventbus#triggerSync} as this method takes the same arguments.
     *
     * @returns {*|Array.<*>} An Array of returned results.
     */
@@ -476,13 +490,13 @@ export default class EventbusProxy
  * The reducing API that removes a callback from the `events` object. And delegates invoking off to the eventbus
  * reference.
  *
- * @param {Events}   events Events object
+ * @param {Events}   events - Events object
  *
- * @param {string}   name Event name
+ * @param {string}   name - Event name
  *
- * @param {Function} callback Event callback
+ * @param {Function} callback - Event callback
  *
- * @param {object}   opts  Optional parameters
+ * @param {object}   opts - Optional parameters
  *
  * @returns {void|Events} Events object
  */
@@ -535,13 +549,13 @@ const s_OFF_API = (events, name, callback, opts) =>
 /**
  * The reducing API that adds a callback to the `events` object.
  *
- * @param {Events}   events Events object
+ * @param {Events}   events - Events object
  *
- * @param {string}   name Event name
+ * @param {string}   name - Event name
  *
- * @param {Function} callback Event callback
+ * @param {Function} callback - Event callback
  *
- * @param {object}   opts Optional parameters
+ * @param {object}   opts - Optional parameters
  *
  * @returns {Events} Events object.
  */

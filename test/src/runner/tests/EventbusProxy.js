@@ -651,6 +651,15 @@ export default class EventbusProxy
             }).trigger('test');
          });
 
+         it('on w/ event map / context is correct', () =>
+         {
+            const context = {};
+
+            proxy.on({
+               test: function() { assert.equal(this, context); },
+            }, context).trigger('test');
+         });
+
          it('proxyEntries() throws when regex not instance of RegExp', () =>
          {
             expect(() =>

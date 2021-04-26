@@ -78,10 +78,7 @@ export default class EventbusProxy
       }
 
       // Map the event into a `{event: beforeWrapper}` object.
-      const events = Utils.eventsAPI(Utils.beforeMap, {}, name, callback, {
-         count,
-         after: this.off.bind(this)
-      });
+      const events = Utils.eventsAPI(Utils.beforeMap, {}, name, callback, { count, after: this.off.bind(this) });
 
       if (typeof name === 'string' && (context === null || context === void 0)) { callback = void 0; }
 
@@ -251,7 +248,7 @@ export default class EventbusProxy
       if (this.isDestroyed) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
       this.#events = Utils.eventsAPI(s_OFF_API, this.#events || {}, name, callback, {
-         context,
+         context: context,
          eventbus: this.#eventbus
       });
 
@@ -290,22 +287,12 @@ export default class EventbusProxy
          return this;
       }
 
-      let targetContext;
+      // Hang onto the options as s_ON_API sets the context we need to pass to the eventbus in `opts.ctx`.
+      const opts = { context, ctx: this, guarded };
 
-      // Handle the case of event maps and callback being the context. Also applies this EventbusProxy as the default
-      // context when none supplied.
-      if (name !== null && typeof name === 'object')
-      {
-         targetContext = callback !== void 0 ? callback : this;
-      }
-      else
-      {
-         targetContext = context || this;
-      }
+      this.#events = Utils.eventsAPI(s_ON_API, this.#events || {}, name, callback, opts);
 
-      this.#events = Utils.eventsAPI(s_ON_API, this.#events || {}, name, callback, { context: targetContext, guarded });
-
-      this.#eventbus.on(name, callback, targetContext, guarded);
+      this.#eventbus.on(name, callback, opts.ctx, guarded);
 
       return this;
    }
@@ -340,10 +327,7 @@ export default class EventbusProxy
       }
 
       // Map the event into a `{event: beforeWrapper}` object.
-      const events = Utils.eventsAPI(Utils.beforeMap, {}, name, callback, {
-         count: 1,
-         after: this.off.bind(this)
-      });
+      const events = Utils.eventsAPI(Utils.beforeMap, {}, name, callback, { count: 1, after: this.off.bind(this) });
 
       if (typeof name === 'string' && (context === null || context === void 0)) { callback = void 0; }
 
@@ -565,22 +549,14 @@ const s_ON_API = (events, name, callback, opts) =>
    if (callback)
    {
       const handlers = events[name] || (events[name] = []);
-      const context = opts.context;
+      const context = opts.context, ctx = opts.ctx;
       const guarded = typeof opts.guarded === 'boolean' ? opts.guarded /* c8 ignore next */ : false;
 
-      handlers.push({ callback, context, guarded });
+      // Set opts `ctx` as this is what we send to the eventbus.
+      opts.ctx = context || ctx;
+
+      handlers.push({ callback, context, ctx: opts.ctx, guarded });
    }
 
    return events;
 };
-
-/**
- * @typedef {object} EventData The callback data for an event.
- *
- * @property {Function} callback - Callback function
- * @property {object} context - The context of the callback function.
- */
-
-/**
- * @typedef {object.<string, EventData[]>} Events Event data stored by event name.
- */

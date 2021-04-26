@@ -507,6 +507,42 @@ export default class OtherAPI
 
             assert.strictEqual(count, 1);
          });
+
+         it('on - guarded - multiple w/ one guarded', () =>
+         {
+            eventbus.on('test:trigger', () => { count++; }, void 0);
+            eventbus.on('test:trigger', () => { count++; }, void 0, true);
+            eventbus.on('test:trigger', () => { count++; assert.ok(false); }, void 0);
+
+            eventbus.trigger('test:trigger');
+
+            assert.strictEqual(count, 2);
+         });
+
+
+         it('on - guarded - multiple w/ one guarded then removed', () =>
+         {
+            const context = {};
+
+            eventbus.on('test:trigger', () => { count++; }, void 0);
+            eventbus.on('test:trigger', () => { count++; }, context, true);
+            eventbus.on('test:trigger', () => { count++; assert.ok(false); }, void 0);
+
+            assert.strictEqual(eventbus.callbackCount, 2);
+
+            eventbus.trigger('test:trigger');
+            assert.strictEqual(count, 2);
+
+            eventbus.off(void 0, void 0, context);
+
+            assert.strictEqual(eventbus.callbackCount, 1);
+
+            eventbus.on('test:trigger', () => { count++; }, void 0);
+            assert.strictEqual(eventbus.callbackCount, 2);
+
+            eventbus.trigger('test:trigger');
+            assert.strictEqual(count, 4);
+         });
       });
    }
 }

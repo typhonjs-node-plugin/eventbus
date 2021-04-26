@@ -16,7 +16,7 @@ fs.ensureDirSync('./coverage');
 fs.emptyDirSync('./coverage');
 
 const data = {
-   suitePrefix: 'node/PluginManager',
+   suitePrefix: 'node/Eventbus',
    isBrowser: false,
 };
 

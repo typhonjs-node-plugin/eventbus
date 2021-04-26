@@ -1,5 +1,6 @@
 import APIChecks        from './tests/eventbus/APIChecks.js';
 import Backbone         from './tests/eventbus/Backbone.js';
+import Instances        from './tests/eventbus/Instances.js';
 import OtherAPI         from './tests/eventbus/OtherAPI.js';
 import Trigger          from './tests/eventbus/Trigger.js';
 import TriggerAsync     from './tests/eventbus/TriggerAsync.js';
@@ -11,6 +12,7 @@ import EventbusSecure   from './tests/EventbusSecure.js';
 
 const s_API_CHECKS      = true;
 const s_BACKBONE        = true;
+const s_INSTANCES       = true;
 const s_OTHER_API       = true;
 const s_TRIGGER         = true;
 const s_TRIGGER_ASYNC   = true;
@@ -25,6 +27,7 @@ const s_TESTS = [];
 
 if (s_API_CHECKS) { s_TESTS.push(APIChecks); }
 if (s_BACKBONE) { s_TESTS.push(Backbone); }
+if (s_INSTANCES) { s_TESTS.push(Instances); }
 if (s_OTHER_API) { s_TESTS.push(OtherAPI); }
 if (s_TRIGGER) { s_TESTS.push(Trigger); }
 if (s_TRIGGER_ASYNC) { s_TESTS.push(TriggerAsync); }

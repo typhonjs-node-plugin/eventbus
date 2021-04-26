@@ -19,7 +19,7 @@ export const eventSplitter = /\s+/;
  *
  * @param {object}         opts Optional parameters
  *
- * @returns {object} Events object
+ * @returns {object|Events} Events object or processed data.
  */
 export function eventsAPI(iteratee, events, name, callback, opts)
 {

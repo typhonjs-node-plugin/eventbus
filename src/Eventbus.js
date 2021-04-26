@@ -96,10 +96,7 @@ export default class Eventbus
       }
 
       // Map the event into a `{event: beforeWrapper}` object.
-      const events = Utils.eventsAPI(Utils.beforeMap, {}, name, callback, {
-         count,
-         after: this.off.bind(this)
-      });
+      const events = Utils.eventsAPI(Utils.beforeMap, {}, name, callback, { count, after: this.off.bind(this) });
 
       if (typeof name === 'string' && (context === null || context === void 0)) { callback = void 0; }
 
@@ -149,7 +146,7 @@ export default class Eventbus
             {
                for (const event of this.#events[name])
                {
-                  yield [name, event.callback, event.ctx, event.guarded];
+                  yield [name, event.callback, event.context, event.guarded];
                }
             }
          }
@@ -160,7 +157,7 @@ export default class Eventbus
          {
             for (const event of this.#events[name])
             {
-               yield [name, event.callback, event.ctx, event.guarded];
+               yield [name, event.callback, event.context, event.guarded];
             }
          }
       }
@@ -451,8 +448,7 @@ export default class Eventbus
          return this;
       }
 
-      this.#events = Utils.eventsAPI(s_ON_API, this.#events || {}, name, callback,
-      {
+      this.#events = Utils.eventsAPI(s_ON_API, this.#events || {}, name, callback, {
          context,
          ctx: this,
          guarded,
@@ -499,10 +495,7 @@ export default class Eventbus
       }
 
       // Map the event into a `{event: beforeWrapper}` object.
-      const events = Utils.eventsAPI(Utils.beforeMap, {}, name, callback, {
-         count: 1,
-         after: this.off.bind(this)
-      });
+      const events = Utils.eventsAPI(Utils.beforeMap, {}, name, callback, { count: 1, after: this.off.bind(this) });
 
       if (typeof name === 'string' && (context === null || context === void 0)) { callback = void 0; }
 
@@ -792,7 +785,8 @@ class Listening
 }
 
 /**
- * The reducing API that tests if an event name is guarded. The name will be added to the output names array.
+ * The reducing API that tests if an event name is guarded. Any event data of a give event name can have the guarded
+ * state set. If so the event name will be added to the output names array and `output.guarded` set to true.
  *
  * @param {object}   output The output object.
  *
@@ -812,11 +806,17 @@ const s_IS_GUARDED = (output, name, callback, opts) =>
    {
       const handlers = events[name];
 
-      if (Array.isArray(handlers) && handlers.length === 1 && typeof handlers[0].guarded === 'boolean' &&
-         handlers[0].guarded)
+      if (Array.isArray(handlers))
       {
-         output.names.push(name);
-         output.guarded = true;
+         for (const handler of handlers)
+         {
+            if (handler.guarded)
+            {
+                output.names.push(name);
+                output.guarded = true;
+                return output;
+            }
+         }
       }
    }
 
@@ -915,14 +915,6 @@ const s_ON_API = (events, name, callback, opts) =>
       const handlers = events[name] || (events[name] = []);
       const context = opts.context, ctx = opts.ctx, listening = opts.listening;
       const guarded = typeof opts.guarded === 'boolean' ? opts.guarded : false;
-
-      // Extra sanity check for guarded event registrations.
-      /* c8 ignore next 5 */
-      if (handlers.length === 1 && typeof handlers[0].guarded === 'boolean' && handlers[0].guarded)
-      {
-         console.warn(`@typhonjs-plugin/eventbus - s_ON_API failed as event name is guarded.`);
-         return events;
-      }
 
       if (listening) { listening.incrementCount(); }
 
@@ -1321,19 +1313,3 @@ const s_UNIQUE_ID = (prefix = '') =>
    const id = `${++idCounter}`;
    return prefix ? `${prefix}${id}` /* c8 ignore next */ : id;
 };
-
-/**
- * @typedef {object} EventData The callback data for an event.
- *
- * @property {Function} callback - Callback function
- *
- * @property {object} context - Event context
- *
- * @property {object} ctx - Event context or local eventbus instance.
- *
- * @property {object} listening - Any associated listening instance.
- */
-
-/**
- * @typedef {object.<string, EventData[]>} Events Event data stored by event name.
- */

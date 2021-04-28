@@ -1,5 +1,6 @@
-import * as Utils     from './utils.js';
 import EventbusSecure from './EventbusSecure.js';
+
+import * as Utils     from './utils.js';
 
 /**
  * EventbusProxy provides a protected proxy of another Eventbus instance.
@@ -53,15 +54,15 @@ export default class EventbusProxy
     * removed. When multiple events are passed in using the space separated syntax, the event
     * will fire count times for every event you passed in, not once for a combination of all events.
     *
-    * @param {number}         count - Number of times the function will fire before being removed.
+    * @param {number}            count - Number of times the function will fire before being removed.
     *
-    * @param {string|object}  name - Event name(s) or event map
+    * @param {string|object}     name - Event name(s) or event map.
     *
-    * @param {Function}       callback - Event callback function
+    * @param {Function|object}   callback - Event callback function or context for event map.
     *
-    * @param {object}         context - Event context
+    * @param {object}            [context] - Event context
     *
-    * @param {boolean}        [guarded=false] - When set to true this registration is guarded.
+    * @param {boolean}           [guarded=false] - When set to true this registration is guarded.
     *
     * @returns {EventbusProxy} This EventbusProxy instance.
     */
@@ -251,7 +252,7 @@ export default class EventbusProxy
     *
     * Please see {@link Eventbus#off}.
     *
-    * @param {string|object}  name - Event name(s) or event map
+    * @param {string|object}  [name] - Event name(s) or event map.
     *
     * @param {Function}       [callback] - Event callback function
     *
@@ -276,18 +277,15 @@ export default class EventbusProxy
     * large number of different events on a page, the convention is to use colons to namespace them: "poll:start", or
     * "change:selection".
     *
-    * This is proxied through `listenTo` of an internal Events instance instead of directly modifying the target
-    * eventbus.
-    *
     * Please see {@link Eventbus#on}.
     *
-    * @param {string|object}  name - Event name(s) or event map
+    * @param {string|object}     name - Event name(s) or event map.
     *
-    * @param {Function}       callback - Event callback function
+    * @param {Function|object}   callback - Event callback function or context for event map.
     *
-    * @param {object}         context - Event context
+    * @param {object}            [context] - Event context
     *
-    * @param {boolean}        [guarded=false] - When set to true this registration is guarded.
+    * @param {boolean}           [guarded=false] - When set to true this registration is guarded.
     *
     * @returns {EventbusProxy} This EventbusProxy
     */
@@ -318,13 +316,13 @@ export default class EventbusProxy
     * time that X happens, do this". When multiple events are passed in using the space separated syntax, the event
     * will fire once for every event you passed in, not once for a combination of all events
     *
-    * @param {string|object}  name - Event name(s) or event map
+    * @param {string|object}     name - Event name(s) or event map.
     *
-    * @param {Function}       callback - Event callback function
+    * @param {Function|object}   callback - Event callback function or context for event map.
     *
-    * @param {object}         context - Event context
+    * @param {object}            context - Event context
     *
-    * @param {boolean}        [guarded=false] - When set to true this registration is guarded.
+    * @param {boolean}           [guarded=false] - When set to true this registration is guarded.
     *
     * @returns {EventbusProxy} This EventbusProxy instance.
     */

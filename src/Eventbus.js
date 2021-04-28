@@ -1,7 +1,7 @@
 import EventbusProxy    from './EventbusProxy.js';
 import EventbusSecure   from './EventbusSecure.js';
 
-import * as Utils        from './utils.js';
+import * as Utils       from './utils.js';
 
 /**
  * `@typhonjs-plugin/eventbus` / Provides the ability to bind and trigger custom named events.
@@ -71,15 +71,15 @@ export default class Eventbus
     * removed. When multiple events are passed in using the space separated syntax, the event
     * will fire count times for every event you passed in, not once for a combination of all events.
     *
-    * @param {number}         count - Number of times the function will fire before being removed.
+    * @param {number}            count - Number of times the function will fire before being removed.
     *
-    * @param {string|object}  name - Event name(s) or event map.
+    * @param {string|object}     name - Event name(s) or event map.
     *
-    * @param {Function}       callback - Event callback function
+    * @param {Function|object}   callback - Event callback function or context for event map.
     *
-    * @param {object}         context - Event context
+    * @param {object}            [context] - Event context
     *
-    * @param {boolean}        [guarded=false] - When set to true this registration is guarded.
+    * @param {boolean}           [guarded=false] - When set to true this registration is guarded.
     *
     * @returns {Eventbus} This Eventbus instance.
     */
@@ -262,11 +262,11 @@ export default class Eventbus
     * @example
     * view.listenTo(model, 'change', view.render);
     *
-    * @param {object}         obj - Event context
+    * @param {object}            obj - Event context
     *
-    * @param {string|object}  name - Event name(s) or event map.
+    * @param {string|object}     name - Event name(s) or event map.
     *
-    * @param {Function}       callback - Event callback function
+    * @param {Function|object}   callback - Event callback function or context for event map.
     *
     * @returns {Eventbus} This Eventbus instance.
     */
@@ -309,13 +309,13 @@ export default class Eventbus
    /**
     * Just like `listenTo`, but causes the bound callback to fire count times before being removed.
     *
-    * @param {number}         count - Number of times the function will fire before being removed.
+    * @param {number}            count - Number of times the function will fire before being removed.
     *
-    * @param {object}         obj - Event context
+    * @param {object}            obj - Target event context.
     *
-    * @param {string|object}  name - Event name(s) or event map.
+    * @param {string|object}     name - Event name(s) or event map.
     *
-    * @param {Function}       callback - Event callback function
+    * @param {Function|object}   callback - Event callback function or context for event map.
     *
     * @returns {Eventbus} This Eventbus instance.
     */
@@ -335,11 +335,11 @@ export default class Eventbus
    /**
     * Just like `listenTo`, but causes the bound callback to fire only once before being removed.
     *
-    * @param {object}         obj - Event context
+    * @param {object}            obj - Target event context
     *
-    * @param {string|object}  name - Event name(s) or event map.
+    * @param {string|object}     name - Event name(s) or event map.
     *
-    * @param {Function}       callback - Event callback function
+    * @param {Function|object}   callback - Event callback function or context for event map.
     *
     * @returns {Eventbus} This Eventbus instance.
     */
@@ -422,13 +422,13 @@ export default class Eventbus
     *    "destroy": bookView.remove
     * });
     *
-    * @param {string|object}  name - Event name(s) or event map.
+    * @param {string|object}     name - Event name(s) or event map.
     *
-    * @param {Function}       callback - Event callback function
+    * @param {Function|object}   callback - Event callback function or context for event map.
     *
-    * @param {object}         [context] - Event context
+    * @param {object}            [context] - Event context
     *
-    * @param {boolean}        [guarded=false] - When set to true this registration is guarded.
+    * @param {boolean}           [guarded=false] - When set to true this registration is guarded.
     *
     * @returns {Eventbus} This Eventbus instance.
     */
@@ -466,13 +466,13 @@ export default class Eventbus
     * time that X happens, do this". When multiple events are passed in using the space separated syntax, the event
     * will fire once for every event you passed in, not once for a combination of all events
     *
-    * @param {string|object}  name - Event name(s) or event map.
+    * @param {string|object}     name - Event name(s) or event map.
     *
-    * @param {Function}       callback - Event callback function
+    * @param {Function|object}   callback - Event callback function or context for event map.
     *
-    * @param {object}         [context] - Event context
+    * @param {object}            [context] - Event context
     *
-    * @param {boolean}        [guarded=false] - When set to true this registration is guarded.
+    * @param {boolean}           [guarded=false] - When set to true this registration is guarded.
     *
     * @returns {Eventbus} This Eventbus instance.
     */
@@ -710,11 +710,11 @@ class Listening
    /**
     * @see {@link Eventbus#on}
     *
-    * @param {string|object}  name - Event name(s)
+    * @param {string|object}     name - Event name(s) or event map.
     *
-    * @param {Function}       callback - Event callback function
+    * @param {Function|object}   callback - Event callback function or context for event map.
     *
-    * @param {object}         [context] - Event context
+    * @param {object}            [context] - Event context
     *
     * @returns {Listening} This Listening instance.
     */
@@ -734,9 +734,9 @@ class Listening
     * Offs a callback (or several). Uses an optimized counter if the listenee uses Eventbus. Otherwise, falls back to
     * manual tracking to support events library interop.
     *
-    * @param {string|object}  name - Event name(s)
+    * @param {string|object}     [name] - Event name(s) or event map.
     *
-    * @param {Function}       callback - Event callback function
+    * @param {Function|object}   [callback] - Event callback function or context for event map.
     */
    off(name, callback)
    {
@@ -921,7 +921,7 @@ const s_ON_API = (events, name, callback, opts) =>
  *
  * @param {Events}   events - Array of stored event callback data.
  *
- * @param {string}   name - Event name(s)
+ * @param {string}   name - Event name
  *
  * @param {Function} callback - callback
  *
@@ -1004,7 +1004,7 @@ const s_RESULTS_TARGET_API = (iteratee, iterateeTarget, events, name, callback, 
  *
  * @param {Events}   objEvents - Array of stored event callback data.
  *
- * @param {string}   name - Event name(s)
+ * @param {string}   name - Event name
  *
  * @param {Function} callback - callback
  *
@@ -1253,13 +1253,13 @@ const s_TRY_CATCH_IS_GUARDED = (obj, name, data = {}) =>
  * A try-catch guarded #on function, to prevent poisoning the global `_listening` variable. Used when attempting to
  * invoke `on` from an other eventbus / context via `listenTo`.
  *
- * @param {object}         obj - Event target / context
+ * @param {object}            obj - Event target / context
  *
- * @param {string|object}  name - Event name(s) or event map.
+ * @param {string|object}     name - Event name(s) or event map.
  *
- * @param {Function}       callback - Event callback function
+ * @param {Function|object}   callback - Event callback function or context for event map.
  *
- * @param {object}         [context] - Event context
+ * @param {object}            [context] - Event context
  *
  * @returns {Error} Any error if thrown.
  */

@@ -7,12 +7,11 @@ export default class EventbusSecure
 
       describe('EventbusSecure', () =>
       {
-         let callbacks, count, eventbus;
+         let callbacks, eventbus;
 
          beforeEach(() =>
          {
             callbacks = {};
-            count = 0;
             eventbus = new Eventbus();
          });
 

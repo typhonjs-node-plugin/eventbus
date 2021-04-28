@@ -52,9 +52,9 @@ export function eventsAPI(iteratee, events, name, callback, opts)
 /**
  * Returns a string to output for error messages including any eventbus name.
  *
- * @param {Eventbus|EventbusProxy|EventbusSecure} eventbus
+ * @param {Eventbus|EventbusProxy|EventbusSecure} eventbus - The eventbus to format.
  *
- * @returns {string}
+ * @returns {string} A string representing the eventbus.
  */
 export function getErrorName(eventbus)
 {

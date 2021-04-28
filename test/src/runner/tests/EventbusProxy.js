@@ -141,7 +141,7 @@ export default class EventbusProxy
 
          it('entries - guarded - on', () =>
          {
-            const callback = () => { count++ };
+            const callback = () => { count++; };
 
             const context = {};
             const context2 = {};
@@ -201,7 +201,7 @@ export default class EventbusProxy
 
          it('entries - guarded - before', () =>
          {
-            const callback = () => { count++ };
+            const callback = () => { count++; };
 
             const context = {};
             const context2 = {};
@@ -256,7 +256,7 @@ export default class EventbusProxy
 
          it('entries - guarded - once', () =>
          {
-            const callback = () => { count++ };
+            const callback = () => { count++; };
 
             const context = {};
             const context2 = {};
@@ -303,7 +303,7 @@ export default class EventbusProxy
 
          it('entries - remove / add (guarded on)', () =>
          {
-            const callback = () => { count++ };
+            const callback = () => { count++; };
 
             const context = {};
             const context2 = {};
@@ -369,7 +369,7 @@ export default class EventbusProxy
 
          it('entries - remove / add (once)', () =>
          {
-            const callback = () => { count++ };
+            const callback = () => { count++; };
 
             const context = {};
             const context2 = {};

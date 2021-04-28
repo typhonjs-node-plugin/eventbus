@@ -131,7 +131,7 @@ export default class OtherAPI
 
          it('entries - guarded - on', () =>
          {
-            const callback = () => { count++ };
+            const callback = () => { count++; };
 
             const context = {};
             const context2 = {};
@@ -180,7 +180,7 @@ export default class OtherAPI
 
          it('entries - guarded - before', () =>
          {
-            const callback = () => { count++ };
+            const callback = () => { count++; };
 
             const context = {};
             const context2 = {};
@@ -230,7 +230,7 @@ export default class OtherAPI
 
          it('entries - guarded - once', () =>
          {
-            const callback = () => { count++ };
+            const callback = () => { count++; };
 
             const context = {};
             const context2 = {};
@@ -277,7 +277,7 @@ export default class OtherAPI
 
          it('entries - remove / add (on)', () =>
          {
-            const callback = () => { count++ };
+            const callback = () => { count++; };
 
             const context = {};
             const context2 = {};
@@ -330,7 +330,7 @@ export default class OtherAPI
 
          it('entries - remove / add (once)', () =>
          {
-            const callback = () => { count++ };
+            const callback = () => { count++; };
 
             const context = {};
             const context2 = {};

@@ -50,6 +50,19 @@ export function eventsAPI(iteratee, events, name, callback, opts)
 }
 
 /**
+ * Returns a string to output for error messages including any eventbus name.
+ *
+ * @param {Eventbus|EventbusProxy|EventbusSecure} eventbus
+ *
+ * @returns {string}
+ */
+export function getErrorName(eventbus)
+{
+   const name = eventbus.name;
+   return name !== '' ? `[${name}] ` : '';
+}
+
+/**
  * Provides  protected Object.keys functionality.
  *
  * @param {object}   object - Object to retrieve keys.

@@ -26,7 +26,7 @@ export default class OtherAPI
 
          it('ctor throws when name is not a string', () =>
          {
-            expect(() => { new Eventbus(false); }).to.throw(TypeError, `'eventbusName' is not a string`);
+            expect(() => { new Eventbus(false); }).to.throw(TypeError, `'name' is not a string`);
          });
 
          it('before throws when count is not a number', () =>

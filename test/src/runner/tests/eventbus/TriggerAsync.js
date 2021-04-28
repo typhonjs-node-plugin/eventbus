@@ -176,19 +176,17 @@ export default class TriggerAsync
 
          it('promise - triggerAsync', (done) =>
          {
-            eventbus.on('test:trigger:async',
-               createTimedFunction((resolve) =>
-               {
-                  callbacks.testTriggerAsync = true;
-                  resolve('foo');
-               }));
+            eventbus.on('test:trigger:async', createTimedFunction((resolve) =>
+            {
+               callbacks.testTriggerAsync = true;
+               resolve('foo');
+            }));
 
-            eventbus.on('test:trigger:async',
-               createTimedFunction((resolve) =>
-               {
-                  callbacks.testTriggerAsync2 = true;
-                  resolve('bar');
-               }));
+            eventbus.on('test:trigger:async', createTimedFunction((resolve) =>
+            {
+               callbacks.testTriggerAsync2 = true;
+               resolve('bar');
+            }));
 
             assert.strictEqual(eventbus.callbackCount, 2);
 
@@ -209,26 +207,23 @@ export default class TriggerAsync
 
          it('promise - triggerAsync (2 results)', (done) =>
          {
-            eventbus.on('test:trigger:async',
-               createTimedFunction((resolve) =>
-               {
-                  callbacks.testTriggerAsync = true;
-                  resolve('foo');
-               }));
+            eventbus.on('test:trigger:async', createTimedFunction((resolve) =>
+            {
+               callbacks.testTriggerAsync = true;
+               resolve('foo');
+            }));
 
-            eventbus.on('test:trigger:async',
-               createTimedFunction((resolve) =>
-               {
-                  callbacks.testTriggerAsync2 = true;
-                  resolve();
-               }));
+            eventbus.on('test:trigger:async', createTimedFunction((resolve) =>
+            {
+               callbacks.testTriggerAsync2 = true;
+               resolve();
+            }));
 
-            eventbus.on('test:trigger:async',
-               createTimedFunction((resolve) =>
-               {
-                  callbacks.testTriggerAsync3 = true;
-                  resolve('bar');
-               }));
+            eventbus.on('test:trigger:async', createTimedFunction((resolve) =>
+            {
+               callbacks.testTriggerAsync3 = true;
+               resolve('bar');
+            }));
 
             assert.strictEqual(eventbus.callbackCount, 3);
 
@@ -256,12 +251,11 @@ export default class TriggerAsync
 
             assert.strictEqual(eventbus.callbackCount, 0);
 
-            eventbus.once('test:trigger:once',
-               createTimedFunction((resolve) =>
-               {
-                  callbacks.testTriggerOnce++;
-                  resolve('foo');
-               }));
+            eventbus.once('test:trigger:once', createTimedFunction((resolve) =>
+            {
+               callbacks.testTriggerOnce++;
+               resolve('foo');
+            }));
 
             assert.strictEqual(eventbus.callbackCount, 1);
 
@@ -290,12 +284,11 @@ export default class TriggerAsync
 
             callbacks.testTriggerCount = 0;
 
-            test.listenTo(eventbus, 'test:trigger:async',
-               createTimedFunction((resolve) =>
-               {
-                  callbacks.testTriggerCount++;
-                  resolve('foo');
-               }));
+            test.listenTo(eventbus, 'test:trigger:async', createTimedFunction((resolve) =>
+            {
+               callbacks.testTriggerCount++;
+               resolve('foo');
+            }));
 
             assert.strictEqual(eventbus.callbackCount, 1);
 
@@ -334,12 +327,11 @@ export default class TriggerAsync
 
             assert.strictEqual(eventbus.callbackCount, 0);
 
-            test.listenToOnce(eventbus, 'test:trigger:once',
-               createTimedFunction((resolve) =>
-               {
-                  callbacks.testTriggerOnce++;
-                  resolve('foo');
-               }));
+            test.listenToOnce(eventbus, 'test:trigger:once', createTimedFunction((resolve) =>
+            {
+               callbacks.testTriggerOnce++;
+               resolve('foo');
+            }));
 
             assert.strictEqual(eventbus.callbackCount, 1);
 
@@ -363,19 +355,17 @@ export default class TriggerAsync
 
          it('async / await - triggerAsync', async () =>
          {
-            eventbus.on('test:trigger:async',
-               createTimedFunction((resolve) =>
-               {
-                  callbacks.testTriggerAsync = true;
-                  resolve('foo');
-               }));
+            eventbus.on('test:trigger:async', createTimedFunction((resolve) =>
+            {
+               callbacks.testTriggerAsync = true;
+               resolve('foo');
+            }));
 
-            eventbus.on('test:trigger:async',
-               createTimedFunction((resolve) =>
-               {
-                  callbacks.testTriggerAsync2 = true;
-                  resolve('bar');
-               }));
+            eventbus.on('test:trigger:async', createTimedFunction((resolve) =>
+            {
+               callbacks.testTriggerAsync2 = true;
+               resolve('bar');
+            }));
 
             assert.strictEqual(eventbus.callbackCount, 2);
 
@@ -389,19 +379,17 @@ export default class TriggerAsync
 
          it('async / await - triggerAsync (result undefined)', async () =>
          {
-            eventbus.on('test:trigger:async',
-               createTimedFunction((resolve) =>
-               {
-                  callbacks.testTriggerAsync = true;
-                  resolve();
-               }));
+            eventbus.on('test:trigger:async', createTimedFunction((resolve) =>
+            {
+               callbacks.testTriggerAsync = true;
+               resolve();
+            }));
 
-            eventbus.on('test:trigger:async',
-               createTimedFunction((resolve) =>
-               {
-                  callbacks.testTriggerAsync2 = true;
-                  resolve();
-               }));
+            eventbus.on('test:trigger:async', createTimedFunction((resolve) =>
+            {
+               callbacks.testTriggerAsync2 = true;
+               resolve();
+            }));
 
             assert.strictEqual(eventbus.callbackCount, 2);
 
@@ -414,19 +402,17 @@ export default class TriggerAsync
 
          it('async / await - triggerAsync (1 result)', async () =>
          {
-            eventbus.on('test:trigger:async',
-               createTimedFunction((resolve) =>
-               {
-                  callbacks.testTriggerAsync = true;
-                  resolve('foo');
-               }));
+            eventbus.on('test:trigger:async', createTimedFunction((resolve) =>
+            {
+               callbacks.testTriggerAsync = true;
+               resolve('foo');
+            }));
 
-            eventbus.on('test:trigger:async',
-               createTimedFunction((resolve) =>
-               {
-                  callbacks.testTriggerAsync2 = true;
-                  resolve();
-               }));
+            eventbus.on('test:trigger:async', createTimedFunction((resolve) =>
+            {
+               callbacks.testTriggerAsync2 = true;
+               resolve();
+            }));
 
             assert.strictEqual(eventbus.callbackCount, 2);
 
@@ -444,12 +430,11 @@ export default class TriggerAsync
 
             assert.strictEqual(eventbus.callbackCount, 0);
 
-            eventbus.once('test:trigger:once',
-               createTimedFunction((resolve) =>
-               {
-                  callbacks.testTriggerOnce++;
-                  resolve('foo');
-               }));
+            eventbus.once('test:trigger:once', createTimedFunction((resolve) =>
+            {
+               callbacks.testTriggerOnce++;
+               resolve('foo');
+            }));
 
             assert.strictEqual(eventbus.callbackCount, 1);
 
@@ -475,12 +460,11 @@ export default class TriggerAsync
 
             callbacks.testTriggerCount = 0;
 
-            test.listenTo(eventbus, 'test:trigger:async',
-               createTimedFunction((resolve) =>
-               {
-                  callbacks.testTriggerCount++;
-                  resolve('foo');
-               }));
+            test.listenTo(eventbus, 'test:trigger:async', createTimedFunction((resolve) =>
+            {
+               callbacks.testTriggerCount++;
+               resolve('foo');
+            }));
 
             assert.strictEqual(eventbus.callbackCount, 1);
 
@@ -509,12 +493,11 @@ export default class TriggerAsync
             assert.strictEqual(eventbus.callbackCount, 0);
 
             // test.listenToOnce(eventbus, 'test:trigger:once', () => { callbacks.testTriggerOnce++; return 'foo'; });
-            test.listenToOnce(eventbus, 'test:trigger:once',
-               createTimedFunction((resolve) =>
-               {
-                  callbacks.testTriggerOnce++;
-                  resolve('foo');
-               }));
+            test.listenToOnce(eventbus, 'test:trigger:once', createTimedFunction((resolve) =>
+            {
+               callbacks.testTriggerOnce++;
+               resolve('foo');
+            }));
 
             assert.strictEqual(eventbus.callbackCount, 1);
 
@@ -536,12 +519,11 @@ export default class TriggerAsync
 
          it('async / await - triggerAsync - reject', async () =>
          {
-            eventbus.on('test:trigger:async',
-               createTimedFunction((resolve) =>
-               {
-                  callbacks.testTriggerAsync = true;
-                  resolve('foo');
-               }));
+            eventbus.on('test:trigger:async', createTimedFunction((resolve) =>
+            {
+               callbacks.testTriggerAsync = true;
+               resolve('foo');
+            }));
 
             eventbus.on('test:trigger:async', createTimedFunction((resolve, reject) => { reject('bar'); }));
 
@@ -552,15 +534,29 @@ export default class TriggerAsync
 
          it('async / await - triggerAsync - try / catch reject error', async () =>
          {
-            eventbus.on('test:trigger:async',
-               createTimedFunction((resolve) =>
-               {
-                  callbacks.testTriggerAsync = true;
-                  resolve('foo');
-               }));
+            eventbus.on('test:trigger:async', createTimedFunction((resolve) =>
+            {
+               callbacks.testTriggerAsync = true;
+               resolve('foo');
+            }));
 
             eventbus.on('test:trigger:async',
-               createTimedFunction((resolve, reject) => { reject(new Error('An Error!')); }));
+             createTimedFunction((resolve, reject) => { reject(new Error('An Error!')); }));
+
+            assert.strictEqual(eventbus.callbackCount, 2);
+
+            await expect(eventbus.triggerAsync('test:trigger:async')).to.be.rejectedWith(Error, 'An Error!');
+         });
+
+         it('async / await - triggerAsync - try / catch error', async () =>
+         {
+            eventbus.on('test:trigger:async', createTimedFunction((resolve) =>
+            {
+               callbacks.testTriggerAsync = true;
+               resolve('foo');
+            }));
+
+            eventbus.on('test:trigger:async', () => { throw new Error('An Error!'); });
 
             assert.strictEqual(eventbus.callbackCount, 2);
 
@@ -569,12 +565,11 @@ export default class TriggerAsync
 
          it('async / await - triggerAsync - try / catch sync error', async () =>
          {
-            eventbus.on('test:trigger:async',
-               createTimedFunction((resolve) =>
-               {
-                  callbacks.testTriggerAsync = true;
-                  resolve('foo');
-               }));
+            eventbus.on('test:trigger:async', createTimedFunction((resolve) =>
+            {
+               callbacks.testTriggerAsync = true;
+               resolve('foo');
+            }));
 
             eventbus.on('test:trigger:async', () => { throw new Error('An Error!'); });
 

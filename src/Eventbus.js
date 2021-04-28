@@ -20,7 +20,7 @@ export default class Eventbus
     * @type {string}
     * @private
     */
-   #eventbusName = '';
+   #name = '';
 
    /**
     * Stores the events map for associated events and callback / context data.
@@ -33,13 +33,13 @@ export default class Eventbus
    /**
     * Provides a constructor which optionally takes the eventbus name.
     *
-    * @param {string}   eventbusName - Optional eventbus name.
+    * @param {string}   name - Optional eventbus name.
     */
-   constructor(eventbusName = '')
+   constructor(name = '')
    {
-      if (typeof eventbusName !== 'string') { throw new TypeError(`'eventbusName' is not a string`); }
+      if (typeof name !== 'string') { throw new TypeError(`'name' is not a string`); }
 
-      this.#eventbusName = eventbusName;
+      this.#name = name;
 
       /**
        * Stores the Listening instances for this context.
@@ -90,8 +90,8 @@ export default class Eventbus
       const data = {};
       if (this.isGuarded(name, data))
       {
-         console.warn(`@typhonjs-plugin/eventbus - before() failed as event name(s) are guarded: `
-          + `${JSON.stringify(data.names)}`);
+         console.warn(`@typhonjs-plugin/eventbus ${Utils.getErrorName(this)}`
+          + `- before() failed as event name(s) are guarded: ${JSON.stringify(data.names)}`);
          return this;
       }
 
@@ -251,7 +251,7 @@ export default class Eventbus
     */
    get name()
    {
-      return this.#eventbusName;
+      return this.#name;
    }
 
    /**
@@ -277,8 +277,8 @@ export default class Eventbus
       const data = {};
       if (s_TRY_CATCH_IS_GUARDED(obj, name, data))
       {
-         console.warn(`@typhonjs-plugin/eventbus - listenTo() failed as event name(s) are guarded for target object: `
-          + `${JSON.stringify(data.names)}`);
+         console.warn(`@typhonjs-plugin/eventbus ${Utils.getErrorName(this)}`
+          + `- listenTo() failed as event name(s) are guarded for target object: ${JSON.stringify(data.names)}`);
          return this;
       }
 
@@ -437,8 +437,8 @@ export default class Eventbus
       const data = {};
       if (this.isGuarded(name, data))
       {
-         console.warn(`@typhonjs-plugin/eventbus - on() failed as event name(s) are guarded: `
-          + `${JSON.stringify(data.names)}`);
+         console.warn(`@typhonjs-plugin/eventbus ${Utils.getErrorName(this)}`
+          + `- on() failed as event name(s) are guarded: ${JSON.stringify(data.names)}`);
          return this;
       }
 
@@ -481,8 +481,8 @@ export default class Eventbus
       const data = {};
       if (this.isGuarded(name, data))
       {
-         console.warn(`@typhonjs-plugin/eventbus - once() failed as event name(s) are guarded: `
-          + `${JSON.stringify(data.names)}`);
+         console.warn(`@typhonjs-plugin/eventbus ${Utils.getErrorName(this)}`
+          + `- once() failed as event name(s) are guarded: ${JSON.stringify(data.names)}`);
          return this;
       }
 
@@ -1081,64 +1081,57 @@ const s_TRIGGER_ASYNC_EVENTS = async (events, args) =>
 
    const results = [];
 
-   try
+   switch (args.length)
    {
-      switch (args.length)
-      {
-         case 0:
-            while (++i < l)
-            {
-               const result = (ev = events[i]).callback.call(ev.ctx);
+      case 0:
+         while (++i < l)
+         {
+            const result = (ev = events[i]).callback.call(ev.ctx);
 
-               // If we received a valid result add it to the promises array.
-               if (result !== void 0) { results.push(result); }
-            }
-            break;
+            // If we received a valid result add it to the promises array.
+            if (result !== void 0) { results.push(result); }
+         }
+         break;
 
-         case 1:
-            while (++i < l)
-            {
-               const result = (ev = events[i]).callback.call(ev.ctx, a1);
+      case 1:
+         while (++i < l)
+         {
+            const result = (ev = events[i]).callback.call(ev.ctx, a1);
 
-               // If we received a valid result add it to the promises array.
-               if (result !== void 0) { results.push(result); }
-            }
-            break;
+            // If we received a valid result add it to the promises array.
+            if (result !== void 0) { results.push(result); }
+         }
+         break;
 
-         case 2:
-            while (++i < l)
-            {
-               const result = (ev = events[i]).callback.call(ev.ctx, a1, a2);
+      case 2:
+         while (++i < l)
+         {
+            const result = (ev = events[i]).callback.call(ev.ctx, a1, a2);
 
-               // If we received a valid result add it to the promises array.
-               if (result !== void 0) { results.push(result); }
-            }
-            break;
+            // If we received a valid result add it to the promises array.
+            if (result !== void 0) { results.push(result); }
+         }
+         break;
 
-         case 3:
-            while (++i < l)
-            {
-               const result = (ev = events[i]).callback.call(ev.ctx, a1, a2, a3);
+      case 3:
+         while (++i < l)
+         {
+            const result = (ev = events[i]).callback.call(ev.ctx, a1, a2, a3);
 
-               // If we received a valid result add it to the promises array.
-               if (result !== void 0) { results.push(result); }
-            }
-            break;
+            // If we received a valid result add it to the promises array.
+            if (result !== void 0) { results.push(result); }
+         }
+         break;
 
-         default:
-            while (++i < l)
-            {
-               const result = (ev = events[i]).callback.apply(ev.ctx, args);
+      default:
+         while (++i < l)
+         {
+            const result = (ev = events[i]).callback.apply(ev.ctx, args);
 
-               // If we received a valid result add it to the promises array.
-               if (result !== void 0) { results.push(result); }
-            }
-            break;
-      }
-   }
-   catch (error) // will catch synchronous event binding errors and reject again async errors.
-   {
-      return Promise.reject(error);
+            // If we received a valid result add it to the promises array.
+            if (result !== void 0) { results.push(result); }
+         }
+         break;
    }
 
    // If there are multiple results then use Promise.all otherwise Promise.resolve. Filter out any undefined results.
@@ -1151,7 +1144,7 @@ const s_TRIGGER_ASYNC_EVENTS = async (events, args) =>
          case 1: return filtered[0];
          default: return filtered;
       }
-   }) : results.length === 1 ? Promise.resolve(results[0]) : Promise.resolve();
+   }) : results.length === 1 ? results[0] : void 0;
 };
 
 /**

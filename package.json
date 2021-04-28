@@ -1,7 +1,7 @@
 {
   "name": "@typhonjs-plugin/eventbus",
   "description": "Provides an eventbus ",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "author": "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)",
   "type": "module",
   "main": "src/index.js",
@@ -25,6 +25,7 @@
   },
   "files": [
     "/npm-shrinkwrap.json",
+    "/dist",
     "/src"
   ],
   "homepage": "https://github.com/typhonjs-plugin/eventbus",

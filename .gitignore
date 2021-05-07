@@ -8,6 +8,7 @@ npm-debug.log
 /coverage-browser
 /dist
 /env
+/lib
 node_modules
 /test/live-server/Eventbus.js
 /test/live-server/Eventbus.js.map

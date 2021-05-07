@@ -2,6 +2,8 @@ import EventbusSecure from './EventbusSecure.js';
 
 import * as Utils     from './utils.js';
 
+import { type }       from './typedef.js';  // eslint-disable-line no-unused-vars
+
 /**
  * EventbusProxy provides a protected proxy of another Eventbus instance.
  *
@@ -34,7 +36,7 @@ export default class EventbusProxy
    /**
     * Stores all proxied event bindings.
     *
-    * @type {Events}
+    * @type {type.Events}
     * @private
     */
    #events;
@@ -93,7 +95,7 @@ export default class EventbusProxy
     *
     * @param {string}   [name] - Optional name for the EventbusSecure instance.
     *
-    * @returns {EventbusSecureObj} An EventbusSecure control object for this eventbus.
+    * @returns {type.EventbusSecureObj} An EventbusSecure control object for this eventbus.
     */
    createSecure(name = void 0)
    {
@@ -488,7 +490,7 @@ export default class EventbusProxy
  * The reducing API that removes a callback from the `events` object. And delegates invoking off to the eventbus
  * reference.
  *
- * @param {Events}   events - Events object
+ * @param {type.Events}   events - Events object
  *
  * @param {string}   name - Event name
  *
@@ -496,7 +498,7 @@ export default class EventbusProxy
  *
  * @param {object}   opts - Optional parameters
  *
- * @returns {void|Events} Events object
+ * @returns {void|type.Events} Events object
  */
 const s_OFF_API = (events, name, callback, opts) =>
 {
@@ -547,7 +549,7 @@ const s_OFF_API = (events, name, callback, opts) =>
 /**
  * The reducing API that adds a callback to the `events` object.
  *
- * @param {Events}   events - Events object
+ * @param {type.Events}   events - Events object
  *
  * @param {string}   name - Event name
  *
@@ -555,7 +557,7 @@ const s_OFF_API = (events, name, callback, opts) =>
  *
  * @param {object}   opts - Optional parameters
  *
- * @returns {Events} Events object.
+ * @returns {type.Events} Events object.
  */
 const s_ON_API = (events, name, callback, opts) =>
 {

@@ -6,9 +6,9 @@
  *
  * You must use the initialize method passing in an existing Eventbus instance as the eventbus reference is private.
  * In order to secure the eventbus from unwanted access there is no way to access the eventbus reference externally from
- * the EventbusSecure instance. The initialize method returns an {@link EventbusSecureObj} object which contains two
- * functions to control the secure eventbus externally; `destroy` and `setEventbus`. Expose to end consumers just the
- * `eventbusSecure` instance.
+ * the EventbusSecure instance. The initialize method returns an {@link type.EventbusSecureObj} object which
+ * contains two functions to control the secure eventbus externally; `destroy` and `setEventbus`. Expose to end
+ * consumers just the `eventbusSecure` instance.
  */
 export default class EventbusSecure
 {
@@ -39,7 +39,8 @@ export default class EventbusSecure
     *
     * @param {string}     [name] - If a name is provided this will be used instead of eventbus name.
     *
-    * @returns {EventbusSecureObj} The control object which contains an EventbusSecure reference and control functions.
+    * @returns {type.EventbusSecureObj} The control object which contains an EventbusSecure reference and control
+    *                                   functions.
     */
    static initialize(eventbus, name = void 0)
    {

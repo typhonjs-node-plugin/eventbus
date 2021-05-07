@@ -17,12 +17,14 @@
     "@typhonjs-utils/build-test": "^0.1.0",
     "@typhonjs-utils/build-test-browser": "^0.0.6",
     "rollup": "^2",
+    "rollup-plugin-dts": "^3.0.0",
     "rollup-plugin-istanbul": "^3.0.0",
     "rollup-plugin-terser": "^7"
   },
   "engines": {
-    "node": ">=12.0.0"
+    "node": ">=12"
   },
+  "types": "./types/index.d.ts",
   "files": [
     "/npm-shrinkwrap.json",
     "/dist",
@@ -45,6 +47,7 @@
     "pretest-browser": "npm run bundle-browser",
     "prepublishOnly": "npm run bundle && npm run test-node && npm run test-browser",
     "test-browser": "node ./test/src/browser/run.js",
-    "test-node": "c8 --exclude-after-remap=true --reporter=lcov --reporter=text-summary mocha -colors \"test/src/node/**/*.test.js\" --timeout 16000"
+    "test-node": "c8 --exclude-after-remap=true --reporter=lcov --reporter=text-summary mocha -colors \"test/src/node/**/*.test.js\" --timeout 16000",
+    "types": "npx -p typescript tsc ./src/typedef.js ./src/index.js --declaration --allowJs --emitDeclarationOnly --module ES2020 --outDir ./lib && rollup --config rollup.config.types.js"
   }
 }

@@ -169,9 +169,9 @@ declare class EventbusProxy {
     /**
      * Returns the target eventbus name.
      *
-     * @returns {string|*} The target eventbus name.
+     * @returns {string} The target eventbus name.
      */
-    get name(): any;
+    get name(): string;
     /**
      * Returns the current proxied event count.
      *
@@ -265,6 +265,8 @@ declare class EventbusProxy {
      *
      * @param {string}   name - Event name(s)
      *
+     * @param {...*}     args - Additional arguments passed to the event function(s).
+     *
      * @returns {EventbusProxy} This EventbusProxy.
      */
     trigger(name: string, ...args: any[]): EventbusProxy;
@@ -275,6 +277,8 @@ declare class EventbusProxy {
      *
      * @param {string}   name - Event name(s)
      *
+     * @param {...*}     args - Additional arguments passed to the event function(s).
+     *
      * @returns {Promise<void|*|*[]>} A Promise returning any results.
      */
     triggerAsync(name: string, ...args: any[]): Promise<void | any | any[]>;
@@ -282,6 +286,8 @@ declare class EventbusProxy {
      * Defers invoking `trigger`. This is useful for triggering events in the next clock tick.
      *
      * @param {string}   name - Event name(s)
+     *
+     * @param {...*}     args - Additional arguments passed to the event function(s).
      *
      * @returns {EventbusProxy} This EventbusProxy.
      */
@@ -291,6 +297,8 @@ declare class EventbusProxy {
      * value or in an array and passes it back to the callee in a synchronous manner.
      *
      * @param {string}   name - Event name(s)
+     *
+     * @param {...*}     args - Additional arguments passed to the event function(s).
      *
      * @returns {void|*|*[]} An Array of returned results.
      */
@@ -342,14 +350,16 @@ declare class EventbusSecure {
     /**
      * Returns the name associated with this instance.
      *
-     * @returns {string|*} The target eventbus name.
+     * @returns {string} The target eventbus name.
      */
-    get name(): any;
+    get name(): string;
     /**
      * Trigger callbacks for the given event, or space-delimited list of events. Subsequent arguments to trigger will be
      * passed along to the event callbacks.
      *
      * @param {string}   name - Event name(s)
+     *
+     * @param {...*}     args - Additional arguments passed to the event function(s).
      *
      * @returns {EventbusSecure} This instance.
      */
@@ -361,6 +371,8 @@ declare class EventbusSecure {
      *
      * @param {string}   name - Event name(s)
      *
+     * @param {...*}     args - Additional arguments passed to the event function(s).
+     *
      * @returns {Promise<void|*|*[]>} A Promise to returning any results.
      */
     triggerAsync(name: string, ...args: any[]): Promise<void | any | any[]>;
@@ -368,6 +380,8 @@ declare class EventbusSecure {
      * Defers invoking `trigger`. This is useful for triggering events in the next clock tick.
      *
      * @param {string}   name - Event name(s)
+     *
+     * @param {...*}     args - Additional arguments passed to the event function(s).
      *
      * @returns {EventbusSecure} This EventbusProxy.
      */
@@ -377,6 +391,8 @@ declare class EventbusSecure {
      * value or in an array and passes it back to the callee in a synchronous manner.
      *
      * @param {string}   name - Event name(s)
+     *
+     * @param {...*}     args - Additional arguments passed to the event function(s).
      *
      * @returns {void|*|*[]} An Array of returned results.
      */
@@ -474,9 +490,9 @@ declare class Eventbus {
     /**
      * Returns the current eventbus name.
      *
-     * @returns {string|*} The current eventbus name.
+     * @returns {string} The current eventbus name.
      */
-    get name(): any;
+    get name(): string;
     /**
      * Tell an object to listen to a particular event on an other object. The advantage of using this form, instead of
      * other.on(event, callback, object), is that listenTo allows the object to keep track of the events, and they can
@@ -635,6 +651,8 @@ declare class Eventbus {
      *
      * @param {string}   name - Event name(s)
      *
+     * @param {...*}     args - Additional arguments passed to the event function(s).
+     *
      * @returns {Eventbus} This Eventbus instance.
      */
     trigger(name: string, ...args: any[]): Eventbus;
@@ -645,6 +663,8 @@ declare class Eventbus {
      *
      * @param {string}   name - Event name(s)
      *
+     * @param {...*}     args - Additional arguments passed to the event function(s).
+     *
      * @returns {Promise<void|*|*[]>} A Promise with any results.
      */
     triggerAsync(name: string, ...args: any[]): Promise<void | any | any[]>;
@@ -653,14 +673,18 @@ declare class Eventbus {
      *
      * @param {string}   name - Event name(s)
      *
+     * @param {...*}     args - Additional arguments passed to the event function(s).
+     *
      * @returns {Eventbus} This Eventbus instance.
      */
-    triggerDefer(name: string): Eventbus;
+    triggerDefer(name: string, ...args: any[]): Eventbus;
     /**
      * Provides `trigger` functionality, but collects any returned result or results from invoked targets as a single
      * value or in an array and passes it back to the callee in a synchronous manner.
      *
-     * @param {string}   name - Event name(s)
+     * @param {string}   name - Event name(s).
+     *
+     * @param {...*}     args - Additional arguments passed to the event function(s).
      *
      * @returns {void|*|*[]} The results of the event invocation.
      */

@@ -115,7 +115,7 @@ export default class EventbusSecure
    /**
     * Returns the name associated with this instance.
     *
-    * @returns {string|*} The target eventbus name.
+    * @returns {string} The target eventbus name.
     */
    get name()
    {
@@ -130,13 +130,15 @@ export default class EventbusSecure
     *
     * @param {string}   name - Event name(s)
     *
+    * @param {...*}     args - Additional arguments passed to the event function(s).
+    *
     * @returns {EventbusSecure} This instance.
     */
-   trigger(name) // eslint-disable-line  no-unused-vars
+   trigger(name, ...args)
    {
       if (this.isDestroyed) { throw new ReferenceError('This EventbusSecure instance has been destroyed.'); }
 
-      this.#eventbus.trigger(...arguments);
+      this.#eventbus.trigger(name, ...args);
 
       return this;
    }
@@ -148,13 +150,15 @@ export default class EventbusSecure
     *
     * @param {string}   name - Event name(s)
     *
+    * @param {...*}     args - Additional arguments passed to the event function(s).
+    *
     * @returns {Promise<void|*|*[]>} A Promise to returning any results.
     */
-   triggerAsync(name) // eslint-disable-line  no-unused-vars
+   triggerAsync(name, ...args)
    {
       if (this.isDestroyed) { throw new ReferenceError('This EventbusSecure instance has been destroyed.'); }
 
-      return this.#eventbus.triggerAsync(...arguments);
+      return this.#eventbus.triggerAsync(name, ...args);
    }
 
    /**
@@ -162,13 +166,15 @@ export default class EventbusSecure
     *
     * @param {string}   name - Event name(s)
     *
+    * @param {...*}     args - Additional arguments passed to the event function(s).
+    *
     * @returns {EventbusSecure} This EventbusProxy.
     */
-   triggerDefer(name) // eslint-disable-line  no-unused-vars
+   triggerDefer(name, ...args)
    {
       if (this.isDestroyed) { throw new ReferenceError('This EventbusSecure instance has been destroyed.'); }
 
-      this.#eventbus.triggerDefer(...arguments);
+      this.#eventbus.triggerDefer(name, ...args);
 
       return this;
    }
@@ -179,12 +185,14 @@ export default class EventbusSecure
     *
     * @param {string}   name - Event name(s)
     *
+    * @param {...*}     args - Additional arguments passed to the event function(s).
+    *
     * @returns {void|*|*[]} An Array of returned results.
     */
-   triggerSync(name) // eslint-disable-line  no-unused-vars
+   triggerSync(name, ...args)
    {
       if (this.isDestroyed) { throw new ReferenceError('This EventbusSecure instance has been destroyed.'); }
 
-      return this.#eventbus.triggerSync(...arguments);
+      return this.#eventbus.triggerSync(name, ...args);
    }
 }

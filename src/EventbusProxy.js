@@ -192,7 +192,7 @@ export default class EventbusProxy
    /**
     * Returns the target eventbus name.
     *
-    * @returns {string|*} The target eventbus name.
+    * @returns {string} The target eventbus name.
     */
    get name()
    {
@@ -427,13 +427,15 @@ export default class EventbusProxy
     *
     * @param {string}   name - Event name(s)
     *
+    * @param {...*}     args - Additional arguments passed to the event function(s).
+    *
     * @returns {EventbusProxy} This EventbusProxy.
     */
-   trigger(name) // eslint-disable-line  no-unused-vars
+   trigger(name, ...args)
    {
       if (this.isDestroyed) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
-      this.#eventbus.trigger(...arguments);
+      this.#eventbus.trigger(name, ...args);
 
       return this;
    }
@@ -445,13 +447,15 @@ export default class EventbusProxy
     *
     * @param {string}   name - Event name(s)
     *
+    * @param {...*}     args - Additional arguments passed to the event function(s).
+    *
     * @returns {Promise<void|*|*[]>} A Promise returning any results.
     */
-   triggerAsync(name) // eslint-disable-line  no-unused-vars
+   triggerAsync(name, ...args)
    {
       if (this.isDestroyed) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
-      return this.#eventbus.triggerAsync(...arguments);
+      return this.#eventbus.triggerAsync(name, ...args);
    }
 
    /**
@@ -459,13 +463,15 @@ export default class EventbusProxy
     *
     * @param {string}   name - Event name(s)
     *
+    * @param {...*}     args - Additional arguments passed to the event function(s).
+    *
     * @returns {EventbusProxy} This EventbusProxy.
     */
-   triggerDefer(name) // eslint-disable-line  no-unused-vars
+   triggerDefer(name, ...args)
    {
       if (this.isDestroyed) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
-      this.#eventbus.triggerDefer(...arguments);
+      this.#eventbus.triggerDefer(name, ...args);
 
       return this;
    }
@@ -476,13 +482,15 @@ export default class EventbusProxy
     *
     * @param {string}   name - Event name(s)
     *
+    * @param {...*}     args - Additional arguments passed to the event function(s).
+    *
     * @returns {void|*|*[]} An Array of returned results.
     */
-   triggerSync(name) // eslint-disable-line  no-unused-vars
+   triggerSync(name, ...args)
    {
       if (this.isDestroyed) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
-      return this.#eventbus.triggerSync(...arguments);
+      return this.#eventbus.triggerSync(name, ...args);
    }
 }
 

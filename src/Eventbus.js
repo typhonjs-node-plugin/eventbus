@@ -249,7 +249,7 @@ export default class Eventbus
    /**
     * Returns the current eventbus name.
     *
-    * @returns {string|*} The current eventbus name.
+    * @returns {string} The current eventbus name.
     */
    get name()
    {
@@ -542,16 +542,13 @@ export default class Eventbus
     *
     * @param {string}   name - Event name(s)
     *
+    * @param {...*}     args - Additional arguments passed to the event function(s).
+    *
     * @returns {Eventbus} This Eventbus instance.
     */
-   trigger(name)
+   trigger(name, ...args)
    {
       if (!this.#events) { return this; }
-
-      const length = Math.max(0, arguments.length - 1);
-      const args = new Array(length);
-
-      for (let i = 0; i < length; i++) { args[i] = arguments[i + 1]; }
 
       s_RESULTS_TARGET_API(s_TRIGGER_API, s_TRIGGER_EVENTS, this.#events, name, void 0, args);
 
@@ -565,15 +562,13 @@ export default class Eventbus
     *
     * @param {string}   name - Event name(s)
     *
+    * @param {...*}     args - Additional arguments passed to the event function(s).
+    *
     * @returns {Promise<void|*|*[]>} A Promise with any results.
     */
-   async triggerAsync(name)
+   async triggerAsync(name, ...args)
    {
       if (!this.#events) { return void 0; }
-
-      const length = Math.max(0, arguments.length - 1);
-      const args = new Array(length);
-      for (let i = 0; i < length; i++) { args[i] = arguments[i + 1]; }
 
       const result = s_RESULTS_TARGET_API(s_TRIGGER_API, s_TRIGGER_ASYNC_EVENTS, this.#events, name, void 0, args);
 
@@ -610,11 +605,13 @@ export default class Eventbus
     *
     * @param {string}   name - Event name(s)
     *
+    * @param {...*}     args - Additional arguments passed to the event function(s).
+    *
     * @returns {Eventbus} This Eventbus instance.
     */
-   triggerDefer(name)   // eslint-disable-line  no-unused-vars
+   triggerDefer(name, ...args)
    {
-      setTimeout(() => { this.trigger(...arguments); }, 0);
+      setTimeout(() => { this.trigger(name, ...args); }, 0);
 
       return this;
    }
@@ -623,18 +620,15 @@ export default class Eventbus
     * Provides `trigger` functionality, but collects any returned result or results from invoked targets as a single
     * value or in an array and passes it back to the callee in a synchronous manner.
     *
-    * @param {string}   name - Event name(s)
+    * @param {string}   name - Event name(s).
+    *
+    * @param {...*}     args - Additional arguments passed to the event function(s).
     *
     * @returns {void|*|*[]} The results of the event invocation.
     */
-   triggerSync(name)
+   triggerSync(name, ...args)
    {
       if (!this.#events) { return void 0; }
-
-      const start = 1;
-      const length = Math.max(0, arguments.length - 1);
-      const args = new Array(length);
-      for (let i = 0; i < length; i++) { args[i] = arguments[i + start]; }
 
       return s_RESULTS_TARGET_API(s_TRIGGER_API, s_TRIGGER_SYNC_EVENTS, this.#events, name, void 0, args);
    }

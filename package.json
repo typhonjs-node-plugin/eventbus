@@ -1,7 +1,7 @@
 {
   "name": "@typhonjs-plugin/eventbus",
   "description": "Provides a flexible in process eventbus.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)",
   "type": "module",
   "main": "src/index.js",
@@ -28,7 +28,8 @@
   "files": [
     "/npm-shrinkwrap.json",
     "/dist",
-    "/src"
+    "/src",
+    "/types"
   ],
   "homepage": "https://github.com/typhonjs-plugin/eventbus",
   "keywords": [
@@ -48,6 +49,6 @@
     "prepublishOnly": "npm run bundle && npm run test-node && npm run test-browser",
     "test-browser": "node ./test/src/browser/run.js",
     "test-node": "c8 --exclude-after-remap=true --reporter=lcov --reporter=text-summary mocha -colors \"test/src/node/**/*.test.js\" --timeout 16000",
-    "types": "npx -p typescript tsc ./src/typedef.js ./src/index.js --declaration --allowJs --emitDeclarationOnly --module ES2020 --outDir ./lib && rollup --config rollup.config.types.js"
+    "types": "npx -p typescript tsc ./src/typedef.js ./src/index.js --declaration --allowJs --emitDeclarationOnly --target ES2020 --outDir ./lib && rollup --config rollup.config.types.js"
   }
 }

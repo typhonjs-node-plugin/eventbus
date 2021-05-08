@@ -12,7 +12,7 @@
  * @property {Listening} [listening] - Any associated listening instance.
  */
 /**
- * @typedef {object.<string, type.EventData[]>} type.Events - Event data stored by event name.
+ * @typedef {{string, type.EventData[]}} type.Events - Event data stored by event name.
  */
 /**
  * @typedef {object} type.EventbusSecureObj - The control object returned by `EventbusSecure.initialize`.
@@ -50,10 +50,6 @@ declare namespace type {
          */
         listening?: any;
     };
-    /**
-     * - Event data stored by event name.
-     */
-    type Events = any;
     /**
      * - The control object returned by `EventbusSecure.initialize`.
      */

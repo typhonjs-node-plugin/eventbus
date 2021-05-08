@@ -13,7 +13,7 @@
  */
 
 /**
- * @typedef {object.<string, type.EventData[]>} type.Events - Event data stored by event name.
+ * @typedef {{string, type.EventData[]}} type.Events - Event data stored by event name.
  */
 
 /**

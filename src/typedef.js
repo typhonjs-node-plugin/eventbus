@@ -1,5 +1,5 @@
 /**
- * @typedef {object} type.EventData The callback data for an event.
+ * @typedef {object} EventData The callback data for an event.
  *
  * @property {Function} callback - Callback function
  *
@@ -12,12 +12,13 @@
  * @property {Listening} [listening] - Any associated listening instance.
  */
 
+// eslint-disable-next-line jsdoc/check-types
 /**
- * @typedef {{string, type.EventData[]}} type.Events - Event data stored by event name.
+ * @typedef {Object.<string, EventData[]>} Events - Event data stored by event name.
  */
 
 /**
- * @typedef {object} type.EventbusSecureObj - The control object returned by `EventbusSecure.initialize`.
+ * @typedef {object} EventbusSecureObj - The control object returned by `EventbusSecure.initialize`.
  *
  * @property {Function} destroy - A function which destroys the underlying Eventbus reference.
  *
@@ -25,5 +26,3 @@
  *
  * @property {Function} setEventbus - A function to set the underlying Eventbus reference.
  */
-
-export const type = {};

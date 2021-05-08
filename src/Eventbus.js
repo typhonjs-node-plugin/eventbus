@@ -3,8 +3,6 @@ import EventbusSecure   from './EventbusSecure.js';
 
 import * as Utils       from './utils.js';
 
-import { type }         from './typedef.js';  // eslint-disable-line no-unused-vars
-
 /**
  * `@typhonjs-plugin/eventbus` / Provides the ability to bind and trigger custom named events.
  *
@@ -27,7 +25,7 @@ export default class Eventbus
    /**
     * Stores the events map for associated events and callback / context data.
     *
-    * @type {type.Events}
+    * @type {Events}
     * @private
     */
    #events;
@@ -122,7 +120,7 @@ export default class Eventbus
     *
     * @param {string}   [name] - Optional name for the EventbusSecure instance.
     *
-    * @returns {type.EventbusSecureObj} An EventbusSecure control object for this eventbus.
+    * @returns {EventbusSecureObj} An EventbusSecure control object for this eventbus.
     */
    createSecure(name = void 0)
    {
@@ -649,7 +647,7 @@ let _listening;
 class Listening
 {
    /**
-    * @type {type.Events}
+    * @type {Events}
     */
    #events;
 
@@ -810,7 +808,7 @@ const s_IS_GUARDED = (output, name, callback, opts) =>
 /**
  * The reducing API that removes a callback from the `events` object.
  *
- * @param {type.Events}   events - Events object
+ * @param {Events}   events - Events object
  *
  * @param {string}   name - Event name
  *
@@ -818,7 +816,7 @@ const s_IS_GUARDED = (output, name, callback, opts) =>
  *
  * @param {object}   opts - Optional parameters
  *
- * @returns {void|type.Events} Events object
+ * @returns {void|Events} Events object
  */
 const s_OFF_API = (events, name, callback, opts) =>
 {
@@ -882,7 +880,7 @@ const s_OFF_API = (events, name, callback, opts) =>
 /**
  * The reducing API that adds a callback to the `events` object.
  *
- * @param {type.Events}   events - Events object
+ * @param {Events}   events - Events object
  *
  * @param {string}   name - Event name
  *
@@ -890,7 +888,7 @@ const s_OFF_API = (events, name, callback, opts) =>
  *
  * @param {object}   opts - Optional parameters
  *
- * @returns {type.Events} Events object.
+ * @returns {Events} Events object.
  */
 const s_ON_API = (events, name, callback, opts) =>
 {
@@ -915,7 +913,7 @@ const s_ON_API = (events, name, callback, opts) =>
  *
  * @param {Function} iterateeTarget - Internal function which is dispatched to.
  *
- * @param {type.Events}   events - Array of stored event callback data.
+ * @param {Events}   events - Array of stored event callback data.
  *
  * @param {string}   name - Event name
  *
@@ -998,7 +996,7 @@ const s_RESULTS_TARGET_API = (iteratee, iterateeTarget, events, name, callback, 
  *
  * @param {Function} iterateeTarget - Internal function which is dispatched to.
  *
- * @param {type.Events}   objEvents - Array of stored event callback data.
+ * @param {Events}   objEvents - Array of stored event callback data.
  *
  * @param {string}   name - Event name
  *
@@ -1028,7 +1026,7 @@ const s_TRIGGER_API = (iterateeTarget, objEvents, name, callback, args) =>
  * A difficult-to-believe, but optimized internal dispatch function for triggering events. Tries to keep the usual
  * cases speedy (most internal Backbone events have 3 arguments).
  *
- * @param {type.EventData[]} events - Array of stored event callback data.
+ * @param {EventData[]} events - Array of stored event callback data.
  *
  * @param {*[]}         args - Event argument array
  */
@@ -1064,7 +1062,7 @@ const s_TRIGGER_EVENTS = (events, args) =>
  * waits until all Promises complete. Any target invoked may return a Promise or any result. This is very useful to
  * use for any asynchronous operations.
  *
- * @param {type.EventData[]} events - Array of stored event callback data.
+ * @param {EventData[]} events - Array of stored event callback data.
  *
  * @param {*[]}         args - Arguments supplied to `triggerAsync`.
  *
@@ -1148,7 +1146,7 @@ const s_TRIGGER_ASYNC_EVENTS = async (events, args) =>
  * cases speedy (most internal Backbone events have 3 arguments). This dispatch method synchronously passes back a
  * single value or an array with all results returned by any invoked targets.
  *
- * @param {type.EventData[]} events - Array of stored event callback data.
+ * @param {EventData[]} events - Array of stored event callback data.
  *
  * @param {*[]}         args - Arguments supplied to `triggerSync`.
  *

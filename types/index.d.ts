@@ -1,73 +1,51 @@
 /**
- * @typedef {object} type.EventData The callback data for an event.
- *
- * @property {Function} callback - Callback function
- *
- * @property {object} context - Event context
- *
- * @property {object} ctx - Event context or local eventbus instance.
- *
- * @property {boolean} guarded - Denotes whether this event registration is guarded / prevents multiple registrations.
- *
- * @property {Listening} [listening] - Any associated listening instance.
+ * The callback data for an event.
  */
-/**
- * @typedef {{string, type.EventData[]}} type.Events - Event data stored by event name.
- */
-/**
- * @typedef {object} type.EventbusSecureObj - The control object returned by `EventbusSecure.initialize`.
- *
- * @property {Function} destroy - A function which destroys the underlying Eventbus reference.
- *
- * @property {EventbusSecure} eventbusSecure - The EventbusSecure instance.
- *
- * @property {Function} setEventbus - A function to set the underlying Eventbus reference.
- */
-declare const type: {};
-declare namespace type {
+type EventData = {
     /**
-     * The callback data for an event.
+     * - Callback function
      */
-    type EventData = {
-        /**
-         * - Callback function
-         */
-        callback: Function;
-        /**
-         * - Event context
-         */
-        context: object;
-        /**
-         * - Event context or local eventbus instance.
-         */
-        ctx: object;
-        /**
-         * - Denotes whether this event registration is guarded / prevents multiple registrations.
-         */
-        guarded: boolean;
-        /**
-         * - Any associated listening instance.
-         */
-        listening?: any;
-    };
+    callback: Function;
     /**
-     * - The control object returned by `EventbusSecure.initialize`.
+     * - Event context
      */
-    type EventbusSecureObj = {
-        /**
-         * - A function which destroys the underlying Eventbus reference.
-         */
-        destroy: Function;
-        /**
-         * - The EventbusSecure instance.
-         */
-        eventbusSecure: any;
-        /**
-         * - A function to set the underlying Eventbus reference.
-         */
-        setEventbus: Function;
-    };
-}
+    context: object;
+    /**
+     * - Event context or local eventbus instance.
+     */
+    ctx: object;
+    /**
+     * - Denotes whether this event registration is guarded / prevents multiple registrations.
+     */
+    guarded: boolean;
+    /**
+     * - Any associated listening instance.
+     */
+    listening?: any;
+};
+/**
+ * - Event data stored by event name.
+ */
+type Events = {
+    [x: string]: EventData[];
+};
+/**
+ * - The control object returned by `EventbusSecure.initialize`.
+ */
+type EventbusSecureObj = {
+    /**
+     * - A function which destroys the underlying Eventbus reference.
+     */
+    destroy: Function;
+    /**
+     * - The EventbusSecure instance.
+     */
+    eventbusSecure: any;
+    /**
+     * - A function to set the underlying Eventbus reference.
+     */
+    setEventbus: Function;
+};
 
 /**
  * EventbusProxy provides a protected proxy of another Eventbus instance.
@@ -119,9 +97,9 @@ declare class EventbusProxy {
      *
      * @param {string}   [name] - Optional name for the EventbusSecure instance.
      *
-     * @returns {type.EventbusSecureObj} An EventbusSecure control object for this eventbus.
+     * @returns {EventbusSecureObj} An EventbusSecure control object for this eventbus.
      */
-    createSecure(name?: string): type.EventbusSecureObj;
+    createSecure(name?: string): EventbusSecureObj;
     /**
      * Unregisters all proxied events from the target eventbus and removes any local references. All subsequent calls
      * after `destroy` has been called result in a ReferenceError thrown.
@@ -299,6 +277,7 @@ declare class EventbusProxy {
      * @returns {void|*|*[]} An Array of returned results.
      */
     triggerSync(name: string, ...args: any[]): void | any | any[];
+    #private;
 }
 
 /**
@@ -309,7 +288,7 @@ declare class EventbusProxy {
  *
  * You must use the initialize method passing in an existing Eventbus instance as the eventbus reference is private.
  * In order to secure the eventbus from unwanted access there is no way to access the eventbus reference externally from
- * the EventbusSecure instance. The initialize method returns an {@link type.EventbusSecureObj} object which
+ * the EventbusSecure instance. The initialize method returns an {@link EventbusSecureObj} object which
  * contains two functions to control the secure eventbus externally; `destroy` and `setEventbus`. Expose to end
  * consumers just the `eventbusSecure` instance.
  */
@@ -325,10 +304,9 @@ declare class EventbusSecure {
      *
      * @param {string}     [name] - If a name is provided this will be used instead of eventbus name.
      *
-     * @returns {type.EventbusSecureObj} The control object which contains an EventbusSecure reference and control
-     *                                   functions.
+     * @returns {EventbusSecureObj} The control object which contains an EventbusSecure reference and control functions.
      */
-    static initialize(eventbus: any, name?: string): any;
+    static initialize(eventbus: any, name?: string): EventbusSecureObj;
     /**
      * Returns an iterable for the event names / keys of secured eventbus event listeners.
      *
@@ -393,6 +371,7 @@ declare class EventbusSecure {
      * @returns {void|*|*[]} An Array of returned results.
      */
     triggerSync(name: string, ...args: any[]): void | any | any[];
+    #private;
 }
 
 /**
@@ -442,9 +421,9 @@ declare class Eventbus {
      *
      * @param {string}   [name] - Optional name for the EventbusSecure instance.
      *
-     * @returns {type.EventbusSecureObj} An EventbusSecure control object for this eventbus.
+     * @returns {EventbusSecureObj} An EventbusSecure control object for this eventbus.
      */
-    createSecure(name?: string): type.EventbusSecureObj;
+    createSecure(name?: string): EventbusSecureObj;
     /**
      * Returns an iterable for all stored events yielding an array with event name, callback function, and event context.
      *
@@ -685,6 +664,7 @@ declare class Eventbus {
      * @returns {void|*|*[]} The results of the event invocation.
      */
     triggerSync(name: string, ...args: any[]): void | any | any[];
+    #private;
 }
 
 /**

@@ -1,5 +1,3 @@
-import { type }   from './typedef.js';  // eslint-disable-line no-unused-vars
-
 /**
  * Regular expression used to split event strings.
  *
@@ -13,7 +11,7 @@ export const eventSplitter = /\s+/;
  *
  * @param {Function}       iteratee - Event operation to invoke.
  *
- * @param {object|type.Events}         events - Events object
+ * @param {object|Events}         events - Events object
  *
  * @param {string|object}  name - A single event name, compound event names, or a hash of event names.
  *
@@ -21,7 +19,7 @@ export const eventSplitter = /\s+/;
  *
  * @param {object}         opts - Optional parameters
  *
- * @returns {object|type.Events} Events object or processed data.
+ * @returns {object|Events} Events object or processed data.
  */
 export function eventsAPI(iteratee, events, name, callback, opts)
 {
@@ -80,7 +78,7 @@ export const objectKeys = (object) =>
  * Reduces the event callbacks into a map of `{event: beforeWrapper}`. `after` unbinds the `beforeWrapper` after
  * it has been called the number of times specified by options.count.
  *
- * @param {type.Events}   map - Events object
+ * @param {Events}   map - Events object
  *
  * @param {string}   name - Event name
  *
@@ -88,7 +86,7 @@ export const objectKeys = (object) =>
  *
  * @param {object}   opts - Function to invoke after event has been triggered once; `off()`
  *
- * @returns {type.Events} The Events object.
+ * @returns {Events} The Events object.
  */
 export function beforeMap(map, name, callback, opts)
 {

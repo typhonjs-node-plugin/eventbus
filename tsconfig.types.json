@@ -1,0 +1,13 @@
+{
+   "include": [
+      "./src/typedef.js",
+      "./src/index.js"
+   ],
+
+   "compilerOptions": {
+      "allowJs": true,
+      "declaration": true,
+      "emitDeclarationOnly": true,
+      "outDir": "./lib"
+   }
+}

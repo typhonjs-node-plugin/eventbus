@@ -31,15 +31,15 @@
     "/src",
     "/types"
   ],
-  "homepage": "https://github.com/typhonjs-plugin/eventbus",
+  "homepage": "https://github.com/typhonjs-node-plugin/eventbus#readme",
   "keywords": [
     "typhonjs",
     "plugin",
     "eventbus"
   ],
   "license": "MPL-2.0",
-  "repository": "github:typhonjs-plugin/eventbus",
-  "bugs": "https://github.com/typhonjs-plugin/eventbus/issues",
+  "repository": "github:typhonjs-node-plugin/eventbus",
+  "bugs": "https://github.com/typhonjs-node-plugin/eventbus/issues",
   "scripts": {
     "bundle": "rollup --config",
     "bundle-browser": "rollup --config rollup.config.browser.js",

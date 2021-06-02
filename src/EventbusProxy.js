@@ -47,6 +47,8 @@ export default class EventbusProxy
    constructor(eventbus)
    {
       this.#eventbus = eventbus;
+
+      Object.seal(this);
    }
 
    /**

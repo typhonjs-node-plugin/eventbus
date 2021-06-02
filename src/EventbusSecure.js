@@ -48,6 +48,7 @@ export default class EventbusSecure
       const eventbusSecure = new EventbusSecure();
       eventbusSecure.#eventbus = eventbus;
       eventbusSecure.#name = name === void 0 ? eventbus.name : name;
+      Object.seal(eventbusSecure);
 
       return {
          destroy: function()

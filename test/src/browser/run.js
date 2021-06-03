@@ -9,7 +9,7 @@ async function main()
 {
    await TestRunner.runServerAndTestSuite({
       reportDir: './coverage-browser',
-      keepAlive: true   // Uncomment to keep HTTP server alive / useful for testing other browsers.
+      // keepAlive: true   // Uncomment to keep HTTP server alive / useful for testing other browsers.
    });
 }
 

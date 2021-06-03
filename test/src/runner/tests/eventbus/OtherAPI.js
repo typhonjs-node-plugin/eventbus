@@ -142,11 +142,11 @@ export default class OtherAPI
             const allNames = ['test:trigger', 'test:trigger2', 'test:trigger3'];
             const allGuarded = [true, false, true];
 
-            eventbus.on('test:trigger', callback, context, true);
+            eventbus.on('test:trigger', callback, context, { guard: true });
 
             assert.strictEqual(eventbus.callbackCount, 1);
 
-            eventbus.on('test:trigger', callback, context, true);
+            eventbus.on('test:trigger', callback, context, { guard: true });
 
             assert.strictEqual(eventbus.callbackCount, 1);
 
@@ -154,7 +154,7 @@ export default class OtherAPI
 
             assert.strictEqual(eventbus.callbackCount, 2);
 
-            eventbus.on('test:trigger3', callback, context3, true);
+            eventbus.on('test:trigger3', callback, context3, { guard: true });
 
             assert.strictEqual(eventbus.callbackCount, 3);
 
@@ -168,12 +168,12 @@ export default class OtherAPI
 
             let cntr = 0;
 
-            for (const [name, callback, context, guarded] of eventbus.entries())
+            for (const [name, callback, context, options] of eventbus.entries())
             {
                assert.strictEqual(name, allNames[cntr]);
                assert.strictEqual(callback, allCallbacks[cntr]);
                assert.strictEqual(context, allContexts[cntr]);
-               assert.strictEqual(guarded, allGuarded[cntr]);
+               assert.strictEqual(options.guard, allGuarded[cntr]);
                cntr++;
             }
          });
@@ -190,11 +190,11 @@ export default class OtherAPI
             const allNames = ['test:trigger2'];
             const allGuarded = [false];
 
-            eventbus.before(2, 'test:trigger', callback, context, true);
+            eventbus.before(2, 'test:trigger', callback, context, { guard: true });
 
             assert.strictEqual(eventbus.callbackCount, 1);
 
-            eventbus.before(2, 'test:trigger', callback, context, true);
+            eventbus.before(2, 'test:trigger', callback, context, { guard: true });
 
             assert.strictEqual(eventbus.callbackCount, 1);
 
@@ -218,12 +218,12 @@ export default class OtherAPI
 
             let cntr = 0;
 
-            for (const [name, callback, context, guarded] of eventbus.entries())
+            for (const [name, callback, context, options] of eventbus.entries())
             {
                assert.strictEqual(name, allNames[cntr]);
                assert.strictEqual(callback, allCallbacks[cntr]);
                assert.strictEqual(context, allContexts[cntr]);
-               assert.strictEqual(guarded, allGuarded[cntr]);
+               assert.strictEqual(options.guard, allGuarded[cntr]);
                cntr++;
             }
          });
@@ -242,12 +242,12 @@ export default class OtherAPI
 
             assert.isFalse(eventbus.isGuarded('test:trigger'));
 
-            eventbus.once('test:trigger', callback, context, true);
+            eventbus.once('test:trigger', callback, context, { guard: true });
 
             assert.strictEqual(eventbus.callbackCount, 1);
             assert.isTrue(eventbus.isGuarded('test:trigger'));
 
-            eventbus.once('test:trigger', callback, context, true);
+            eventbus.once('test:trigger', callback, context, { guard: true });
 
             assert.strictEqual(eventbus.callbackCount, 1);
 
@@ -265,12 +265,12 @@ export default class OtherAPI
 
             let cntr = 0;
 
-            for (const [name, callback, context, guarded] of eventbus.entries())
+            for (const [name, callback, context, options] of eventbus.entries())
             {
                assert.strictEqual(name, allNames[cntr]);
                assert.strictEqual(callback, allCallbacks[cntr]);
                assert.strictEqual(context, allContexts[cntr]);
-               assert.strictEqual(guarded, allGuarded[cntr]);
+               assert.strictEqual(options.guard, allGuarded[cntr]);
                cntr++;
             }
          });
@@ -318,12 +318,12 @@ export default class OtherAPI
 
             let cntr = 0;
 
-            for (const [name, callback, context, guarded] of eventbus.entries())
+            for (const [name, callback, context, options] of eventbus.entries())
             {
                assert.strictEqual(name, allNames[cntr]);
                assert.strictEqual(callback, allCallbacks[cntr]);
                assert.strictEqual(context, allContexts[cntr]);
-               assert.strictEqual(guarded, allGuarded[cntr]);
+               assert.strictEqual(options.guard, allGuarded[cntr]);
                cntr++;
             }
          });
@@ -380,12 +380,12 @@ export default class OtherAPI
 
             let cntr = 0;
 
-            for (const [name, callback, context, guarded] of eventbus.entries())
+            for (const [name, callback, context, options] of eventbus.entries())
             {
                assert.strictEqual(name, allNames[cntr]);
                assert.strictEqual(callback, allCallbacks[cntr]);
                assert.strictEqual(context, allContexts[cntr]);
-               assert.strictEqual(guarded, allGuarded[cntr]);
+               assert.strictEqual(options.guard, allGuarded[cntr]);
                cntr++;
             }
          });
@@ -447,7 +447,7 @@ export default class OtherAPI
          {
             const other = new Eventbus();
 
-            other.on('change', () => { count++; }, void 0, true);
+            other.on('change', () => { count++; }, void 0, { guard: true });
             eventbus.listenTo(other, 'change', () => { count++; assert.ok(false); });
 
             other.trigger('change');
@@ -490,8 +490,8 @@ export default class OtherAPI
 
          it('on - guarded', () =>
          {
-            eventbus.on('test:trigger', () => { count++; }, void 0, true);
-            eventbus.on('test:trigger', () => { count++; assert.ok(false); }, void 0, true);
+            eventbus.on('test:trigger', () => { count++; }, void 0, { guard: true });
+            eventbus.on('test:trigger', () => { count++; assert.ok(false); }, void 0, { guard: true });
 
             eventbus.trigger('test:trigger');
 
@@ -500,7 +500,7 @@ export default class OtherAPI
 
          it('on - guarded - event map', () =>
          {
-            eventbus.on('test:trigger', () => { count++; }, void 0, true);
+            eventbus.on('test:trigger', () => { count++; }, void 0, { guard: true });
             eventbus.on({ 'test:trigger': () => { count++; assert.ok(false); } });
 
             eventbus.trigger('test:trigger');
@@ -511,7 +511,7 @@ export default class OtherAPI
          it('on - guarded - multiple w/ one guarded', () =>
          {
             eventbus.on('test:trigger', () => { count++; }, void 0);
-            eventbus.on('test:trigger', () => { count++; }, void 0, true);
+            eventbus.on('test:trigger', () => { count++; }, void 0, { guard: true });
             eventbus.on('test:trigger', () => { count++; assert.ok(false); }, void 0);
 
             eventbus.trigger('test:trigger');
@@ -525,7 +525,7 @@ export default class OtherAPI
             const context = {};
 
             eventbus.on('test:trigger', () => { count++; }, void 0);
-            eventbus.on('test:trigger', () => { count++; }, context, true);
+            eventbus.on('test:trigger', () => { count++; }, context, { guard: true });
             eventbus.on('test:trigger', () => { count++; assert.ok(false); }, void 0);
 
             assert.strictEqual(eventbus.callbackCount, 2);

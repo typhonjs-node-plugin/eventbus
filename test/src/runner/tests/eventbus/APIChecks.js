@@ -3,6 +3,7 @@ export default class APIChecks
    static run(Module, data, chai)
    {
       const { assert, expect } = chai;
+
       const Eventbus = Module.default;
 
       describe('Eventbus - API Checks', () =>
@@ -56,6 +57,18 @@ export default class APIChecks
 
             result = eventbus.stopListening();
             expect(result).to.equal(eventbus);
+         });
+
+         it('on throws w/ null options', () =>
+         {
+            expect(() => eventbus.on('event', () => {}, void 0, null)).to.throw(TypeError,
+             `'options' must be an object literal.`);
+         });
+
+         it('on throws w/ bad options', () =>
+         {
+            expect(() => eventbus.on('event', () => {}, void 0, false)).to.throw(TypeError,
+             `'options' must be an object literal.`);
          });
 
          it('once without a callback is a noop', () =>

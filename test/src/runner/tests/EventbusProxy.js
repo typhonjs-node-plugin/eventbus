@@ -155,12 +155,12 @@ export default class EventbusProxy
 
             assert.isFalse(proxy.isGuarded('test:trigger'));
 
-            proxy.on('test:trigger', callback, context, true);
+            proxy.on('test:trigger', callback, context, { guard: true });
             assert.isTrue(proxy.isGuarded('test:trigger'));
             assert.strictEqual(eventbus.callbackCount, 1);
             assert.strictEqual(proxy.proxyCallbackCount, 1);
 
-            proxy.on('test:trigger', callback, context, true);
+            proxy.on('test:trigger', callback, context, { guard: true });
 
             assert.strictEqual(eventbus.callbackCount, 1);
             assert.strictEqual(proxy.proxyCallbackCount, 1);
@@ -172,7 +172,7 @@ export default class EventbusProxy
             assert.strictEqual(proxy.proxyCallbackCount, 2);
             assert.isFalse(proxy.isGuarded('test:trigger3'));
 
-            proxy.on('test:trigger3', callback, context3, true);
+            proxy.on('test:trigger3', callback, context3, { guard: true });
 
             assert.isTrue(proxy.isGuarded('test:trigger3'));
             assert.strictEqual(eventbus.callbackCount, 3);
@@ -189,12 +189,12 @@ export default class EventbusProxy
 
             let cntr = 0;
 
-            for (const [name, callback, context, guarded] of proxy.proxyEntries())
+            for (const [name, callback, context, options] of proxy.proxyEntries())
             {
                assert.strictEqual(name, allNames[cntr]);
                assert.strictEqual(callback, allCallbacks[cntr]);
                assert.strictEqual(context, allContexts[cntr]);
-               assert.strictEqual(guarded, allGuarded[cntr]);
+               assert.strictEqual(options.guard, allGuarded[cntr]);
                cntr++;
             }
          });
@@ -211,12 +211,12 @@ export default class EventbusProxy
             const allNames = ['test:trigger2'];
             const allGuarded = [false];
 
-            proxy.before(2, 'test:trigger', callback, context, true);
+            proxy.before(2, 'test:trigger', callback, context, { guard: true });
 
             assert.strictEqual(eventbus.callbackCount, 1);
             assert.strictEqual(proxy.proxyCallbackCount, 1);
 
-            proxy.before(2, 'test:trigger', callback, context, true);
+            proxy.before(2, 'test:trigger', callback, context, { guard: true });
 
             assert.strictEqual(eventbus.callbackCount, 1);
             assert.strictEqual(proxy.proxyCallbackCount, 1);
@@ -244,12 +244,12 @@ export default class EventbusProxy
 
             let cntr = 0;
 
-            for (const [name, callback, context, guarded] of proxy.proxyEntries())
+            for (const [name, callback, context, options] of proxy.proxyEntries())
             {
                assert.strictEqual(name, allNames[cntr]);
                assert.strictEqual(callback, allCallbacks[cntr]);
                assert.strictEqual(context, allContexts[cntr]);
-               assert.strictEqual(guarded, allGuarded[cntr]);
+               assert.strictEqual(options.guard, allGuarded[cntr]);
                cntr++;
             }
          });
@@ -266,12 +266,12 @@ export default class EventbusProxy
             const allNames = ['test:trigger2'];
             const allGuarded = [false];
 
-            proxy.once('test:trigger', callback, context, true);
+            proxy.once('test:trigger', callback, context, { guard: true });
 
             assert.strictEqual(eventbus.callbackCount, 1);
             assert.strictEqual(proxy.proxyCallbackCount, 1);
 
-            proxy.once('test:trigger', callback, context, true);
+            proxy.once('test:trigger', callback, context, { guard: true });
 
             assert.strictEqual(eventbus.callbackCount, 1);
             assert.strictEqual(proxy.proxyCallbackCount, 1);
@@ -291,12 +291,12 @@ export default class EventbusProxy
 
             let cntr = 0;
 
-            for (const [name, callback, context, guarded] of proxy.proxyEntries())
+            for (const [name, callback, context, options] of proxy.proxyEntries())
             {
                assert.strictEqual(name, allNames[cntr]);
                assert.strictEqual(callback, allCallbacks[cntr]);
                assert.strictEqual(context, allContexts[cntr]);
-               assert.strictEqual(guarded, allGuarded[cntr]);
+               assert.strictEqual(options.guard, allGuarded[cntr]);
                cntr++;
             }
          });
@@ -315,7 +315,7 @@ export default class EventbusProxy
 
             eventbus.on('can:not:see:this', () => { count++; });
 
-            proxy.on('test:trigger', callback, context, true);
+            proxy.on('test:trigger', callback, context, { guard: true });
 
             assert.strictEqual(eventbus.callbackCount, 2);
             assert.strictEqual(proxy.proxyCallbackCount, 1);
@@ -357,12 +357,12 @@ export default class EventbusProxy
 
             let cntr = 0;
 
-            for (const [name, callback, context, guarded] of proxy.proxyEntries())
+            for (const [name, callback, context, options] of proxy.proxyEntries())
             {
                assert.strictEqual(name, allNames[cntr]);
                assert.strictEqual(callback, allCallbacks[cntr]);
                assert.strictEqual(context, allContexts[cntr]);
-               assert.strictEqual(guarded, allGuarded[cntr]);
+               assert.strictEqual(options.guard, allGuarded[cntr]);
                cntr++;
             }
          });
@@ -420,12 +420,12 @@ export default class EventbusProxy
 
             let cntr = 0;
 
-            for (const [name, callback, context, guarded] of proxy.proxyEntries())
+            for (const [name, callback, context, options] of proxy.proxyEntries())
             {
                assert.strictEqual(name, allNames[cntr]);
                assert.strictEqual(callback, allCallbacks[cntr]);
                assert.strictEqual(context, allContexts[cntr]);
-               assert.strictEqual(guarded, allGuarded[cntr]);
+               assert.strictEqual(options.guard, allGuarded[cntr]);
                cntr++;
             }
          });
@@ -479,6 +479,18 @@ export default class EventbusProxy
             const eventNames = Array.from(proxy.keys(/test:trigger3/));
 
             assert.strictEqual(JSON.stringify(eventNames), '["test:trigger3","test:trigger3A"]');
+         });
+
+         it('on throws w/ null options', () =>
+         {
+            expect(() => proxy.on('event', () => {}, void 0, null)).to.throw(TypeError,
+             `'options' must be an object literal.`);
+         });
+
+         it('on throws w/ bad options', () =>
+         {
+            expect(() => proxy.on('event', () => {}, void 0, false)).to.throw(TypeError,
+             `'options' must be an object literal.`);
          });
 
          it('once', () =>

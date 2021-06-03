@@ -64,11 +64,11 @@ export default class EventbusProxy
     *
     * @param {object}            [context] - Event context
     *
-    * @param {boolean}           [guarded=false] - When set to true this registration is guarded.
+    * @param {ProxyOnOptions}    [options] - Event registration options.
     *
     * @returns {EventbusProxy} This EventbusProxy instance.
     */
-   before(count, name, callback, context = void 0, guarded = false)
+   before(count, name, callback, context = void 0, options = {})
    {
       if (this.isDestroyed) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
       if (!Number.isInteger(count)) { throw new TypeError(`'count' is not an integer`); }
@@ -86,7 +86,7 @@ export default class EventbusProxy
 
       if (typeof name === 'string' && (context === null || context === void 0)) { callback = void 0; }
 
-      return this.on(events, callback, context, guarded);
+      return this.on(events, callback, context, options);
    }
 
    /**
@@ -285,15 +285,20 @@ export default class EventbusProxy
     *
     * @param {Function|object}   callback - Event callback function or context for event map.
     *
-    * @param {object}            [context] - Event context
+    * @param {object}            [context] - Event context.
     *
-    * @param {boolean}           [guarded=false] - When set to true this registration is guarded.
+    * @param {ProxyOnOptions}    [options] - Event registration options.
     *
     * @returns {EventbusProxy} This EventbusProxy
     */
-   on(name, callback, context = void 0, guarded = false)
+   on(name, callback, context = void 0, options = {})
    {
       if (this.isDestroyed) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
+
+      if (options == null || options.constructor !== Object)   // eslint-disable-line eqeqeq
+      {
+         throw new TypeError(`'options' must be an object literal.`);
+      }
 
       const data = {};
       if (this.#eventbus.isGuarded(name, data))
@@ -304,11 +309,11 @@ export default class EventbusProxy
       }
 
       // Hang onto the options as s_ON_API sets the context we need to pass to the eventbus in `opts.ctx`.
-      const opts = { context, ctx: this, guarded };
+      const opts = { context, ctx: this, options };
 
       this.#events = Utils.eventsAPI(s_ON_API, this.#events || {}, name, callback, opts);
 
-      this.#eventbus.on(name, callback, opts.ctx, guarded);
+      this.#eventbus.on(name, callback, opts.ctx, options);
 
       return this;
    }
@@ -324,11 +329,11 @@ export default class EventbusProxy
     *
     * @param {object}            context - Event context
     *
-    * @param {boolean}           [guarded=false] - When set to true this registration is guarded.
+    * @param {ProxyOnOptions}    [options] - Event registration options.
     *
     * @returns {EventbusProxy} This EventbusProxy instance.
     */
-   once(name, callback, context = void 0, guarded = false)
+   once(name, callback, context = void 0, options = {})
    {
       if (this.isDestroyed) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
@@ -345,7 +350,7 @@ export default class EventbusProxy
 
       if (typeof name === 'string' && (context === null || context === void 0)) { callback = void 0; }
 
-      return this.on(events, callback, context, guarded);
+      return this.on(events, callback, context, options);
    }
 
    /**
@@ -371,7 +376,7 @@ export default class EventbusProxy
             {
                for (const event of this.#events[name])
                {
-                  yield [name, event.callback, event.context, event.guarded];
+                  yield [name, event.callback, event.context, JSON.parse(JSON.stringify(event.options))];
                }
             }
          }
@@ -382,7 +387,7 @@ export default class EventbusProxy
          {
             for (const event of this.#events[name])
             {
-               yield [name, event.callback, event.context, event.guarded];
+               yield [name, event.callback, event.context, JSON.parse(JSON.stringify(event.options))];
             }
          }
       }
@@ -573,12 +578,17 @@ const s_ON_API = (events, name, callback, opts) =>
    {
       const handlers = events[name] || (events[name] = []);
       const context = opts.context, ctx = opts.ctx;
-      const guarded = typeof opts.guarded === 'boolean' ? opts.guarded /* c8 ignore next */ : false;
+
+      // Make a copy of options.
+      const options = JSON.parse(JSON.stringify(opts.options));
+
+      // Ensure that guard is set.
+      options.guard = options.guard !== void 0 && typeof options.guard === 'boolean' ? options.guard : false;
 
       // Set opts `ctx` as this is what we send to the eventbus.
       opts.ctx = context || ctx;
 
-      handlers.push({ callback, context, ctx: opts.ctx, guarded });
+      handlers.push({ callback, context, ctx: opts.ctx, options });
    }
 
    return events;

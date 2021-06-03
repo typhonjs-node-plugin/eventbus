@@ -79,11 +79,11 @@ export default class Eventbus
     *
     * @param {object}            [context] - Event context
     *
-    * @param {boolean}           [guarded=false] - When set to true this registration is guarded.
+    * @param {OnOptions}         [options] - Event registration options.
     *
     * @returns {Eventbus} This Eventbus instance.
     */
-   before(count, name, callback, context = void 0, guarded = false)
+   before(count, name, callback, context = void 0, options = {})
    {
       if (!Number.isInteger(count)) { throw new TypeError(`'count' is not an integer`); }
 
@@ -100,7 +100,7 @@ export default class Eventbus
 
       if (typeof name === 'string' && (context === null || context === void 0)) { callback = void 0; }
 
-      return this.on(events, callback, context, guarded);
+      return this.on(events, callback, context, options);
    }
 
    /**
@@ -148,7 +148,7 @@ export default class Eventbus
             {
                for (const event of this.#events[name])
                {
-                  yield [name, event.callback, event.context, event.guarded];
+                  yield [name, event.callback, event.context, JSON.parse(JSON.stringify(event.options))];
                }
             }
          }
@@ -159,7 +159,7 @@ export default class Eventbus
          {
             for (const event of this.#events[name])
             {
-               yield [name, event.callback, event.context, event.guarded];
+               yield [name, event.callback, event.context, JSON.parse(JSON.stringify(event.options))];
             }
          }
       }
@@ -428,12 +428,17 @@ export default class Eventbus
     *
     * @param {object}            [context] - Event context
     *
-    * @param {boolean}           [guarded=false] - When set to true this registration is guarded.
+    * @param {OnOptions}         [options] - Event registration options.
     *
     * @returns {Eventbus} This Eventbus instance.
     */
-   on(name, callback, context = void 0, guarded = false)
+   on(name, callback, context = void 0, options = {})
    {
+      if (options == null || options.constructor !== Object)   // eslint-disable-line eqeqeq
+      {
+         throw new TypeError(`'options' must be an object literal.`);
+      }
+
       const data = {};
       if (this.isGuarded(name, data))
       {
@@ -445,7 +450,7 @@ export default class Eventbus
       this.#events = Utils.eventsAPI(s_ON_API, this.#events || {}, name, callback, {
          context,
          ctx: this,
-         guarded,
+         options,
          listening: _listening
       });
 
@@ -470,13 +475,13 @@ export default class Eventbus
     *
     * @param {Function|object}   callback - Event callback function or context for event map.
     *
-    * @param {object}            [context] - Event context
+    * @param {object}            [context] - Event context.
     *
-    * @param {boolean}           [guarded=false] - When set to true this registration is guarded.
+    * @param {OnOptions}         [options] - Event registration options.
     *
     * @returns {Eventbus} This Eventbus instance.
     */
-   once(name, callback, context = void 0, guarded = false)
+   once(name, callback, context = void 0, options = {})
    {
       const data = {};
       if (this.isGuarded(name, data))
@@ -491,7 +496,7 @@ export default class Eventbus
 
       if (typeof name === 'string' && (context === null || context === void 0)) { callback = void 0; }
 
-      return this.on(events, callback, context, guarded);
+      return this.on(events, callback, context, options);
    }
 
    /**
@@ -718,6 +723,7 @@ class Listening
       {
          context,
          ctx: this,
+         options: {},
          listening: this
       });
 
@@ -792,7 +798,7 @@ const s_IS_GUARDED = (output, name, callback, opts) =>
       {
          for (const handler of handlers)
          {
-            if (handler.guarded)
+            if (handler.options.guard)
             {
                 output.names.push(name);
                 output.guarded = true;
@@ -896,11 +902,16 @@ const s_ON_API = (events, name, callback, opts) =>
    {
       const handlers = events[name] || (events[name] = []);
       const context = opts.context, ctx = opts.ctx, listening = opts.listening;
-      const guarded = typeof opts.guarded === 'boolean' ? opts.guarded : false;
+
+      // Make a copy of options.
+      const options = JSON.parse(JSON.stringify(opts.options));
+
+      // Ensure that guard is set.
+      options.guard = options.guard !== void 0 && typeof options.guard === 'boolean' ? options.guard : false;
 
       if (listening) { listening.incrementCount(); }
 
-      handlers.push({ callback, context, ctx: context || ctx, guarded, listening });
+      handlers.push({ callback, context, ctx: context || ctx, options, listening });
    }
    return events;
 };

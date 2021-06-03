@@ -7,7 +7,8 @@
  *
  * @property {object} ctx - Event context or local eventbus instance.
  *
- * @property {boolean} guarded - Denotes whether this event registration is guarded / prevents multiple registrations.
+ * @property {object} options - Holds options for this event registration, One such option is 'guarded' which prevents
+ *                              multiple registrations.
  *
  * @property {Listening} [listening] - Any associated listening instance.
  */
@@ -25,4 +26,22 @@
  * @property {EventbusSecure} eventbusSecure - The EventbusSecure instance.
  *
  * @property {Function} setEventbus - A function to set the underlying Eventbus reference.
+ */
+
+/**
+ * @typedef {object} OnOptions - Event registration options for Eventbus.
+ *
+ * @property {boolean} [guard] - When set to true this registration is guarded. Further attempts to register an event by
+ *                             the same name will not be possible as long as a guarded event exists.
+ */
+
+/**
+ * @typedef {object} ProxyOnOptionsBase - Event registration options.
+ *
+ * @property {boolean} [private] -
+ */
+
+// eslint-disable-next-line  jsdoc/valid-types
+/**
+ * @typedef {OnOptions & ProxyOnOptionsBase} ProxyOnOptions - Event registration options for EventbusProxy.
  */

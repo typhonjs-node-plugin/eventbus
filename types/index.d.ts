@@ -15,9 +15,10 @@ type EventData = {
      */
     ctx: object;
     /**
-     * - Denotes whether this event registration is guarded / prevents multiple registrations.
+     * - Holds options for this event registration, One such option is 'guarded' which prevents
+     *   multiple registrations.
      */
-    guarded: boolean;
+    options: object;
     /**
      * - Any associated listening instance.
      */
@@ -46,6 +47,29 @@ type EventbusSecureObj = {
      */
     setEventbus: Function;
 };
+/**
+ * - Event registration options for Eventbus.
+ */
+type OnOptions = {
+    /**
+     * - When set to true this registration is guarded. Further attempts to register an event by
+     *  the same name will not be possible as long as a guarded event exists.
+     */
+    guard?: boolean;
+};
+/**
+ * - Event registration options.
+ */
+type ProxyOnOptionsBase = {
+    /**
+     * -
+     */
+    private?: boolean;
+};
+/**
+ * - Event registration options for EventbusProxy.
+ */
+type ProxyOnOptions = OnOptions & ProxyOnOptionsBase;
 
 /**
  * EventbusProxy provides a protected proxy of another Eventbus instance.
@@ -86,11 +110,11 @@ declare class EventbusProxy {
      *
      * @param {object}            [context] - Event context
      *
-     * @param {boolean}           [guarded=false] - When set to true this registration is guarded.
+     * @param {ProxyOnOptions}    [options] - Event registration options.
      *
      * @returns {EventbusProxy} This EventbusProxy instance.
      */
-    before(count: number, name: string | object, callback: Function | object, context?: object, guarded?: boolean): EventbusProxy;
+    before(count: number, name: string | object, callback: Function | object, context?: object, options?: ProxyOnOptions): EventbusProxy;
     /**
      * Creates an EventbusSecure instance wrapping the proxied Eventbus reference. An EventbusSecure instance provides a
      * secure window to public consumers with only trigger dispatch available.
@@ -193,13 +217,13 @@ declare class EventbusProxy {
      *
      * @param {Function|object}   callback - Event callback function or context for event map.
      *
-     * @param {object}            [context] - Event context
+     * @param {object}            [context] - Event context.
      *
-     * @param {boolean}           [guarded=false] - When set to true this registration is guarded.
+     * @param {ProxyOnOptions}    [options] - Event registration options.
      *
      * @returns {EventbusProxy} This EventbusProxy
      */
-    on(name: string | object, callback: Function | object, context?: object, guarded?: boolean): EventbusProxy;
+    on(name: string | object, callback: Function | object, context?: object, options?: ProxyOnOptions): EventbusProxy;
     /**
      * Just like `on`, but causes the bound callback to fire only once before being removed. Handy for saying "the next
      * time that X happens, do this". When multiple events are passed in using the space separated syntax, the event
@@ -211,11 +235,11 @@ declare class EventbusProxy {
      *
      * @param {object}            context - Event context
      *
-     * @param {boolean}           [guarded=false] - When set to true this registration is guarded.
+     * @param {ProxyOnOptions}    [options] - Event registration options.
      *
      * @returns {EventbusProxy} This EventbusProxy instance.
      */
-    once(name: string | object, callback: Function | object, context?: object, guarded?: boolean): EventbusProxy;
+    once(name: string | object, callback: Function | object, context?: object, options?: ProxyOnOptions): EventbusProxy;
     /**
      * Returns an iterable for all stored locally proxied events yielding an array with event name, callback
      * function, and event context.
@@ -403,11 +427,11 @@ declare class Eventbus {
      *
      * @param {object}            [context] - Event context
      *
-     * @param {boolean}           [guarded=false] - When set to true this registration is guarded.
+     * @param {OnOptions}         [options] - Event registration options.
      *
      * @returns {Eventbus} This Eventbus instance.
      */
-    before(count: number, name: string | object, callback: Function | object, context?: object, guarded?: boolean): Eventbus;
+    before(count: number, name: string | object, callback: Function | object, context?: object, options?: OnOptions): Eventbus;
     /**
      * Creates an EventbusProxy wrapping this Eventbus instance. An EventbusProxy proxies events allowing all listeners
      * added to be easily removed from the wrapped Eventbus.
@@ -579,11 +603,11 @@ declare class Eventbus {
      *
      * @param {object}            [context] - Event context
      *
-     * @param {boolean}           [guarded=false] - When set to true this registration is guarded.
+     * @param {OnOptions}         [options] - Event registration options.
      *
      * @returns {Eventbus} This Eventbus instance.
      */
-    on(name: string | object, callback: Function | object, context?: object, guarded?: boolean): Eventbus;
+    on(name: string | object, callback: Function | object, context?: object, options?: OnOptions): Eventbus;
     _listeners: {};
     /**
      * Just like `on`, but causes the bound callback to fire only once before being removed. Handy for saying "the next
@@ -594,13 +618,13 @@ declare class Eventbus {
      *
      * @param {Function|object}   callback - Event callback function or context for event map.
      *
-     * @param {object}            [context] - Event context
+     * @param {object}            [context] - Event context.
      *
-     * @param {boolean}           [guarded=false] - When set to true this registration is guarded.
+     * @param {OnOptions}         [options] - Event registration options.
      *
      * @returns {Eventbus} This Eventbus instance.
      */
-    once(name: string | object, callback: Function | object, context?: object, guarded?: boolean): Eventbus;
+    once(name: string | object, callback: Function | object, context?: object, options?: OnOptions): Eventbus;
     /**
      * Tell an object to stop listening to events. Either call stopListening with no arguments to have the object remove
      * all of its registered callbacks ... or be more precise by telling it to remove just the events it's listening to

@@ -10,6 +10,6 @@ npm-debug.log
 /env
 /lib
 node_modules
-/test/live-server/Eventbus.js
-/test/live-server/Eventbus.js.map
-/test/live-server/TestSuiteRunner.js
+/test/public/Eventbus.js
+/test/public/Eventbus.js.map
+/test/public/TestsuiteRunner.js

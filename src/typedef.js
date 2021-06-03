@@ -13,7 +13,6 @@
  * @property {Listening} [listening] - Any associated listening instance.
  */
 
-// eslint-disable-next-line jsdoc/check-types
 /**
  * @typedef {Object.<string, EventData[]>} Events - Event data stored by event name.
  */

@@ -34,7 +34,7 @@ export default class EventbusProxy
    /**
     * Stores all proxied event bindings.
     *
-    * @type {Events}
+    * @type {Events|{}}
     * @private
     */
    #events;

@@ -9,9 +9,11 @@ export const eventSplitter = /\s+/;
  * Iterates over the standard `event, callback` (as well as the fancy multiple space-separated events `"change blur",
  * callback` and jQuery-style event maps `{event: callback}`).
  *
+ * @template T
+ *
  * @param {Function}       iteratee - Event operation to invoke.
  *
- * @param {object|Events}         events - Events object
+ * @param {T}              events - Events object
  *
  * @param {string|object}  name - A single event name, compound event names, or a hash of event names.
  *
@@ -19,7 +21,7 @@ export const eventSplitter = /\s+/;
  *
  * @param {object}         opts - Optional parameters
  *
- * @returns {object|Events} Events object or processed data.
+ * @returns {T} Events object or processed data.
  */
 export function eventsAPI(iteratee, events, name, callback, opts)
 {

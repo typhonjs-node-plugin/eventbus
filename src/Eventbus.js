@@ -25,7 +25,7 @@ export default class Eventbus
    /**
     * Stores the events map for associated events and callback / context data.
     *
-    * @type {Events}
+    * @type {Events|{}}
     * @private
     */
    #events;
@@ -652,7 +652,7 @@ let _listening;
 class Listening
 {
    /**
-    * @type {Events}
+    * @type {Events|{}}
     */
    #events;
 
@@ -924,7 +924,7 @@ const s_ON_API = (events, name, callback, opts) =>
  *
  * @param {Function} iterateeTarget - Internal function which is dispatched to.
  *
- * @param {Events}   events - Array of stored event callback data.
+ * @param {Events|{}}   events - Array of stored event callback data.
  *
  * @param {string}   name - Event name
  *

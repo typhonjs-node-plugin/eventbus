@@ -12,7 +12,12 @@ export function run({ Module, chai })
 
    describe('Eventbus - backbone tests', () =>
    {
-      let a, b, count, count2, eventbus;
+      let count, count2;
+
+      /**
+       * @type {import('../../../../../types').Eventbus}
+       */
+      let a, b, eventbus;
 
       beforeEach(() =>
       {

@@ -10,7 +10,12 @@ export function run({ Module, chai })
 
    describe('Eventbus - triggerAsync', () =>
    {
-      let callbacks, eventbus;
+      let callbacks;
+
+      /**
+       * @type {import('../../../../../types').Eventbus}
+       */
+      let eventbus;
 
       beforeEach(() =>
       {

@@ -10,7 +10,12 @@ export function run({ Module, chai })
 
    describe('Eventbus - other API', () =>
    {
-      let count, eventbus;
+      let count;
+
+      /**
+       * @type {import('../../../../../types').Eventbus}
+       */
+      let eventbus;
 
       beforeEach(() =>
       {

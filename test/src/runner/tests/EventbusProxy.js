@@ -6,11 +6,22 @@
 export function run({ Module, chai })
 {
    const { assert, expect } = chai;
+
    const Eventbus = Module.default;
 
    describe('EventbusProxy', () =>
    {
-      let callbacks, count, eventbus, proxy;
+      let callbacks, count;
+
+      /**
+       * @type {import('../../../../types').Eventbus}
+       */
+      let eventbus;
+
+      /**
+       * @type {import('../../../../types').EventbusProxy}
+       */
+      let proxy;
 
       beforeEach(() =>
       {

@@ -12,6 +12,9 @@ export function run({ Module, data, chai })
 
    describe(`Eventbus - API Checks (${data.scopedName})`, () =>
    {
+      /**
+       * @type {import('../../../../../types').Eventbus}
+       */
       let eventbus;
 
       beforeEach(() => { eventbus = new Eventbus(); });

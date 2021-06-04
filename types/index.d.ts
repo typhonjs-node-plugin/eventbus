@@ -116,15 +116,6 @@ declare class EventbusProxy {
      */
     before(count: number, name: string | object, callback: Function | object, context?: object, options?: ProxyOnOptions): EventbusProxy;
     /**
-     * Creates an EventbusSecure instance wrapping the proxied Eventbus reference. An EventbusSecure instance provides a
-     * secure window to public consumers with only trigger dispatch available.
-     *
-     * @param {string}   [name] - Optional name for the EventbusSecure instance.
-     *
-     * @returns {EventbusSecureObj} An EventbusSecure control object for this eventbus.
-     */
-    createSecure(name?: string): EventbusSecureObj;
-    /**
      * Unregisters all proxied events from the target eventbus and removes any local references. All subsequent calls
      * after `destroy` has been called result in a ReferenceError thrown.
      */
@@ -324,13 +315,13 @@ declare class EventbusSecure {
      * `destroy()` will destroy the underlying Eventbus reference.
      * `setEventbus(<eventbus>)` will set the underlying reference.
      *
-     * @param {Eventbus}   eventbus - The target eventbus instance.
+     * @param {Eventbus|EventbusProxy}  eventbus - The target eventbus instance.
      *
-     * @param {string}     [name] - If a name is provided this will be used instead of eventbus name.
+     * @param {string}                  [name] - If a name is provided this will be used instead of eventbus name.
      *
      * @returns {EventbusSecureObj} The control object which contains an EventbusSecure reference and control functions.
      */
-    static initialize(eventbus: any, name?: string): EventbusSecureObj;
+    static initialize(eventbus: any | any, name?: string): EventbusSecureObj;
     /**
      * Returns an iterable for the event names / keys of secured eventbus event listeners.
      *
@@ -432,22 +423,6 @@ declare class Eventbus {
      * @returns {Eventbus} This Eventbus instance.
      */
     before(count: number, name: string | object, callback: Function | object, context?: object, options?: OnOptions): Eventbus;
-    /**
-     * Creates an EventbusProxy wrapping this Eventbus instance. An EventbusProxy proxies events allowing all listeners
-     * added to be easily removed from the wrapped Eventbus.
-     *
-     * @returns {EventbusProxy} A new EventbusProxy for this eventbus.
-     */
-    createProxy(): EventbusProxy;
-    /**
-     * Creates an EventbusSecure instance wrapping this Eventbus. An EventbusSecure instance provides a secure window to
-     * public consumers with only trigger dispatch available.
-     *
-     * @param {string}   [name] - Optional name for the EventbusSecure instance.
-     *
-     * @returns {EventbusSecureObj} An EventbusSecure control object for this eventbus.
-     */
-    createSecure(name?: string): EventbusSecureObj;
     /**
      * Returns an iterable for all stored events yielding an array with event name, callback function, and event context.
      *

@@ -1,6 +1,8 @@
 /**
  * @param {object}                           opts - Test options
+ *
  * @param {import('../../../../../types')}   opts.Module - Module to test
+ *
  * @param {object}                           opts.chai - Chai
  */
 export function run({ Module, chai })
@@ -592,6 +594,7 @@ export function run({ Module, chai })
  * Creates a timed function callback for async testing.
  *
  * @param {Function} func - Callback function.
+ *
  * @param {number}   timeout - Delay to invoke callback.
  *
  * @returns {function(): Promise<void>} A timed function generator.

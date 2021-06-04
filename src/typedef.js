@@ -13,7 +13,6 @@
  * @property {Listening} [listening] - Any associated listening instance.
  */
 
-// eslint-disable-next-line jsdoc/check-types
 /**
  * @typedef {Object.<string, EventData[]>} Events - Event data stored by event name.
  */
@@ -41,7 +40,6 @@
  * @property {boolean} [private] -
  */
 
-// eslint-disable-next-line  jsdoc/valid-types
 /**
  * @typedef {OnOptions & ProxyOnOptionsBase} ProxyOnOptions - Event registration options for EventbusProxy.
  */

@@ -2,7 +2,9 @@
  * Tests from Backbone
  *
  * @param {object}                           opts - Test options
+ *
  * @param {import('../../../../../types')}   opts.Module - Module to test
+ *
  * @param {object}                           opts.chai - Chai
  */
 export function run({ Module, chai })
@@ -614,6 +616,7 @@ export function run({ Module, chai })
  * Returns whether the value is array like.
  *
  * @param {*}  value -
+ *
  * @returns {boolean} -
  */
 function isArrayLike(value)
@@ -625,6 +628,7 @@ function isArrayLike(value)
  * Returns size of an array like
  *
  * @param {*}  collection -
+ *
  * @returns {number} -
  */
 function size(collection)

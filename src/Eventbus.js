@@ -1,7 +1,4 @@
-import EventbusProxy    from './EventbusProxy.js';
-import EventbusSecure   from './EventbusSecure.js';
-
-import * as Utils       from './utils.js';
+import * as Utils from './utils.js';
 
 /**
  * `@typhonjs-plugin/eventbus` / Provides the ability to bind and trigger custom named events.
@@ -101,30 +98,6 @@ export default class Eventbus
       if (typeof name === 'string' && (context === null || context === void 0)) { callback = void 0; }
 
       return this.on(events, callback, context, options);
-   }
-
-   /**
-    * Creates an EventbusProxy wrapping this Eventbus instance. An EventbusProxy proxies events allowing all listeners
-    * added to be easily removed from the wrapped Eventbus.
-    *
-    * @returns {EventbusProxy} A new EventbusProxy for this eventbus.
-    */
-   createProxy()
-   {
-      return new EventbusProxy(this);
-   }
-
-   /**
-    * Creates an EventbusSecure instance wrapping this Eventbus. An EventbusSecure instance provides a secure window to
-    * public consumers with only trigger dispatch available.
-    *
-    * @param {string}   [name] - Optional name for the EventbusSecure instance.
-    *
-    * @returns {EventbusSecureObj} An EventbusSecure control object for this eventbus.
-    */
-   createSecure(name = void 0)
-   {
-      return EventbusSecure.initialize(this, name);
    }
 
    /**

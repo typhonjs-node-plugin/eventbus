@@ -8,6 +8,7 @@ export function run({ Module, chai })
    const { assert, expect } = chai;
 
    const Eventbus = Module.default;
+   const { EventbusProxy, EventbusSecure } = Module;
 
    describe('EventbusProxy', () =>
    {
@@ -28,13 +29,13 @@ export function run({ Module, chai })
          callbacks = {};
          count = 0;
          eventbus = new Eventbus();
-         proxy = eventbus.createProxy();
+         proxy = new EventbusProxy(eventbus);
       });
 
       it('get name', () =>
       {
          eventbus = new Eventbus('testname');
-         proxy = eventbus.createProxy();
+         proxy = new EventbusProxy(eventbus);
          assert.strictEqual(proxy.name, 'proxy-testname');
       });
 
@@ -65,10 +66,10 @@ export function run({ Module, chai })
       {
          eventbus = new Eventbus('testname');
 
-         proxy = eventbus.createProxy();
+         proxy = new EventbusProxy(eventbus);
          assert.strictEqual(proxy.name, 'proxy-testname');
 
-         const { eventbusSecure } = proxy.createSecure('secure');
+         const { eventbusSecure } = EventbusSecure.initialize(proxy, 'secure');
 
          assert.strictEqual(eventbusSecure.name, 'secure');
       });
@@ -972,9 +973,6 @@ export function run({ Module, chai })
          }).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
 
          expect(() => proxy.callbackCount).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
-
-         expect(() => proxy.createSecure(eventbus)).to.throw(ReferenceError,
-          'This EventbusProxy instance has been destroyed.');
 
          expect(() => proxy.eventCount).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
 

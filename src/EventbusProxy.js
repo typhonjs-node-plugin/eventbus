@@ -1,5 +1,3 @@
-import EventbusSecure from './EventbusSecure.js';
-
 import * as Utils     from './utils.js';
 
 /**
@@ -87,21 +85,6 @@ export default class EventbusProxy
       if (typeof name === 'string' && (context === null || context === void 0)) { callback = void 0; }
 
       return this.on(events, callback, context, options);
-   }
-
-   /**
-    * Creates an EventbusSecure instance wrapping the proxied Eventbus reference. An EventbusSecure instance provides a
-    * secure window to public consumers with only trigger dispatch available.
-    *
-    * @param {string}   [name] - Optional name for the EventbusSecure instance.
-    *
-    * @returns {EventbusSecureObj} An EventbusSecure control object for this eventbus.
-    */
-   createSecure(name = void 0)
-   {
-      if (this.isDestroyed) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
-
-      return EventbusSecure.initialize(this.#eventbus, name);
    }
 
    /**

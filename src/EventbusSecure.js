@@ -35,15 +35,15 @@ export default class EventbusSecure
     * `destroy()` will destroy the underlying Eventbus reference.
     * `setEventbus(<eventbus>)` will set the underlying reference.
     *
-    * @param {Eventbus}   eventbus - The target eventbus instance.
+    * @param {Eventbus|EventbusProxy}  eventbus - The target eventbus instance.
     *
-    * @param {string}     [name] - If a name is provided this will be used instead of eventbus name.
+    * @param {string}                  [name] - If a name is provided this will be used instead of eventbus name.
     *
     * @returns {EventbusSecureObj} The control object which contains an EventbusSecure reference and control functions.
     */
    static initialize(eventbus, name = void 0)
    {
-      if (name !== void 0 && typeof name !== 'string') { throw new TypeError(`'name' is not a string`); }
+      if (name !== void 0 && typeof name !== 'string') { throw new TypeError(`'name' is not a string.`); }
 
       const eventbusSecure = new EventbusSecure();
       eventbusSecure.#eventbus = eventbus;
@@ -63,7 +63,7 @@ export default class EventbusSecure
 
          setEventbus: function(eventbus, name = void 0)
          {
-            if (name !== void 0 && typeof name !== 'string') { throw new TypeError(`'name' is not a string`); }
+            if (name !== void 0 && typeof name !== 'string') { throw new TypeError(`'name' is not a string.`); }
 
             if (!eventbusSecure.isDestroyed)
             {

@@ -6,7 +6,9 @@
 export function run({ Module, chai })
 {
    const { assert, expect } = chai;
+
    const Eventbus = Module.default;
+   const { EventbusSecure } = Module;
 
    describe('EventbusSecure', () =>
    {
@@ -27,7 +29,7 @@ export function run({ Module, chai })
       {
          callbacks.testTriggerCount = 0;
 
-         const { destroy, setEventbus, eventbusSecure } = eventbus.createSecure();
+         const { destroy, setEventbus, eventbusSecure } = EventbusSecure.initialize(eventbus);
 
          eventbus.on('test:trigger', () => { callbacks.testTriggerCount++; });
 
@@ -38,7 +40,7 @@ export function run({ Module, chai })
 
          assert.isFalse(eventbusSecure.isDestroyed);
 
-         expect(() => setEventbus(eventbus, false)).to.throw(TypeError, `'name' is not a string`);
+         expect(() => setEventbus(eventbus, false)).to.throw(TypeError, `'name' is not a string.`);
 
          destroy();
 
@@ -48,12 +50,13 @@ export function run({ Module, chai })
 
          assert.strictEqual(callbacks.testTriggerCount, 3);
 
-         expect(() => eventbus.createSecure(false)).to.throw(TypeError, `'name' is not a string`);
-
          expect(() =>
          {
             for (const entry of eventbusSecure.keys()) { console.log(entry); }
          }).to.throw(ReferenceError, 'This EventbusSecure instance has been destroyed.');
+
+         expect(() => EventbusSecure.initialize(eventbus, false)).to.throw(TypeError,
+          `'name' is not a string.`);
 
          expect(() => eventbusSecure.name).to.throw(ReferenceError,
           'This EventbusSecure instance has been destroyed.');
@@ -77,7 +80,7 @@ export function run({ Module, chai })
       {
          callbacks.testTriggerCount = 0;
 
-         const obj = eventbus.createSecure();
+         const obj = EventbusSecure.initialize(eventbus);
 
          eventbus.on('test:trigger', () => { callbacks.testTriggerCount++; });
 
@@ -100,7 +103,7 @@ export function run({ Module, chai })
          const eventbus = new Eventbus('eventbus');
          const eventbus2 = new Eventbus('eventbus2');
 
-         const { eventbusSecure, setEventbus } = eventbus.createSecure();
+         const { eventbusSecure, setEventbus } = EventbusSecure.initialize(eventbus);
 
          eventbus.on('test:trigger', () => { callbacks.testTriggerCount++; });
          eventbus.on('test:trigger2', () => { callbacks.testTriggerCount++; });
@@ -134,8 +137,12 @@ export function run({ Module, chai })
          const eventbus = new Eventbus('eventbus');
          const eventbus2 = new Eventbus('eventbus2');
 
-         const { eventbusSecure, setEventbus } = eventbus.createSecure();
-         const { eventbusSecure: eventbusSecure2, setEventbus: setEventbus2 } = eventbus.createSecure('secure');
+         const { eventbusSecure, setEventbus } = EventbusSecure.initialize(eventbus);
+
+         const {
+            eventbusSecure: eventbusSecure2,
+            setEventbus: setEventbus2
+         } = EventbusSecure.initialize(eventbus, 'secure');
 
          setEventbus(eventbus2);
 
@@ -158,13 +165,13 @@ export function run({ Module, chai })
       it('get name', () =>
       {
          eventbus = new Eventbus('testname');
-         const { eventbusSecure } = eventbus.createSecure();
+         const { eventbusSecure } = EventbusSecure.initialize(eventbus);
          assert(eventbusSecure.name === 'testname');
       });
 
       it('keys throws when regex not instance of RegExp', () =>
       {
-         const { eventbusSecure } = eventbus.createSecure();
+         const { eventbusSecure } = EventbusSecure.initialize(eventbus);
 
          expect(() =>
          {
@@ -176,7 +183,7 @@ export function run({ Module, chai })
       {
          eventbus.on('can:see:this', () => {});
 
-         const { eventbusSecure } = eventbus.createSecure();
+         const { eventbusSecure } = EventbusSecure.initialize(eventbus);
 
          const eventNames = Array.from(eventbusSecure.keys());
 
@@ -189,7 +196,7 @@ export function run({ Module, chai })
          eventbus.on('can:see:this', () => {});
          eventbus.on('can:not:this', () => {});
 
-         const { eventbusSecure } = eventbus.createSecure();
+         const { eventbusSecure } = EventbusSecure.initialize(eventbus);
 
          const eventNames = Array.from(eventbusSecure.keys(/see/));
 
@@ -200,7 +207,7 @@ export function run({ Module, chai })
       {
          callbacks.testTriggerCount = 0;
 
-         const { eventbusSecure } = eventbus.createSecure();
+         const { eventbusSecure } = EventbusSecure.initialize(eventbus);
 
          eventbus.on('test:trigger', () => { callbacks.testTriggerCount++; });
 
@@ -222,7 +229,7 @@ export function run({ Module, chai })
       {
          callbacks.testTriggerCount = 0;
 
-         const { eventbusSecure } = eventbus.createSecure();
+         const { eventbusSecure } = EventbusSecure.initialize(eventbus);
 
          eventbus.on('test:trigger', () => { callbacks.testTriggerCount++; });
 
@@ -238,7 +245,7 @@ export function run({ Module, chai })
 
       it('triggerSync-0', () =>
       {
-         const { eventbusSecure } = eventbus.createSecure();
+         const { eventbusSecure } = EventbusSecure.initialize(eventbus);
 
          const result = eventbusSecure.triggerSync('test:trigger:sync0');
 
@@ -248,7 +255,7 @@ export function run({ Module, chai })
 
       it('triggerSync-1', () =>
       {
-         const { eventbusSecure } = eventbus.createSecure();
+         const { eventbusSecure } = EventbusSecure.initialize(eventbus);
 
          eventbus.on('test:trigger:sync1', () =>
          {
@@ -265,7 +272,7 @@ export function run({ Module, chai })
 
       it('triggerSync-2', () =>
       {
-         const { eventbusSecure } = eventbus.createSecure();
+         const { eventbusSecure } = EventbusSecure.initialize(eventbus);
 
          eventbus.on('test:trigger:sync2', () =>
          {
@@ -290,7 +297,7 @@ export function run({ Module, chai })
 
       it('triggerSync (on / off)', () =>
       {
-         const { eventbusSecure } = eventbus.createSecure();
+         const { eventbusSecure } = EventbusSecure.initialize(eventbus);
 
          eventbus.on('test:trigger:sync:off', () =>
          {
@@ -306,7 +313,7 @@ export function run({ Module, chai })
 
       it('triggerSync (Promise)', (done) =>
       {
-         const { eventbusSecure } = eventbus.createSecure();
+         const { eventbusSecure } = EventbusSecure.initialize(eventbus);
 
          eventbus.on('test:trigger:sync:then', () =>
          {
@@ -328,7 +335,7 @@ export function run({ Module, chai })
 
       it('triggerAsync', (done) =>
       {
-         const { eventbusSecure } = eventbus.createSecure();
+         const { eventbusSecure } = EventbusSecure.initialize(eventbus);
 
          eventbus.on('test:trigger:async', () =>
          {

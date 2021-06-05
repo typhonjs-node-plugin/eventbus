@@ -89,7 +89,10 @@ export function getOptions(output, name, callback, opts)
       {
          for (const handler of handlers)
          {
-            output.guard ||= handler.options.guard;
+            if (handler.options.guard)
+            {
+               output.guard = true;
+            }
 
             if (handler.options.type > output.type)
             {

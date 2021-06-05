@@ -12,7 +12,7 @@ export function run({ Module, chai })
    const { assert } = chai;
    const Eventbus = Module.default;
 
-   describe('Eventbus - getType', () =>
+   describe('Eventbus - getOptions', () =>
    {
       let count;
 
@@ -27,69 +27,76 @@ export function run({ Module, chai })
          eventbus = new Eventbus();
       });
 
-      it('trigger / unknown', () =>
+      it('guarded / trigger / unknown', () =>
       {
-         eventbus.on('test:trigger', () => {});
+         eventbus.on('test:trigger', () => {}, void 0, { guard: true });
 
-         const result = eventbus.getType('test:trigger');
+         const result = eventbus.getOptions('test:trigger');
 
-         assert.strictEqual(result, void 0);
+         assert.strictEqual(result.guard, true);
+         assert.strictEqual(result.type, void 0);
       });
 
       it('trigger / unknown / bad data as wrong type', () =>
       {
          eventbus.on('test:trigger', () => {}, void 0, { type: false });
 
-         const result = eventbus.getType('test:trigger');
+         const result = eventbus.getOptions('test:trigger');
 
-         assert.strictEqual(result, void 0);
+         assert.strictEqual(result.guard, false);
+         assert.strictEqual(result.type, void 0);
       });
 
       it('trigger / unknown / bad data as string', () =>
       {
          eventbus.on('test:trigger', () => {}, void 0, { type: 'foobar' });
 
-         const result = eventbus.getType('test:trigger');
+         const result = eventbus.getOptions('test:trigger');
 
-         assert.strictEqual(result, void 0);
+         assert.strictEqual(result.guard, false);
+         assert.strictEqual(result.type, void 0);
       });
 
-      it('trigger / unknown / bad data as number', () =>
+      it('guarded / trigger / unknown / bad data as number', () =>
       {
-         eventbus.on('test:trigger', () => {}, void 0, { type: 2 });
+         eventbus.on('test:trigger', () => {}, void 0, { guard: true, type: 2 });
 
-         const result = eventbus.getType('test:trigger');
+         const result = eventbus.getOptions('test:trigger');
 
-         assert.strictEqual(result, void 0);
+         assert.strictEqual(result.guard, true);
+         assert.strictEqual(result.type, void 0);
       });
 
       it('trigger / sync', () =>
       {
          eventbus.on('test:trigger', () => {}, void 0, { type: 'sync' });
 
-         const result = eventbus.getType('test:trigger');
+         const result = eventbus.getOptions('test:trigger');
 
-         assert.strictEqual(result, 'sync');
+         assert.strictEqual(result.guard, false);
+         assert.strictEqual(result.type, 'sync');
       });
 
       it('trigger / async', () =>
       {
          eventbus.on('test:trigger', () => {}, void 0, { type: 'async' });
 
-         const result = eventbus.getType('test:trigger');
+         const result = eventbus.getOptions('test:trigger');
 
-         assert.strictEqual(result, 'async');
+         assert.strictEqual(result.guard, false);
+         assert.strictEqual(result.type, 'async');
       });
 
-      it('mixed trigger / normal + sync', async () =>
+      it('guarded / mixed trigger / normal + sync', async () =>
       {
          eventbus.on('test:trigger', () => { return 1; }, void 0, { type: 'sync' });
          eventbus.on('test:trigger', () => {});
-         eventbus.on('test:trigger', () => { return 2; }, void 0, { type: 'sync' });
+         eventbus.on('test:trigger', () => { return 2; }, void 0, { guard: true, type: 'sync' });
 
-         const result = eventbus.getType('test:trigger');
+         const result = eventbus.getOptions('test:trigger');
 
-         assert.strictEqual(result, 'sync');
+         assert.strictEqual(result.guard, true);
+         assert.strictEqual(result.type, 'sync');
 
          const values = await eventbus.triggerSync('test:trigger');
 
@@ -105,9 +112,10 @@ export function run({ Module, chai })
          eventbus.on('test:trigger', () => {});
          eventbus.on('test:trigger', createTimedFunction((resolve) => { resolve(2); }), void 0, { type: 'async' });
 
-         const result = eventbus.getType('test:trigger');
+         const result = eventbus.getOptions('test:trigger');
 
-         assert.strictEqual(result, 'async');
+         assert.strictEqual(result.guard, false);
+         assert.strictEqual(result.type, 'async');
 
          const values = await eventbus.triggerAsync('test:trigger');
 
@@ -123,9 +131,22 @@ export function run({ Module, chai })
          eventbus.on('test:trigger', () => {});
          eventbus.on('test:trigger2', createTimedFunction((resolve) => { resolve(2); }), void 0, { type: 'async' });
 
-         const result = eventbus.getType('test:trigger test:trigger2');
+         const result = eventbus.getOptions('test:trigger test:trigger2');
 
-         assert.strictEqual(result, 'async');
+         assert.strictEqual(result.guard, false);
+         assert.strictEqual(result.type, 'async');
+      });
+
+      it('guarded / mixed event names / trigger / sync + async', async () =>
+      {
+         eventbus.on('test:trigger', () => { return 1; }, void 0, { type: 'sync' });
+         eventbus.on('test:trigger', () => {}, void 0, { guard: true });
+         eventbus.on('test:trigger2', createTimedFunction((resolve) => { resolve(2); }), void 0, { type: 'async' });
+
+         const result = eventbus.getOptions('test:trigger test:trigger2');
+
+         assert.strictEqual(result.guard, true);
+         assert.strictEqual(result.type, 'async');
       });
    });
 }

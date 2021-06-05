@@ -459,19 +459,32 @@ export function run({ Module, chai })
          assert.strictEqual(proxy.callbackCount, 5);
       });
 
+      it('getOptions - guarded / trigger / unknown', () =>
+      {
+         proxy.on('test:trigger', () => {}, void 0, { guard: true });
+
+         let result = proxy.getOptions('test:trigger');
+
+         assert.strictEqual(result.guard, true);
+         assert.strictEqual(result.type, void 0);
+
+         result = eventbus.getOptions('test:trigger');
+
+         assert.strictEqual(result.guard, true);
+         assert.strictEqual(result.type, void 0);
+      });
+
       it('getType - trigger / unknown', () =>
       {
          proxy.on('test:trigger', () => {});
 
          let result = proxy.getType('test:trigger');
 
-         assert.strictEqual(result.type, void 0);
-         assert.strictEqual(result.number, 0);
+         assert.strictEqual(result, void 0);
 
          result = eventbus.getType('test:trigger');
 
-         assert.strictEqual(result.type, void 0);
-         assert.strictEqual(result.number, 0);
+         assert.strictEqual(result, void 0);
       });
 
       it('getType - trigger / unknown / bad data as string', () =>
@@ -480,58 +493,24 @@ export function run({ Module, chai })
 
          let result = eventbus.getType('test:trigger');
 
-         assert.strictEqual(result.type, void 0);
-         assert.strictEqual(result.number, 0);
+         assert.strictEqual(result, void 0);
 
          result = proxy.getType('test:trigger');
 
-         assert.strictEqual(result.type, void 0);
-         assert.strictEqual(result.number, 0);
+         assert.strictEqual(result, void 0);
       });
 
-      it('getType - trigger / unknown / bad data as number (low)', () =>
-      {
-         proxy.on('test:trigger', () => {}, void 0, { type: -1 });
-
-         let result = eventbus.getType('test:trigger');
-
-         assert.strictEqual(result.type, void 0);
-         assert.strictEqual(result.number, 0);
-
-         result = proxy.getType('test:trigger');
-
-         assert.strictEqual(result.type, void 0);
-         assert.strictEqual(result.number, 0);
-      });
-
-      it('getType - trigger / unknown / bad data as number (high)', () =>
-      {
-         proxy.on('test:trigger', () => {}, void 0, { type: 3 });
-
-         let result = eventbus.getType('test:trigger');
-
-         assert.strictEqual(result.type, void 0);
-         assert.strictEqual(result.number, 0);
-
-         result = proxy.getType('test:trigger');
-
-         assert.strictEqual(result.type, void 0);
-         assert.strictEqual(result.number, 0);
-      });
-
-      it('getType - trigger / sync as string', () =>
+      it('getType - trigger / sync', () =>
       {
          proxy.on('test:trigger', () => {}, void 0, { type: 'sync' });
 
          let result = proxy.getType('test:trigger');
 
-         assert.strictEqual(result.type, 'sync');
-         assert.strictEqual(result.number, 1);
+         assert.strictEqual(result, 'sync');
 
          result = eventbus.getType('test:trigger');
 
-         assert.strictEqual(result.type, 'sync');
-         assert.strictEqual(result.number, 1);
+         assert.strictEqual(result, 'sync');
       });
 
       it('getType - trigger / async as string', () =>
@@ -540,13 +519,11 @@ export function run({ Module, chai })
 
          let result = proxy.getType('test:trigger');
 
-         assert.strictEqual(result.type, 'async');
-         assert.strictEqual(result.number, 2);
+         assert.strictEqual(result, 'async');
 
          result = eventbus.getType('test:trigger');
 
-         assert.strictEqual(result.type, 'async');
-         assert.strictEqual(result.number, 2);
+         assert.strictEqual(result, 'async');
       });
 
       it('keys throws when regex not instance of RegExp', () =>
@@ -1067,6 +1044,9 @@ export function run({ Module, chai })
          expect(() => proxy.callbackCount).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
 
          expect(() => proxy.eventCount).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
+
+         expect(() => proxy.getOptions('name')).to.throw(ReferenceError,
+          'This EventbusProxy instance has been destroyed.');
 
          expect(() => proxy.getType('name')).to.throw(ReferenceError,
           'This EventbusProxy instance has been destroyed.');

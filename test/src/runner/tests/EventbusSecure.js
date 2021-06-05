@@ -60,6 +60,9 @@ export function run({ Module, chai })
          expect(() => EventbusSecure.initialize(eventbus, false)).to.throw(TypeError,
           `'name' is not a string.`);
 
+         expect(() => eventbusSecure.getOptions('name')).to.throw(ReferenceError,
+          'This EventbusSecure instance has been destroyed.');
+
          expect(() => eventbusSecure.getType('name')).to.throw(ReferenceError,
           'This EventbusSecure instance has been destroyed.');
 
@@ -174,6 +177,23 @@ export function run({ Module, chai })
          assert(eventbusSecure.name === 'testname');
       });
 
+      it('getOptions - guarded / trigger / unknown', () =>
+      {
+         const { eventbusSecure } = EventbusSecure.initialize(eventbus);
+
+         eventbus.on('test:trigger', () => {}, void 0, { guard: true });
+
+         let result = eventbusSecure.getOptions('test:trigger');
+
+         assert.strictEqual(result.guard, true);
+         assert.strictEqual(result.type, void 0);
+
+         result = eventbus.getOptions('test:trigger');
+
+         assert.strictEqual(result.guard, true);
+         assert.strictEqual(result.type, void 0);
+      });
+
       it('getType - trigger / unknown', () =>
       {
          const { eventbusSecure } = EventbusSecure.initialize(eventbus);
@@ -182,13 +202,11 @@ export function run({ Module, chai })
 
          let result = eventbusSecure.getType('test:trigger');
 
-         assert.strictEqual(result.type, void 0);
-         assert.strictEqual(result.number, 0);
+         assert.strictEqual(result, void 0);
 
          result = eventbus.getType('test:trigger');
 
-         assert.strictEqual(result.type, void 0);
-         assert.strictEqual(result.number, 0);
+         assert.strictEqual(result, void 0);
       });
 
       it('getType - trigger / sync as string', () =>
@@ -199,13 +217,11 @@ export function run({ Module, chai })
 
          let result = eventbusSecure.getType('test:trigger');
 
-         assert.strictEqual(result.type, 'sync');
-         assert.strictEqual(result.number, 1);
+         assert.strictEqual(result, 'sync');
 
          result = eventbus.getType('test:trigger');
 
-         assert.strictEqual(result.type, 'sync');
-         assert.strictEqual(result.number, 1);
+         assert.strictEqual(result, 'sync');
       });
 
       it('getType - trigger / async as string', () =>
@@ -216,13 +232,11 @@ export function run({ Module, chai })
 
          let result = eventbusSecure.getType('test:trigger');
 
-         assert.strictEqual(result.type, 'async');
-         assert.strictEqual(result.number, 2);
+         assert.strictEqual(result, 'async');
 
          result = eventbus.getType('test:trigger');
 
-         assert.strictEqual(result.type, 'async');
-         assert.strictEqual(result.number, 2);
+         assert.strictEqual(result, 'async');
       });
 
       it('keys throws when regex not instance of RegExp', () =>

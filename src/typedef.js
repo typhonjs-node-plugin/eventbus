@@ -1,10 +1,9 @@
 /**
- * @typedef {object} DataOutTriggerType The trigger type returned by getType.
+ * @typedef {object} DataOutOptions The complete options for an event name.
  *
- * @property {string|undefined}  type - The string representation: 'sync', 'async' or undefined if unknown or just
- *                                      a basic trigger.
+ * @property {boolean}  guard - The guarded option.
  *
- * @property {number}            number - The number representation: 0 (trigger / unknown), 1 (sync), 2 (async).
+ * @property {string}   type - The type option.
  */
 
 /**

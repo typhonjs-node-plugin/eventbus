@@ -2,6 +2,7 @@ import TestsuiteRunner  from '@typhonjs-build-test/testsuite-runner';
 
 import * as APIChecks      from './tests/eventbus/APIChecks.js';
 import * as Backbone       from './tests/eventbus/Backbone.js';
+import * as GetOptions     from './tests/eventbus/GetOptions.js';
 import * as GetType        from './tests/eventbus/GetType.js';
 import * as Instances      from './tests/eventbus/Instances.js';
 import * as OtherAPI       from './tests/eventbus/OtherAPI.js';
@@ -20,6 +21,7 @@ const data = {
 export default new TestsuiteRunner({
    APIChecks,
    Backbone,
+   GetOptions,
    GetType,
    Instances,
    OtherAPI,

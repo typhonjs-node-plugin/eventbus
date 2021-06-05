@@ -217,13 +217,26 @@ export default class EventbusProxy
    }
 
    /**
-    * Returns the trigger type of an event name.
-    * Note: if trigger type is not set then undefined is returned for type otherwise 'sync' or 'async' is returned.
-    * The number value returned: 0 - unknown / trigger, 1 - sync, 2 - async.
+    * Returns the options of an event name.
     *
     * @param {string}   name - Event name(s) to verify.
     *
-    * @returns {DataOutTriggerType} The trigger type.
+    * @returns {DataOutOptions} The event options.
+    */
+   getOptions(name)
+   {
+      if (this.isDestroyed) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
+
+      return this.#eventbus.getOptions(name);
+   }
+
+   /**
+    * Returns the trigger type of an event name.
+    * Note: if trigger type is not set then undefined is returned for type otherwise 'sync' or 'async' is returned.
+    *
+    * @param {string}   name - Event name(s) to verify.
+    *
+    * @returns {string|undefined} The trigger type.
     */
    getType(name)
    {
@@ -585,28 +598,17 @@ const s_ON_API = (events, name, callback, opts) =>
       options.guard = options.guard !== void 0 && typeof options.guard === 'boolean' ? options.guard : false;
 
       // Ensure that type is set.
-      if (typeof options.type === 'string')
+      switch(options.type)
       {
-         switch(options.type)
-         {
-            case 'sync':
-               options.type = 1;
-               break;
-            case 'async':
-               options.type = 2;
-               break;
-            default:
-               options.type = 0;
-               break;
-         }
-      }
-      else if (Number.isInteger(options.type))
-      {
-         options.type = options.type >= 0 && options.type <= 2 ? options.type : 0;
-      }
-      else
-      {
-         options.type = 0;
+         case 'sync':
+            options.type = 1;
+            break;
+         case 'async':
+            options.type = 2;
+            break;
+         default:
+            options.type = 0;
+            break;
       }
 
       // Set opts `ctx` as this is what we send to the eventbus.

@@ -167,33 +167,52 @@ export default class Eventbus
    }
 
    /**
-    * Returns the trigger type of an event name.
-    * Note: if trigger type is not set then undefined is returned for type otherwise 'sync' or 'async' is returned.
-    * The number value returned: 0 - unknown / trigger, 1 - sync, 2 - async.
+    * Returns the options of an event name.
     *
     * @param {string}   name - Event name(s) to verify.
     *
-    * @returns {DataOutTriggerType} The trigger type.
+    * @returns {DataOutOptions} The event options.
     */
-   getType(name)
+   getOptions(name)
    {
-      const result = Utils.eventsAPI(s_GET_TYPE, { number: 0 }, name, void 0, { events: this.#events });
+      const result = Utils.eventsAPI(s_GET_OPTIONS, { guard: false, type: 0 }, name, void 0, { events: this.#events });
 
-      switch(result.number)
+      let type = void 0;
+
+      switch(result.type)
       {
          case 1:
-            result.type = 'sync';
+            type = 'sync';
             break;
          case 2:
-            result.type = 'async';
-            break;
-         default:
-            result.type = void 0;
-            result.number = 0;
+            type = 'async';
             break;
       }
 
-      return result;
+      return { guard: result.guard, type };
+   }
+
+   /**
+    * Returns the trigger type of an event name.
+    * Note: if trigger type is not set then undefined is returned for type otherwise 'sync' or 'async' is returned.
+    *
+    * @param {string}   name - Event name(s) to verify.
+    *
+    * @returns {string|undefined} The trigger type.
+    */
+   getType(name)
+   {
+      const result = Utils.eventsAPI(s_GET_TYPE, { type: 0 }, name, void 0, { events: this.#events });
+
+      switch(result.type)
+      {
+         case 1:
+            return 'sync';
+         case 2:
+            return 'async';
+         default:
+            return void 0;
+      }
    }
 
    /**
@@ -776,6 +795,44 @@ class Listening
 }
 
 /**
+ * The reducing API that returns the options for an event. Any guarded event sets guard and the higher type is set.
+ *
+ * @param {object}   output - The output object.
+ *
+ * @param {string}   name - Event name
+ *
+ * @param {Function} callback - Event callback
+ *
+ * @param {object}   opts - Optional parameters
+ *
+ * @returns {object} The output object.
+ */
+const s_GET_OPTIONS = (output, name, callback, opts) =>
+{
+   const events = opts.events;
+
+   if (events)
+   {
+      const handlers = events[name];
+
+      if (Array.isArray(handlers))
+      {
+         for (const handler of handlers)
+         {
+            output.guard ||= handler.options.guard;
+
+            if (handler.options.type > output.type)
+            {
+               output.type = handler.options.type;
+            }
+         }
+      }
+   }
+
+   return output;
+}
+
+/**
  * The reducing API that returns the trigger type for an event. The higher type is set.
  *
  * @param {object}   output - The output object.
@@ -800,9 +857,9 @@ const s_GET_TYPE = (output, name, callback, opts) =>
       {
          for (const handler of handlers)
          {
-            if (Number.isInteger(handler.options.type) && handler.options.type > output.number)
+            if (handler.options.type > output.type)
             {
-               output.number = handler.options.type;
+               output.type = handler.options.type;
             }
          }
       }
@@ -946,31 +1003,20 @@ const s_ON_API = (events, name, callback, opts) =>
       const options = JSON.parse(JSON.stringify(opts.options));
 
       // Ensure that guard is set.
-      options.guard = options.guard !== void 0 && typeof options.guard === 'boolean' ? options.guard : false;
+      options.guard = typeof options.guard === 'boolean' ? options.guard : false;
 
       // Make sure options.type is set.
-      if (typeof options.type === 'string')
+      switch(options.type)
       {
-         switch(options.type)
-         {
-            case 'sync':
-               options.type = 1;
-               break;
-            case 'async':
-               options.type = 2;
-               break;
-            default:
-               options.type = 0;
-               break;
-         }
-      }
-      else if (Number.isInteger(options.type))
-      {
-         options.type = options.type >= 0 && options.type <= 2 ? options.type : 0;
-      }
-      else
-      {
-         options.type = 0;
+         case 'sync':
+            options.type = 1;
+            break;
+         case 'async':
+            options.type = 2;
+            break;
+         default:
+            options.type = 0;
+            break;
       }
 
       if (listening) { listening.incrementCount(); }

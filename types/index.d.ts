@@ -169,6 +169,14 @@ declare class EventbusProxy {
      */
     keys(regex?: RegExp): Generator<any, void, unknown>;
     /**
+     * Returns an iterable for the event names / keys of registered event listeners along with event options.
+     *
+     * @param {RegExp} [regex] - Optional regular expression to filter event names.
+     *
+     * @yields
+     */
+    keysWithOptions(regex?: RegExp): Generator<any, void, unknown>;
+    /**
      * Returns whether this EventbusProxy has already been destroyed.
      *
      * @returns {boolean} Is destroyed state.
@@ -285,6 +293,17 @@ declare class EventbusProxy {
      */
     proxyKeys(regex?: RegExp): Generator<string, void, unknown>;
     /**
+     * Returns an iterable for the event names / keys of the locally proxied event names with event options.
+     *
+     * Note: The event options returned will respect all of the event options from a registered event event on the main
+     * eventbus if applicable.
+     *
+     * @param {RegExp} [regex] - Optional regular expression to filter event names.
+     *
+     * @yields
+     */
+    proxyKeysWithOptions(regex?: RegExp): Generator<any[], void, unknown>;
+    /**
      * Trigger callbacks for the given event, or space-delimited list of events. Subsequent arguments to trigger will be
      * passed along to the event callbacks.
      *
@@ -366,6 +385,14 @@ declare class EventbusSecure {
      * @yields
      */
     keys(regex?: RegExp): Generator<any, void, unknown>;
+    /**
+     * Returns an iterable for the event names / keys of registered event listeners along with event options.
+     *
+     * @param {RegExp} [regex] - Optional regular expression to filter event names.
+     *
+     * @yields
+     */
+    keysWithOptions(regex?: RegExp): Generator<any, void, unknown>;
     /**
      * Returns whether this instance has already been destroyed.
      *
@@ -531,6 +558,14 @@ declare class Eventbus {
      * @yields
      */
     keys(regex?: RegExp): Generator<string, void, unknown>;
+    /**
+     * Returns an iterable for the event names / keys of registered event listeners along with event options.
+     *
+     * @param {RegExp} [regex] - Optional regular expression to filter event names.
+     *
+     * @yields
+     */
+    keysWithOptions(regex?: RegExp): Generator<(string | DataOutOptions)[], void, unknown>;
     /**
      * Returns the current eventbus name.
      *

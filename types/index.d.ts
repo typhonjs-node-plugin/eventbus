@@ -1,4 +1,18 @@
 /**
+ * The trigger type returned by getType.
+ */
+type DataOutTriggerType = {
+    /**
+     * - The string representation: 'sync', 'async' or undefined if unknown or just
+     *   a basic trigger.
+     */
+    type: string | undefined;
+    /**
+     * - The number representation: 0 (trigger / unknown), 1 (sync), 2 (async).
+     */
+    number: number;
+};
+/**
  * The callback data for an event.
  */
 type EventData = {
@@ -52,10 +66,16 @@ type EventbusSecureObj = {
  */
 type OnOptions = {
     /**
-     * - When set to true this registration is guarded. Further attempts to register an event by
-     *  the same name will not be possible as long as a guarded event exists.
+     * - When set to true this registration is guarded. Further attempts to register an
+     *    event by the same name will not be possible as long as a guarded event exists.
      */
     guard?: boolean;
+    /**
+     * - Provides a hint on the trigger type. May be a string or number 'sync' / 1 or
+     *    'async' / 2. Any other value is not recognized and internally type will be
+     *    set to undefined / 0.
+     */
+    type?: string | number;
 };
 /**
  * - Event registration options.
@@ -173,6 +193,16 @@ declare class EventbusProxy {
      * @returns {number} Returns the current proxied callback count.
      */
     get proxyCallbackCount(): number;
+    /**
+     * Returns the trigger type of an event name.
+     * Note: if trigger type is not set then undefined is returned for type otherwise 'sync' or 'async' is returned.
+     * The number value returned: 0 - unknown / trigger, 1 - sync, 2 - async.
+     *
+     * @param {string}   name - Event name(s) to verify.
+     *
+     * @returns {DataOutTriggerType} The trigger type.
+     */
+    getType(name: string): DataOutTriggerType;
     /**
      * Returns whether an event name is guarded.
      *
@@ -343,6 +373,16 @@ declare class EventbusSecure {
      */
     get name(): string;
     /**
+     * Returns the trigger type of an event name.
+     * Note: if trigger type is not set then undefined is returned for type otherwise 'sync' or 'async' is returned.
+     * The number value returned: 0 - unknown / trigger, 1 - sync, 2 - async.
+     *
+     * @param {string}   name - Event name(s) to verify.
+     *
+     * @returns {DataOutTriggerType} The trigger type.
+     */
+    getType(name: string): DataOutTriggerType;
+    /**
      * Trigger callbacks for the given event, or space-delimited list of events. Subsequent arguments to trigger will be
      * passed along to the event callbacks.
      *
@@ -443,6 +483,16 @@ declare class Eventbus {
      * @returns {number} The current callback count.
      */
     get callbackCount(): number;
+    /**
+     * Returns the trigger type of an event name.
+     * Note: if trigger type is not set then undefined is returned for type otherwise 'sync' or 'async' is returned.
+     * The number value returned: 0 - unknown / trigger, 1 - sync, 2 - async.
+     *
+     * @param {string}   name - Event name(s) to verify.
+     *
+     * @returns {DataOutTriggerType} The trigger type.
+     */
+    getType(name: string): DataOutTriggerType;
     /**
      * Returns whether an event name is guarded.
      *

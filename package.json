@@ -1,7 +1,7 @@
 {
   "name": "@typhonjs-plugin/eventbus",
   "description": "Provides a flexible in process eventbus.",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "author": "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)",
   "type": "module",
   "main": "src/index.js",

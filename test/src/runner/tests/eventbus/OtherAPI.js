@@ -415,14 +415,14 @@ export function run({ Module, chai })
 
       it('keys has early out when no events are set', () =>
       {
-         Array.from(eventbus.keys());
+         assert.deepEqual(Array.from(eventbus.keys()), []);
       });
 
       it('keys throws when regex not instance of RegExp', () =>
       {
          expect(() =>
          {
-            for (const entry of eventbus.keys(false)) { console.log(entry); }
+            for (const entry of eventbus.keys(false)) { assert.ok(false); }
          }).to.throw(TypeError, `'regex' is not a RegExp`);
       });
 
@@ -451,6 +451,76 @@ export function run({ Module, chai })
          const eventNames = Array.from(eventbus.keys(/test:trigger3/));
 
          assert.strictEqual(JSON.stringify(eventNames), '["test:trigger3","test:trigger3A"]');
+      });
+
+      it('keysWithOptions has early out when no events are set', () =>
+      {
+         assert.deepEqual(Array.from(eventbus.keysWithOptions()), []);
+      });
+
+      it('keysWithOptions throws when regex not instance of RegExp', () =>
+      {
+         expect(() =>
+         {
+            for (const entry of eventbus.keysWithOptions(false)) { assert.ok(false); }
+         }).to.throw(TypeError, `'regex' is not a RegExp`);
+      });
+
+      it('keysWithOptions', async () =>
+      {
+         eventbus.on('test', () => {}, void 0, { type: 'sync' });
+         eventbus.on('test', () => {}, void 0, { guard: true });
+         eventbus.on('test2', () => {}, void 0, { type: 'async' });
+         eventbus.on('test3', () => {});
+         eventbus.on('test4', () => {}, void 0, { type: 'sync' });
+         eventbus.on('test4', () => {}, void 0, { type: 'async' });
+         eventbus.on('test4', () => {}, void 0, { type: 'sync' });
+         eventbus.on('test4', () => {}, void 0, { guard: true });
+
+         const names = ['test', 'test2', 'test3', 'test4'];
+         const optionRes = [
+            { guard: true, type: 'sync' },
+            { guard: false, type: 'async' },
+            { guard: false, type: void 0 },
+            { guard: true, type: 'async' },
+         ];
+
+         let cntr = 0;
+         for (const [name, options] of eventbus.keysWithOptions())
+         {
+            assert.strictEqual(name, names[cntr]);
+            assert.deepEqual(options, optionRes[cntr]);
+            cntr++;
+         }
+      });
+
+      it('keysWithOptions w/ regex', async () =>
+      {
+         eventbus.on('test', () => {}, void 0, { type: 'sync' });
+         eventbus.on('test', () => {}, void 0, { guard: true });
+         eventbus.on('test2', () => {}, void 0, { type: 'async' });
+         eventbus.on('test3', () => {});
+         eventbus.on('test4', () => {}, void 0, { type: 'sync' });
+         eventbus.on('test4', () => {}, void 0, { type: 'async' });
+         eventbus.on('test4', () => {}, void 0, { type: 'sync' });
+         eventbus.on('test4', () => {}, void 0, { guard: true });
+
+         const names = ['test2', 'test3', 'test4'];
+         const optionRes = [
+            { guard: false, type: 'async' },
+            { guard: false, type: void 0 },
+            { guard: true, type: 'async' },
+         ];
+
+         let cntr = 0;
+
+         // Event names that end in a number.
+         for (const [name, options] of eventbus.keysWithOptions(/\d$/))
+         {
+            assert.strictEqual(name, names[cntr]);
+            assert.deepEqual(options, optionRes[cntr]);
+            cntr++;
+         }
       });
 
       it('guarded listenTo - listenTo does not register', () =>

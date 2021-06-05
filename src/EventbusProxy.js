@@ -163,6 +163,23 @@ export default class EventbusProxy
    }
 
    /**
+    * Returns an iterable for the event names / keys of registered event listeners along with event options.
+    *
+    * @param {RegExp} [regex] - Optional regular expression to filter event names.
+    *
+    * @yields
+    */
+   *keysWithOptions(regex = void 0)
+   {
+      if (this.isDestroyed) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
+
+      for (const entry of this.#eventbus.keysWithOptions(regex))
+      {
+         yield entry;
+      }
+   }
+
+   /**
     * Returns whether this EventbusProxy has already been destroyed.
     *
     * @returns {boolean} Is destroyed state.
@@ -434,6 +451,42 @@ export default class EventbusProxy
          for (const name in this.#events)
          {
             yield name;
+         }
+      }
+   }
+
+   /**
+    * Returns an iterable for the event names / keys of the locally proxied event names with event options.
+    *
+    * Note: The event options returned will respect all of the event options from a registered event event on the main
+    * eventbus if applicable.
+    *
+    * @param {RegExp} [regex] - Optional regular expression to filter event names.
+    *
+    * @yields
+    */
+   *proxyKeysWithOptions(regex = void 0)
+   {
+      if (this.isDestroyed) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
+      if (regex !== void 0 && !(regex instanceof RegExp)) { throw new TypeError(`'regex' is not a RegExp`); }
+
+      if (!this.#events) { return; }
+
+      if (regex)
+      {
+         for (const name in this.#events)
+         {
+            if (regex.test(name))
+            {
+               yield [name, this.#eventbus.getOptions(name)];
+            }
+         }
+      }
+      else
+      {
+         for (const name in this.#events)
+         {
+            yield [name, this.#eventbus.getOptions(name)];
          }
       }
    }

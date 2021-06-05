@@ -65,6 +65,44 @@ export function getErrorName(eventbus)
 }
 
 /**
+ * The reducing API that returns the options for an event. Any guarded event sets guard and the higher type is set.
+ *
+ * @param {object}   output - The output object.
+ *
+ * @param {string}   name - Event name
+ *
+ * @param {Function} callback - Event callback
+ *
+ * @param {object}   opts - Optional parameters
+ *
+ * @returns {object} The output object.
+ */
+export function getOptions(output, name, callback, opts)
+{
+   const events = opts.events;
+
+   if (events)
+   {
+      const handlers = events[name];
+
+      if (Array.isArray(handlers))
+      {
+         for (const handler of handlers)
+         {
+            output.guard ||= handler.options.guard;
+
+            if (handler.options.type > output.type)
+            {
+               output.type = handler.options.type;
+            }
+         }
+      }
+   }
+
+   return output;
+}
+
+/**
  * Provides  protected Object.keys functionality.
  *
  * @param {object}   object - Object to retrieve keys.

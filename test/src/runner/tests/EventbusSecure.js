@@ -54,7 +54,12 @@ export function run({ Module, chai })
 
          expect(() =>
          {
-            for (const entry of eventbusSecure.keys()) { console.log(entry); }
+            for (const entry of eventbusSecure.keys()) { assert.ok(false); }
+         }).to.throw(ReferenceError, 'This EventbusSecure instance has been destroyed.');
+
+         expect(() =>
+         {
+            for (const entry of eventbusSecure.keysWithOptions()) { assert.ok(false); }
          }).to.throw(ReferenceError, 'This EventbusSecure instance has been destroyed.');
 
          expect(() => EventbusSecure.initialize(eventbus, false)).to.throw(TypeError,
@@ -245,7 +250,7 @@ export function run({ Module, chai })
 
          expect(() =>
          {
-            for (const entry of eventbusSecure.keys(false)) { console.log(entry); }
+            for (const entry of eventbusSecure.keys(false)) { assert.ok(false); }
          }).to.throw(TypeError, `'regex' is not a RegExp`);
       });
 
@@ -271,6 +276,77 @@ export function run({ Module, chai })
          const eventNames = Array.from(eventbusSecure.keys(/see/));
 
          assert.strictEqual(JSON.stringify(eventNames), '["can:see:this"]');
+      });
+
+      it('keysWithOptions throws when regex not instance of RegExp', () =>
+      {
+         const { eventbusSecure } = EventbusSecure.initialize(eventbus);
+
+         expect(() =>
+         {
+            for (const entry of eventbusSecure.keysWithOptions(false)) { assert.ok(false); }
+         }).to.throw(TypeError, `'regex' is not a RegExp`);
+      });
+
+      it('keysWithOptions', () =>
+      {
+         eventbus.on('test', () => {}, void 0, { type: 'sync' });
+         eventbus.on('test', () => {}, void 0, { guard: true });
+         eventbus.on('test2', () => {}, void 0, { type: 'async' });
+         eventbus.on('test3', () => {});
+         eventbus.on('test4', () => {}, void 0, { type: 'sync' });
+         eventbus.on('test4', () => {}, void 0, { type: 'async' });
+         eventbus.on('test4', () => {}, void 0, { type: 'sync' });
+         eventbus.on('test4', () => {}, void 0, { guard: true });
+
+         const { eventbusSecure } = EventbusSecure.initialize(eventbus);
+
+         const names = ['test', 'test2', 'test3', 'test4'];
+         const optionRes = [
+            { guard: true, type: 'sync' },
+            { guard: false, type: 'async' },
+            { guard: false, type: void 0 },
+            { guard: true, type: 'async' },
+         ];
+
+         let cntr = 0;
+         for (const [name, options] of eventbusSecure.keysWithOptions())
+         {
+            assert.strictEqual(name, names[cntr]);
+            assert.deepEqual(options, optionRes[cntr]);
+            cntr++;
+         }
+      });
+
+      it('keysWithOptions w/ regex', () =>
+      {
+         eventbus.on('test', () => {}, void 0, { type: 'sync' });
+         eventbus.on('test', () => {}, void 0, { guard: true });
+         eventbus.on('test2', () => {}, void 0, { type: 'async' });
+         eventbus.on('test3', () => {});
+         eventbus.on('test4', () => {}, void 0, { type: 'sync' });
+         eventbus.on('test4', () => {}, void 0, { type: 'async' });
+         eventbus.on('test4', () => {}, void 0, { type: 'sync' });
+         eventbus.on('test4', () => {}, void 0, { guard: true });
+
+         const { eventbusSecure } = EventbusSecure.initialize(eventbus);
+
+         const names = ['test2', 'test3', 'test4'];
+         const optionRes = [
+            { guard: false, type: 'async' },
+            { guard: false, type: void 0 },
+            { guard: true, type: 'async' },
+         ];
+
+         let cntr = 0;
+
+         // Event names that end in a number.
+         for (const [name, options] of eventbusSecure.keysWithOptions(/\d$/))
+         {
+            assert.strictEqual(name, names[cntr]);
+            assert.deepEqual(options, optionRes[cntr]);
+            cntr++;
+         }
       });
 
       it('trigger (on / off)', () =>

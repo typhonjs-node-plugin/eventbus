@@ -530,7 +530,7 @@ export function run({ Module, chai })
       {
          expect(() =>
          {
-            for (const entry of proxy.keys(false)) { console.log(entry); }
+            for (const entry of proxy.keys(false)) { assert.ok(false); }
          }).to.throw(TypeError, `'regex' is not a RegExp`);
       });
 
@@ -563,6 +563,73 @@ export function run({ Module, chai })
          const eventNames = Array.from(proxy.keys(/test:trigger3/));
 
          assert.strictEqual(JSON.stringify(eventNames), '["test:trigger3","test:trigger3A"]');
+      });
+
+      it('keysWithOptions throws when regex not instance of RegExp', () =>
+      {
+         expect(() =>
+         {
+            for (const entry of proxy.keysWithOptions(false)) { assert.ok(false); }
+         }).to.throw(TypeError, `'regex' is not a RegExp`);
+      });
+
+      it('keysWithOptions', () =>
+      {
+         eventbus.on('test', () => {}, void 0, { type: 'sync' });
+         eventbus.on('test', () => {}, void 0, { guard: true });
+
+         proxy.on('test2', () => {}, void 0, { type: 'async' });
+         proxy.on('test3', () => {});
+         proxy.on('test4', () => {}, void 0, { type: 'sync' });
+         proxy.on('test4', () => {}, void 0, { type: 'async' });
+         proxy.on('test4', () => {}, void 0, { type: 'sync' });
+         proxy.on('test4', () => {}, void 0, { guard: true });
+
+         const names = ['test', 'test2', 'test3', 'test4'];
+         const optionRes = [
+            { guard: true, type: 'sync' },
+            { guard: false, type: 'async' },
+            { guard: false, type: void 0 },
+            { guard: true, type: 'async' },
+         ];
+
+         let cntr = 0;
+         for (const [name, options] of proxy.keysWithOptions())
+         {
+            assert.strictEqual(name, names[cntr]);
+            assert.deepEqual(options, optionRes[cntr]);
+            cntr++;
+         }
+      });
+
+      it('keysWithOptions w/ regex', () =>
+      {
+         eventbus.on('test', () => {}, void 0, { type: 'sync' });
+         eventbus.on('test', () => {}, void 0, { guard: true });
+
+         proxy.on('test2', () => {}, void 0, { type: 'async' });
+         proxy.on('test3', () => {});
+         proxy.on('test4', () => {}, void 0, { type: 'sync' });
+         proxy.on('test4', () => {}, void 0, { type: 'async' });
+         proxy.on('test4', () => {}, void 0, { type: 'sync' });
+         proxy.on('test4', () => {}, void 0, { guard: true });
+
+         const names = ['test2', 'test3', 'test4'];
+         const optionRes = [
+            { guard: false, type: 'async' },
+            { guard: false, type: void 0 },
+            { guard: true, type: 'async' },
+         ];
+
+         let cntr = 0;
+
+         // Event names that end in a number.
+         for (const [name, options] of proxy.keysWithOptions(/\d$/))
+         {
+            assert.strictEqual(name, names[cntr]);
+            assert.deepEqual(options, optionRes[cntr]);
+            cntr++;
+         }
       });
 
       it('on throws w/ null options', () =>
@@ -695,6 +762,76 @@ export function run({ Module, chai })
          const eventNames = Array.from(proxy.proxyKeys(/test:trigger3/));
 
          assert.strictEqual(JSON.stringify(eventNames), '["test:trigger3","test:trigger3A"]');
+      });
+
+      it('proxyKeysWithOptions throws when regex not instance of RegExp', () =>
+      {
+         expect(() =>
+         {
+            for (const entry of proxy.proxyKeysWithOptions(false)) { assert.ok(false); }
+         }).to.throw(TypeError, `'regex' is not a RegExp`);
+      });
+
+      it('proxyKeysWithOptions has early out when no events are set', () =>
+      {
+         assert.deepEqual(Array.from(proxy.proxyKeysWithOptions()), []);
+      });
+
+      it('proxyKeysWithOptions', () =>
+      {
+         eventbus.on('test', () => {}, void 0, { type: 'sync' });
+         eventbus.on('test', () => {}, void 0, { guard: true });
+
+         proxy.on('test2', () => {}, void 0, { type: 'async' });
+         proxy.on('test3', () => {});
+         proxy.on('test4', () => {}, void 0, { type: 'sync' });
+         proxy.on('test4', () => {}, void 0, { type: 'async' });
+         proxy.on('test4', () => {}, void 0, { type: 'sync' });
+         proxy.on('test4', () => {}, void 0, { guard: true });
+
+         const names = ['test2', 'test3', 'test4'];
+         const optionRes = [
+            { guard: false, type: 'async' },
+            { guard: false, type: void 0 },
+            { guard: true, type: 'async' },
+         ];
+
+         let cntr = 0;
+         for (const [name, options] of proxy.proxyKeysWithOptions())
+         {
+            assert.strictEqual(name, names[cntr]);
+            assert.deepEqual(options, optionRes[cntr]);
+            cntr++;
+         }
+      });
+
+      it('proxyKeysWithOptions w/ regex', () =>
+      {
+         eventbus.on('test', () => {}, void 0, { type: 'sync' });
+         eventbus.on('test', () => {}, void 0, { guard: true });
+
+         proxy.on('nope', () => {}, void 0, { type: 'async' });
+         proxy.on('test3', () => {});
+         proxy.on('test4', () => {}, void 0, { type: 'sync' });
+         proxy.on('test4', () => {}, void 0, { type: 'async' });
+         proxy.on('test4', () => {}, void 0, { type: 'sync' });
+         proxy.on('test4', () => {}, void 0, { guard: true });
+
+         const names = ['test3', 'test4'];
+         const optionRes = [
+            { guard: false, type: void 0 },
+            { guard: true, type: 'async' },
+         ];
+
+         let cntr = 0;
+
+         // Event names that end in a number.
+         for (const [name, options] of proxy.proxyKeysWithOptions(/\d$/))
+         {
+            assert.strictEqual(name, names[cntr]);
+            assert.deepEqual(options, optionRes[cntr]);
+            cntr++;
+         }
       });
 
       it('off with no events', () =>
@@ -1038,7 +1175,7 @@ export function run({ Module, chai })
 
          expect(() =>
          {
-            for (const entry of proxy.entries()) { console.log(entry); }
+            for (const entry of proxy.entries()) { assert.ok(false); }
          }).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
 
          expect(() => proxy.callbackCount).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
@@ -1059,6 +1196,11 @@ export function run({ Module, chai })
             for (const entry of proxy.keys()) { console.log(entry); }
          }).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
 
+         expect(() =>
+         {
+            for (const entry of proxy.keysWithOptions()) { assert.ok(false); }
+         }).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
+
          expect(() => proxy.name).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
 
          expect(() => proxy.off()).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
@@ -1071,7 +1213,7 @@ export function run({ Module, chai })
 
          expect(() =>
          {
-            for (const entry of proxy.proxyEntries()) { console.log(entry); }
+            for (const entry of proxy.proxyEntries()) { assert.ok(false); }
          }).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
 
          expect(() => proxy.proxyCallbackCount).to.throw(ReferenceError,
@@ -1082,7 +1224,12 @@ export function run({ Module, chai })
 
          expect(() =>
          {
-            for (const entry of proxy.proxyKeys()) { console.log(entry); }
+            for (const entry of proxy.proxyKeys()) { assert.ok(false); }
+         }).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
+
+         expect(() =>
+         {
+            for (const entry of proxy.proxyKeysWithOptions()) { assert.ok(false); }
          }).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
 
          expect(() => proxy.trigger('test:trigger')).to.throw(ReferenceError,

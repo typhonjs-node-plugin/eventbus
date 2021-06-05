@@ -103,6 +103,23 @@ export default class EventbusSecure
    }
 
    /**
+    * Returns an iterable for the event names / keys of registered event listeners along with event options.
+    *
+    * @param {RegExp} [regex] - Optional regular expression to filter event names.
+    *
+    * @yields
+    */
+   *keysWithOptions(regex = void 0)
+   {
+      if (this.isDestroyed) { throw new ReferenceError('This EventbusSecure instance has been destroyed.'); }
+
+      for (const entry of this.#eventbus.keysWithOptions(regex))
+      {
+         yield entry;
+      }
+   }
+
+   /**
     * Returns whether this instance has already been destroyed.
     *
     * @returns {boolean} Is destroyed state.

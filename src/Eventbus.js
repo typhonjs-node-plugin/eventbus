@@ -175,7 +175,8 @@ export default class Eventbus
     */
    getOptions(name)
    {
-      const result = Utils.eventsAPI(s_GET_OPTIONS, { guard: false, type: 0 }, name, void 0, { events: this.#events });
+      const result = Utils.eventsAPI(Utils.getOptions, { guard: false, type: 0 }, name, void 0,
+       { events: this.#events });
 
       let type = void 0;
 
@@ -262,6 +263,38 @@ export default class Eventbus
          for (const name in this.#events)
          {
             yield name;
+         }
+      }
+   }
+
+   /**
+    * Returns an iterable for the event names / keys of registered event listeners along with event options.
+    *
+    * @param {RegExp} [regex] - Optional regular expression to filter event names.
+    *
+    * @yields
+    */
+   *keysWithOptions(regex = void 0)
+   {
+      if (regex !== void 0 && !(regex instanceof RegExp)) { throw new TypeError(`'regex' is not a RegExp`); }
+
+      if (!this.#events) { return; }
+
+      if (regex)
+      {
+         for (const name in this.#events)
+         {
+            if (regex.test(name))
+            {
+               yield [name, this.getOptions(name)];
+            }
+         }
+      }
+      else
+      {
+         for (const name in this.#events)
+         {
+            yield [name, this.getOptions(name)];
          }
       }
    }
@@ -792,44 +825,6 @@ class Listening
       if (typeof value !== 'boolean') { throw new TypeError(`'value' is not a boolean`); }
       this.#interop = value
    }
-}
-
-/**
- * The reducing API that returns the options for an event. Any guarded event sets guard and the higher type is set.
- *
- * @param {object}   output - The output object.
- *
- * @param {string}   name - Event name
- *
- * @param {Function} callback - Event callback
- *
- * @param {object}   opts - Optional parameters
- *
- * @returns {object} The output object.
- */
-const s_GET_OPTIONS = (output, name, callback, opts) =>
-{
-   const events = opts.events;
-
-   if (events)
-   {
-      const handlers = events[name];
-
-      if (Array.isArray(handlers))
-      {
-         for (const handler of handlers)
-         {
-            output.guard ||= handler.options.guard;
-
-            if (handler.options.type > output.type)
-            {
-               output.type = handler.options.type;
-            }
-         }
-      }
-   }
-
-   return output;
 }
 
 /**

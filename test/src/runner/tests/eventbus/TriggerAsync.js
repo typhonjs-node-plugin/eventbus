@@ -1,3 +1,5 @@
+import { createTimedFunction } from '../utils/functions.js';
+
 /**
  * @param {object}                           opts - Test options
  *
@@ -588,24 +590,4 @@ export function run({ Module, chai })
          await expect(eventbus.triggerAsync('test:trigger:async')).to.be.rejectedWith(Error, 'An Error!');
       });
    });
-}
-
-/**
- * Creates a timed function callback for async testing.
- *
- * @param {Function} func - Callback function.
- *
- * @param {number}   timeout - Delay to invoke callback.
- *
- * @returns {function(): Promise<void>} A timed function generator.
- */
-function createTimedFunction(func, timeout = 1000)
-{
-   return () =>
-   {
-      return new Promise((resolve, reject) =>
-      {
-         setTimeout(() => func(resolve, reject), timeout);
-      });
-   };
 }

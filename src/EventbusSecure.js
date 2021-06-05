@@ -125,6 +125,22 @@ export default class EventbusSecure
    }
 
    /**
+    * Returns the trigger type of an event name.
+    * Note: if trigger type is not set then undefined is returned for type otherwise 'sync' or 'async' is returned.
+    * The number value returned: 0 - unknown / trigger, 1 - sync, 2 - async.
+    *
+    * @param {string}   name - Event name(s) to verify.
+    *
+    * @returns {DataOutTriggerType} The trigger type.
+    */
+   getType(name)
+   {
+      if (this.isDestroyed) { throw new ReferenceError('This EventbusSecure instance has been destroyed.'); }
+
+      return this.#eventbus.getType(name);
+   }
+
+   /**
     * Trigger callbacks for the given event, or space-delimited list of events. Subsequent arguments to trigger will be
     * passed along to the event callbacks.
     *

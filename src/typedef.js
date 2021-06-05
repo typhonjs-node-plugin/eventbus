@@ -1,4 +1,13 @@
 /**
+ * @typedef {object} DataOutTriggerType The trigger type returned by getType.
+ *
+ * @property {string|undefined}  type - The string representation: 'sync', 'async' or undefined if unknown or just
+ *                                      a basic trigger.
+ *
+ * @property {number}            number - The number representation: 0 (trigger / unknown), 1 (sync), 2 (async).
+ */
+
+/**
  * @typedef {object} EventData The callback data for an event.
  *
  * @property {Function} callback - Callback function
@@ -30,8 +39,12 @@
 /**
  * @typedef {object} OnOptions - Event registration options for Eventbus.
  *
- * @property {boolean} [guard] - When set to true this registration is guarded. Further attempts to register an event by
- *                             the same name will not be possible as long as a guarded event exists.
+ * @property {boolean}        [guard] - When set to true this registration is guarded. Further attempts to register an
+ *                                      event by the same name will not be possible as long as a guarded event exists.
+ *
+ * @property {string|number}  [type] - Provides a hint on the trigger type. May be a string or number 'sync' / 1 or
+ *                                     'async' / 2. Any other value is not recognized and internally type will be
+ *                                     set to undefined / 0.
  */
 
 /**

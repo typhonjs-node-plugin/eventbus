@@ -167,6 +167,36 @@ export default class Eventbus
    }
 
    /**
+    * Returns the trigger type of an event name.
+    * Note: if trigger type is not set then undefined is returned for type otherwise 'sync' or 'async' is returned.
+    * The number value returned: 0 - unknown / trigger, 1 - sync, 2 - async.
+    *
+    * @param {string}   name - Event name(s) to verify.
+    *
+    * @returns {DataOutTriggerType} The trigger type.
+    */
+   getType(name)
+   {
+      const result = Utils.eventsAPI(s_GET_TYPE, { number: 0 }, name, void 0, { events: this.#events });
+
+      switch(result.number)
+      {
+         case 1:
+            result.type = 'sync';
+            break;
+         case 2:
+            result.type = 'async';
+            break;
+         default:
+            result.type = void 0;
+            result.number = 0;
+            break;
+      }
+
+      return result;
+   }
+
+   /**
     * Returns whether an event name is guarded.
     *
     * @param {string|object}  name - Event name(s) or event map to verify.
@@ -746,6 +776,42 @@ class Listening
 }
 
 /**
+ * The reducing API that returns the trigger type for an event. The higher type is set.
+ *
+ * @param {object}   output - The output object.
+ *
+ * @param {string}   name - Event name
+ *
+ * @param {Function} callback - Event callback
+ *
+ * @param {object}   opts - Optional parameters
+ *
+ * @returns {object} The output object.
+ */
+const s_GET_TYPE = (output, name, callback, opts) =>
+{
+   const events = opts.events;
+
+   if (events)
+   {
+      const handlers = events[name];
+
+      if (Array.isArray(handlers))
+      {
+         for (const handler of handlers)
+         {
+            if (Number.isInteger(handler.options.type) && handler.options.type > output.number)
+            {
+               output.number = handler.options.type;
+            }
+         }
+      }
+   }
+
+   return output;
+}
+
+/**
  * The reducing API that tests if an event name is guarded. Any event data of a give event name can have the guarded
  * state set. If so the event name will be added to the output names array and `output.guarded` set to true.
  *
@@ -881,6 +947,31 @@ const s_ON_API = (events, name, callback, opts) =>
 
       // Ensure that guard is set.
       options.guard = options.guard !== void 0 && typeof options.guard === 'boolean' ? options.guard : false;
+
+      // Make sure options.type is set.
+      if (typeof options.type === 'string')
+      {
+         switch(options.type)
+         {
+            case 'sync':
+               options.type = 1;
+               break;
+            case 'async':
+               options.type = 2;
+               break;
+            default:
+               options.type = 0;
+               break;
+         }
+      }
+      else if (Number.isInteger(options.type))
+      {
+         options.type = options.type >= 0 && options.type <= 2 ? options.type : 0;
+      }
+      else
+      {
+         options.type = 0;
+      }
 
       if (listening) { listening.incrementCount(); }
 

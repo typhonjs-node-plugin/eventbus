@@ -60,6 +60,9 @@ export function run({ Module, chai })
          expect(() => EventbusSecure.initialize(eventbus, false)).to.throw(TypeError,
           `'name' is not a string.`);
 
+         expect(() => eventbusSecure.getType('name')).to.throw(ReferenceError,
+          'This EventbusSecure instance has been destroyed.');
+
          expect(() => eventbusSecure.name).to.throw(ReferenceError,
           'This EventbusSecure instance has been destroyed.');
 
@@ -169,6 +172,57 @@ export function run({ Module, chai })
          eventbus = new Eventbus('testname');
          const { eventbusSecure } = EventbusSecure.initialize(eventbus);
          assert(eventbusSecure.name === 'testname');
+      });
+
+      it('getType - trigger / unknown', () =>
+      {
+         const { eventbusSecure } = EventbusSecure.initialize(eventbus);
+
+         eventbus.on('test:trigger', () => {});
+
+         let result = eventbusSecure.getType('test:trigger');
+
+         assert.strictEqual(result.type, void 0);
+         assert.strictEqual(result.number, 0);
+
+         result = eventbus.getType('test:trigger');
+
+         assert.strictEqual(result.type, void 0);
+         assert.strictEqual(result.number, 0);
+      });
+
+      it('getType - trigger / sync as string', () =>
+      {
+         const { eventbusSecure } = EventbusSecure.initialize(eventbus);
+
+         eventbus.on('test:trigger', () => {}, void 0, { type: 'sync' });
+
+         let result = eventbusSecure.getType('test:trigger');
+
+         assert.strictEqual(result.type, 'sync');
+         assert.strictEqual(result.number, 1);
+
+         result = eventbus.getType('test:trigger');
+
+         assert.strictEqual(result.type, 'sync');
+         assert.strictEqual(result.number, 1);
+      });
+
+      it('getType - trigger / async as string', () =>
+      {
+         const { eventbusSecure } = EventbusSecure.initialize(eventbus);
+
+         eventbus.on('test:trigger', () => {}, void 0, { type: 'async' });
+
+         let result = eventbusSecure.getType('test:trigger');
+
+         assert.strictEqual(result.type, 'async');
+         assert.strictEqual(result.number, 2);
+
+         result = eventbus.getType('test:trigger');
+
+         assert.strictEqual(result.type, 'async');
+         assert.strictEqual(result.number, 2);
       });
 
       it('keys throws when regex not instance of RegExp', () =>

@@ -87,8 +87,8 @@ export default class Eventbus
       const data = {};
       if (this.isGuarded(name, data))
       {
-         console.warn(`@typhonjs-plugin/eventbus ${Utils.getErrorName(this)}`
-          + `- before() failed as event name(s) are guarded: ${JSON.stringify(data.names)}`);
+         console.warn(`@typhonjs-plugin/eventbus ${Utils.getErrorName(this)}` +
+          `- before() failed as event name(s) are guarded: ${JSON.stringify(data.names)}`);
          return this;
       }
 
@@ -180,7 +180,7 @@ export default class Eventbus
 
       let type = void 0;
 
-      switch(result.type)
+      switch (result.type)
       {
          case 1:
             type = 'sync';
@@ -205,7 +205,7 @@ export default class Eventbus
    {
       const result = Utils.eventsAPI(s_GET_TYPE, { type: 0 }, name, void 0, { events: this.#events });
 
-      switch(result.type)
+      switch (result.type)
       {
          case 1:
             return 'sync';
@@ -332,8 +332,8 @@ export default class Eventbus
       const data = {};
       if (s_TRY_CATCH_IS_GUARDED(obj, name, data))
       {
-         console.warn(`@typhonjs-plugin/eventbus ${Utils.getErrorName(this)}`
-          + `- listenTo() failed as event name(s) are guarded for target object: ${JSON.stringify(data.names)}`);
+         console.warn(`@typhonjs-plugin/eventbus ${Utils.getErrorName(this)}` +
+          `- listenTo() failed as event name(s) are guarded for target object: ${JSON.stringify(data.names)}`);
          return this;
       }
 
@@ -497,8 +497,8 @@ export default class Eventbus
       const data = {};
       if (this.isGuarded(name, data))
       {
-         console.warn(`@typhonjs-plugin/eventbus ${Utils.getErrorName(this)}`
-          + `- on() failed as event name(s) are guarded: ${JSON.stringify(data.names)}`);
+         console.warn(`@typhonjs-plugin/eventbus ${Utils.getErrorName(this)}` +
+          `- on() failed as event name(s) are guarded: ${JSON.stringify(data.names)}`);
          return this;
       }
 
@@ -541,8 +541,8 @@ export default class Eventbus
       const data = {};
       if (this.isGuarded(name, data))
       {
-         console.warn(`@typhonjs-plugin/eventbus ${Utils.getErrorName(this)}`
-          + `- once() failed as event name(s) are guarded: ${JSON.stringify(data.names)}`);
+         console.warn(`@typhonjs-plugin/eventbus ${Utils.getErrorName(this)}` +
+          `- once() failed as event name(s) are guarded: ${JSON.stringify(data.names)}`);
          return this;
       }
 
@@ -823,7 +823,7 @@ class Listening
    {
       /* c8 ignore next 1 */
       if (typeof value !== 'boolean') { throw new TypeError(`'value' is not a boolean`); }
-      this.#interop = value
+      this.#interop = value;
    }
 }
 
@@ -861,7 +861,7 @@ const s_GET_TYPE = (output, name, callback, opts) =>
    }
 
    return output;
-}
+};
 
 /**
  * The reducing API that tests if an event name is guarded. Any event data of a give event name can have the guarded
@@ -900,7 +900,7 @@ const s_IS_GUARDED = (output, name, callback, opts) =>
    }
 
    return output;
-}
+};
 
 /**
  * The reducing API that removes a callback from the `events` object.
@@ -1001,7 +1001,7 @@ const s_ON_API = (events, name, callback, opts) =>
       options.guard = typeof options.guard === 'boolean' ? options.guard : false;
 
       // Make sure options.type is set.
-      switch(options.type)
+      switch (options.type)
       {
          case 'sync':
             options.type = 1;

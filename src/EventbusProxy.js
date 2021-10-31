@@ -74,8 +74,8 @@ export default class EventbusProxy
       const data = {};
       if (this.#eventbus.isGuarded(name, data))
       {
-         console.warn(`@typhonjs-plugin/eventbus ${Utils.getErrorName(this)}`
-          + `- before() failed as event name(s) are guarded: ${JSON.stringify(data.names)}`);
+         console.warn(`@typhonjs-plugin/eventbus ${Utils.getErrorName(this)}` +
+          `- before() failed as event name(s) are guarded: ${JSON.stringify(data.names)}`);
          return this;
       }
 
@@ -85,6 +85,17 @@ export default class EventbusProxy
       if (typeof name === 'string' && (context === null || context === void 0)) { callback = void 0; }
 
       return this.on(events, callback, context, options);
+   }
+
+   /**
+    * Creates an EventbusProxy wrapping the backing Eventbus instance. An EventbusProxy proxies events allowing all
+    * listeners added to be easily removed from the wrapped Eventbus.
+    *
+    * @returns {EventbusProxy} A new EventbusProxy for this eventbus.
+    */
+   createProxy()
+   {
+      return new EventbusProxy(this.#eventbus);
    }
 
    /**
@@ -296,8 +307,8 @@ export default class EventbusProxy
       if (this.isDestroyed) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
       this.#events = Utils.eventsAPI(s_OFF_API, this.#events || {}, name, callback, {
-         context: context,
-         eventbus: this.#eventbus
+         context,
+         eventbus: this.#eventbus,
       });
 
       return this;
@@ -332,8 +343,8 @@ export default class EventbusProxy
       const data = {};
       if (this.#eventbus.isGuarded(name, data))
       {
-         console.warn(`@typhonjs-plugin/eventbus ${Utils.getErrorName(this)}`
-          + `- on() failed as event name(s) are guarded: ${JSON.stringify(data.names)}`);
+         console.warn(`@typhonjs-plugin/eventbus ${Utils.getErrorName(this)}` +
+          `- on() failed as event name(s) are guarded: ${JSON.stringify(data.names)}`);
          return this;
       }
 
@@ -369,8 +380,8 @@ export default class EventbusProxy
       const data = {};
       if (this.#eventbus.isGuarded(name, data))
       {
-         console.warn(`@typhonjs-plugin/eventbus ${Utils.getErrorName(this)}`
-          + `- once() failed as event name(s) are guarded: ${JSON.stringify(data.names)}`);
+         console.warn(`@typhonjs-plugin/eventbus ${Utils.getErrorName(this)}` +
+          `- once() failed as event name(s) are guarded: ${JSON.stringify(data.names)}`);
          return this;
       }
 
@@ -602,11 +613,17 @@ const s_OFF_API = (events, name, callback, opts) =>
       {
          const handler = handlers[j];
 
-         if (callback && callback !== handler.callback && callback !== handler.callback._callback ||
-          context && context !== handler.context)
+         if ((callback && callback !== handler.callback && callback !== handler.callback._callback) ||
+          (context && context !== handler.context))
          {
             remaining.push(handler);
+            continue;
          }
+
+         // Must explicitly remove the event by the stored full set of name, handler, context to ensure
+         // non-proxied event registrations are not removed.
+         /* c8 ignore next 1 */
+         eventbus.off(name, handler.callback || handler.callback._callback, handler.context || handler.ctx);
       }
 
       // Replace events if there are any remaining.  Otherwise, clean up.
@@ -616,7 +633,7 @@ const s_OFF_API = (events, name, callback, opts) =>
       }
       else
       {
-         eventbus.off(name, callback, context);
+         // eventbus.off(name, callback, context);
          delete events[name];
       }
    }
@@ -651,7 +668,7 @@ const s_ON_API = (events, name, callback, opts) =>
       options.guard = options.guard !== void 0 && typeof options.guard === 'boolean' ? options.guard : false;
 
       // Ensure that type is set.
-      switch(options.type)
+      switch (options.type)
       {
          case 'sync':
             options.type = 1;

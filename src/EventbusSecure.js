@@ -26,7 +26,7 @@ export default class EventbusSecure
     * @type {string}
     * @private
     */
-   #name
+   #name;
 
    /**
     * Creates the EventbusSecure instance with an existing instance of Eventbus. An object / EventbusSecureObj is
@@ -57,7 +57,7 @@ export default class EventbusSecure
             {
                eventbusSecure.#eventbus = null;
 
-               if (this) { this.eventbusSecure = void 0 }
+               if (this) { this.eventbusSecure = void 0; }
             }
          },
 

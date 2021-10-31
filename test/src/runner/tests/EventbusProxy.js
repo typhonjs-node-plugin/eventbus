@@ -64,6 +64,55 @@ export function run({ Module, chai })
          assert.strictEqual(count, 3);
       });
 
+      it('createProxy', () =>
+      {
+         eventbus = new Eventbus('testname');
+         eventbus.on('test', () => {});
+
+         proxy = new EventbusProxy(eventbus);
+         proxy.on('test', () => { count++; });
+
+         proxy.trigger('test');
+
+         assert.strictEqual(proxy.callbackCount, 2);
+         assert.strictEqual(proxy.proxyCallbackCount, 1);
+         assert.strictEqual(count, 1);
+
+         const proxyChild = proxy.createProxy();
+         proxyChild.on('test', () => { count++; });
+         proxyChild.on('test2', () => {});
+         proxyChild.on('test3', () => {});
+
+         assert.strictEqual(proxy.name, 'proxy-testname');
+         assert.strictEqual(proxyChild.name, 'proxy-testname');
+
+         assert.strictEqual(proxy.proxyCallbackCount, 1);
+         assert.strictEqual(proxyChild.proxyCallbackCount, 3);
+         assert.strictEqual(proxyChild.callbackCount, 5);
+
+         proxy.trigger('test');
+
+         assert.strictEqual(count, 3);
+
+         proxyChild.off('test2');
+
+         assert.strictEqual(eventbus.callbackCount, 4);
+         assert.strictEqual(proxy.proxyCallbackCount, 1);
+         assert.strictEqual(proxyChild.proxyCallbackCount, 2);
+         assert.strictEqual(proxyChild.callbackCount, 4);
+
+         proxyChild.off();
+
+         assert.strictEqual(eventbus.callbackCount, 2);
+         assert.strictEqual(proxy.proxyCallbackCount, 1);
+         assert.strictEqual(proxyChild.proxyCallbackCount, 0);
+         assert.strictEqual(proxyChild.callbackCount, 2);
+
+         proxy.trigger('test');
+
+         assert.strictEqual(count, 4);
+      });
+
       it('createSecure', () =>
       {
          eventbus = new Eventbus('testname');
@@ -530,7 +579,7 @@ export function run({ Module, chai })
       {
          expect(() =>
          {
-            for (const entry of proxy.keys(false)) { assert.ok(false); }
+            for (const entry of proxy.keys(false)) { assert.ok(false); } // eslint-disable-line no-unused-vars
          }).to.throw(TypeError, `'regex' is not a RegExp`);
       });
 
@@ -569,7 +618,7 @@ export function run({ Module, chai })
       {
          expect(() =>
          {
-            for (const entry of proxy.keysWithOptions(false)) { assert.ok(false); }
+            for (const entry of proxy.keysWithOptions(false)) { assert.ok(false); } // eslint-disable-line no-unused-vars
          }).to.throw(TypeError, `'regex' is not a RegExp`);
       });
 
@@ -768,7 +817,7 @@ export function run({ Module, chai })
       {
          expect(() =>
          {
-            for (const entry of proxy.proxyKeysWithOptions(false)) { assert.ok(false); }
+            for (const entry of proxy.proxyKeysWithOptions(false)) { assert.ok(false); } // eslint-disable-line no-unused-vars
          }).to.throw(TypeError, `'regex' is not a RegExp`);
       });
 
@@ -1036,21 +1085,28 @@ export function run({ Module, chai })
 
          proxy.off('test:trigger');
 
-         assert.strictEqual(proxy.callbackCount, 1);
+         assert.strictEqual(eventbus.callbackCount, 2);
+         assert.strictEqual(proxy.callbackCount, 2);
+         assert.strictEqual(proxy.proxyCallbackCount, 1);
 
          proxy.trigger('test:trigger');
          eventbus.trigger('test:trigger');
 
+         assert.strictEqual(callbacks.testTriggerCount, 7);
+
          proxy.trigger('test:trigger2');
+
+         assert.strictEqual(callbacks.testTriggerCount, 8);
 
          proxy.off('test:trigger2');
 
-         assert.strictEqual(proxy.callbackCount, 0);
+         assert.strictEqual(proxy.callbackCount, 1);
+         assert.strictEqual(proxy.proxyCallbackCount, 0);
 
          proxy.trigger('test:trigger2');
          eventbus.trigger('test:trigger2');
 
-         assert.strictEqual(callbacks.testTriggerCount, 6);
+         assert.strictEqual(callbacks.testTriggerCount, 8);
       });
 
       it('trigger (on / off - callback)', () =>
@@ -1072,21 +1128,29 @@ export function run({ Module, chai })
 
          proxy.off(void 0, callback1);
 
-         assert.strictEqual(proxy.callbackCount, 1);
+         assert.strictEqual(eventbus.callbackCount, 2);
+         assert.strictEqual(proxy.callbackCount, 2);
+         assert.strictEqual(proxy.proxyCallbackCount, 1);
 
          proxy.trigger('test:trigger');
+
+         assert.strictEqual(callbacks.testTriggerCount, 6);
+
          eventbus.trigger('test:trigger');
 
          proxy.trigger('test:trigger2');
 
+         assert.strictEqual(callbacks.testTriggerCount, 8);
+
          proxy.off(void 0, callback2);
 
-         assert.strictEqual(proxy.callbackCount, 0);
+         assert.strictEqual(proxy.callbackCount, 1);
+         assert.strictEqual(proxy.proxyCallbackCount, 0);
 
          proxy.trigger('test:trigger2');
          eventbus.trigger('test:trigger2');
 
-         assert.strictEqual(callbacks.testTriggerCount, 6);
+         assert.strictEqual(callbacks.testTriggerCount, 8);
       });
 
       it('trigger (on / off - callback)', () =>
@@ -1110,26 +1174,33 @@ export function run({ Module, chai })
          assert.strictEqual(proxy.callbackCount, 4);
          assert.strictEqual(proxy.proxyCallbackCount, 2);
 
-         // This will remove the events on eventbus & proxy sharing the same context
+         // This will remove the events on proxy sharing with the same context
          proxy.off(void 0, void 0, sharedContext);
 
-         assert.strictEqual(proxy.callbackCount, 2);
+         assert.strictEqual(proxy.callbackCount, 3);
          assert.strictEqual(proxy.proxyCallbackCount, 1);
 
          proxy.trigger('test:trigger');
+
+         assert.strictEqual(callbacks.testTriggerCount, 9);
+
          eventbus.trigger('test:trigger');
+
+         assert.strictEqual(callbacks.testTriggerCount, 11);
 
          proxy.trigger('test:trigger2');
 
+         assert.strictEqual(callbacks.testTriggerCount, 12);
+
          proxy.off(void 0, void 0, callbacks);
 
-         assert.strictEqual(proxy.callbackCount, 1);
+         assert.strictEqual(proxy.callbackCount, 2);
          assert.strictEqual(proxy.proxyCallbackCount, 0);
 
          proxy.trigger('test:trigger2');
          eventbus.trigger('test:trigger2');
 
-         assert.strictEqual(callbacks.testTriggerCount, 10);
+         assert.strictEqual(callbacks.testTriggerCount, 12);
       });
 
       it('trigger (destroy)', () =>
@@ -1175,7 +1246,7 @@ export function run({ Module, chai })
 
          expect(() =>
          {
-            for (const entry of proxy.entries()) { assert.ok(false); }
+            for (const entry of proxy.entries()) { assert.ok(false); }  // eslint-disable-line no-unused-vars
          }).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
 
          expect(() => proxy.callbackCount).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
@@ -1198,7 +1269,7 @@ export function run({ Module, chai })
 
          expect(() =>
          {
-            for (const entry of proxy.keysWithOptions()) { assert.ok(false); }
+            for (const entry of proxy.keysWithOptions()) { assert.ok(false); } // eslint-disable-line no-unused-vars
          }).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
 
          expect(() => proxy.name).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
@@ -1213,7 +1284,7 @@ export function run({ Module, chai })
 
          expect(() =>
          {
-            for (const entry of proxy.proxyEntries()) { assert.ok(false); }
+            for (const entry of proxy.proxyEntries()) { assert.ok(false); } // eslint-disable-line no-unused-vars
          }).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
 
          expect(() => proxy.proxyCallbackCount).to.throw(ReferenceError,
@@ -1224,12 +1295,12 @@ export function run({ Module, chai })
 
          expect(() =>
          {
-            for (const entry of proxy.proxyKeys()) { assert.ok(false); }
+            for (const entry of proxy.proxyKeys()) { assert.ok(false); } // eslint-disable-line no-unused-vars
          }).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
 
          expect(() =>
          {
-            for (const entry of proxy.proxyKeysWithOptions()) { assert.ok(false); }
+            for (const entry of proxy.proxyKeysWithOptions()) { assert.ok(false); } // eslint-disable-line no-unused-vars
          }).to.throw(ReferenceError, 'This EventbusProxy instance has been destroyed.');
 
          expect(() => proxy.trigger('test:trigger')).to.throw(ReferenceError,

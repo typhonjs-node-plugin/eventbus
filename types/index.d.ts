@@ -135,6 +135,13 @@ declare class EventbusProxy {
      */
     before(count: number, name: string | object, callback: Function | object, context?: object, options?: ProxyOnOptions): EventbusProxy;
     /**
+     * Creates an EventbusProxy wrapping the backing Eventbus instance. An EventbusProxy proxies events allowing all
+     * listeners added to be easily removed from the wrapped Eventbus.
+     *
+     * @returns {EventbusProxy} A new EventbusProxy for this eventbus.
+     */
+    createProxy(): EventbusProxy;
+    /**
      * Unregisters all proxied events from the target eventbus and removes any local references. All subsequent calls
      * after `destroy` has been called result in a ReferenceError thrown.
      */
@@ -790,5 +797,4 @@ declare const pluginEventbus: Eventbus;
  */
 declare const testEventbus: Eventbus;
 
-export default Eventbus;
-export { EventbusProxy, EventbusSecure, eventbus, pluginEventbus, testEventbus };
+export { EventbusProxy, EventbusSecure, Eventbus as default, eventbus, pluginEventbus, testEventbus };

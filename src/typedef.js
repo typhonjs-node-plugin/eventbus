@@ -18,8 +18,11 @@
  * @property {object} options - Holds options for this event registration, One such option is 'guarded' which prevents
  *                              multiple registrations.
  *
- * @property {Listening} [listening] - Any associated listening instance.
+ * @property {object} [listening] - Any associated listening instance.
  */
+
+// TODO: Note: for `listening` above type should be `Listening`, but that is not exported and this typedef file is
+// used to generate public Typescript declarations.
 
 /**
  * @typedef {Object.<string, EventData[]>} Events - Event data stored by event name.

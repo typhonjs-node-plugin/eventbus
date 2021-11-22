@@ -1,7 +1,7 @@
 {
   "name": "@typhonjs-plugin/eventbus",
   "description": "Provides a flexible in process eventbus.",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "author": "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)",
   "type": "module",
   "main": "src/index.js",
@@ -9,6 +9,7 @@
   "browser": "dist/browser/Eventbus.js",
   "exports": {
     ".": {
+      "types": "./types/index.d.ts",
       "node": "./src/index.js",
       "browser": "./dist/browser/Eventbus.js"
     },
@@ -25,7 +26,6 @@
     "@typhonjs-utils/build-test": "^0.2.0",
     "@typhonjs-utils/build-test-browser": "^0.0.12",
     "rollup": "^2",
-    "rollup-plugin-dts": "^4.0.0",
     "rollup-plugin-istanbul": "^3.0.0",
     "rollup-plugin-terser": "^7"
   },

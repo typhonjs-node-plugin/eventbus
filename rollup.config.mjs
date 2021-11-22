@@ -4,7 +4,16 @@ import { babel }     from '@rollup/plugin-babel';        // Babel is used for pr
 import { terser }    from 'rollup-plugin-terser';        // Terser is used for minification / mangling
 
 // Import config files for Terser and Postcss; refer to respective documentation for more information.
-import terserConfig from './terser.config';
+import terserConfig from './terser.config.js';
+
+import { generateTSDef }   from '@typhonjs-build-test/esm-d-ts';
+
+await generateTSDef({
+   main: './src/index.js',
+   output: './.types/index.d.ts',
+   prependGen: ['./src/typedef.js'],
+   exportCondition: { browser: true }
+});
 
 // The deploy path for the distribution for browser & Node.
 const s_DIST_PATH_BROWSER = './dist/browser';

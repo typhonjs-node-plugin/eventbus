@@ -10,7 +10,7 @@ import { generateTSDef }   from '@typhonjs-build-test/esm-d-ts';
 
 await generateTSDef({
    main: './src/index.js',
-   output: './.types/index.d.ts',
+   output: './types/index.d.ts',
    prependGen: ['./src/typedef.js'],
    exportCondition: { browser: true }
 });

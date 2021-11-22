@@ -35,7 +35,7 @@ type EventData = {
     /**
      * - Any associated listening instance.
      */
-    listening?: any;
+    listening?: object;
 };
 /**
  * - Event data stored by event name.

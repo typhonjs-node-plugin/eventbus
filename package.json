@@ -23,6 +23,7 @@
     "@babel/core": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
     "@rollup/plugin-babel": "^5.0.0",
+    "@typhonjs-build-test/esm-d-ts": "^0.0.0",
     "@typhonjs-utils/build-test": "^0.2.0",
     "@typhonjs-utils/build-test-browser": "^0.0.12",
     "rollup": "^2",
@@ -55,7 +56,6 @@
     "pretest-browser": "rollup --config rollup.config.browser-test.js",
     "prepublishOnly": "npm run bundle && npm run test-node && npm run test-browser",
     "test-browser": "node ./test/src/browser/run.js",
-    "test-node": "c8 --exclude-after-remap=true --reporter=lcov --reporter=text-summary mocha -colors \"test/src/node/**/*.test.js\" --timeout 16000",
-    "types": "npx -p typescript tsc --project tsconfig.types.json && rollup --config rollup.config.types.js"
+    "test-node": "c8 --exclude-after-remap=true --reporter=lcov --reporter=text-summary mocha -colors \"test/src/node/**/*.test.js\" --timeout 16000"
   }
 }

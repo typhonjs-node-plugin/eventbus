@@ -3,7 +3,7 @@ import Eventbus                        from './Eventbus.js';
 export { default as EventbusProxy }    from './EventbusProxy.js';
 export { default as EventbusSecure }   from './EventbusSecure.js';
 
-export { Eventbus as default };
+export default Eventbus;
 
 /**
  * Provides a main eventbus instance.

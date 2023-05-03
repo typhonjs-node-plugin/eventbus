@@ -1,4 +1,4 @@
-import TestRunner from '@typhonjs-utils/build-test-browser';
+import { BrowserRunner } from '@typhonjs-build-test/node-browser';
 
 /**
  * Provides the main async execution function
@@ -7,7 +7,7 @@ import TestRunner from '@typhonjs-utils/build-test-browser';
  */
 async function main()
 {
-   await TestRunner.runServerAndTestSuite({
+   await BrowserRunner.runServerAndTestSuite({
       reportDir: './coverage-browser',
       // keepAlive: true   // Uncomment to keep HTTP server alive / useful for testing other browsers.
    });

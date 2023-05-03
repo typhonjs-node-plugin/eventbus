@@ -11,7 +11,7 @@ export function run({ Module, data, chai })
 {
    const { assert, expect } = chai;
 
-   const Eventbus = Module.default;
+   const { Eventbus } = Module;
 
    describe(`Eventbus - API Checks (${data.scopedName})`, () =>
    {

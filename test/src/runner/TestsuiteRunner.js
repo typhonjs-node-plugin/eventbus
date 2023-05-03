@@ -1,4 +1,4 @@
-import TestsuiteRunner  from '@typhonjs-build-test/testsuite-runner';
+import { TestsuiteRunner } from '@typhonjs-build-test/testsuite-runner';
 
 import * as APIChecks      from './tests/eventbus/APIChecks.js';
 import * as Backbone       from './tests/eventbus/Backbone.js';

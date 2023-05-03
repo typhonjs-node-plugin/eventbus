@@ -10,7 +10,7 @@ import { createTimedFunction } from '../utils/functions.js';
 export function run({ Module, chai })
 {
    const { assert } = chai;
-   const Eventbus = Module.default;
+   const { Eventbus } = Module;
 
    describe('Eventbus - getOptions', () =>
    {

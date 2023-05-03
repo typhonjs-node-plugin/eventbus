@@ -9,8 +9,7 @@ export function run({ Module, chai })
 {
    const { assert, expect } = chai;
 
-   const Eventbus = Module.default;
-   const { EventbusProxy, EventbusSecure } = Module;
+   const { Eventbus, EventbusProxy, EventbusSecure } = Module;
 
    describe('EventbusProxy', () =>
    {

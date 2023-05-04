@@ -1,4 +1,4 @@
-import * as Utils from './utils.js';
+import { EventbusUtils } from './EventbusUtils.js';
 
 /**
  * `@typhonjs-plugin/eventbus` / Provides the ability to bind and trigger custom named events.
@@ -87,13 +87,14 @@ export class Eventbus
       const data = {};
       if (this.isGuarded(name, data))
       {
-         console.warn(`@typhonjs-plugin/eventbus ${Utils.getErrorName(this)}` +
+         console.warn(`@typhonjs-plugin/eventbus ${EventbusUtils.getErrorName(this)}` +
           `- before() failed as event name(s) are guarded: ${JSON.stringify(data.names)}`);
          return this;
       }
 
       // Map the event into a `{event: beforeWrapper}` object.
-      const events = Utils.eventsAPI(Utils.beforeMap, {}, name, callback, { count, after: this.off.bind(this) });
+      const events = EventbusUtils.eventsAPI(EventbusUtils.beforeMap, {}, name, callback,
+       { count, after: this.off.bind(this) });
 
       if (typeof name === 'string' && (context === null || context === void 0)) { callback = void 0; }
 
@@ -190,7 +191,7 @@ export class Eventbus
     */
    getOptions(name)
    {
-      const result = Utils.eventsAPI(Utils.getOptions, { guard: false, type: 0 }, name, void 0,
+      const result = EventbusUtils.eventsAPI(EventbusUtils.getOptions, { guard: false, type: 0 }, name, void 0,
        { events: this.#events });
 
       let type = void 0;
@@ -218,7 +219,7 @@ export class Eventbus
     */
    getType(name)
    {
-      const result = Utils.eventsAPI(s_GET_TYPE, { type: 0 }, name, void 0, { events: this.#events });
+      const result = EventbusUtils.eventsAPI(Eventbus.#s_GET_TYPE, { type: 0 }, name, void 0, { events: this.#events });
 
       switch (result.type)
       {
@@ -245,7 +246,7 @@ export class Eventbus
       data.names = [];
       data.guarded = false;
 
-      const result = Utils.eventsAPI(s_IS_GUARDED, data, name, void 0, { events: this.#events });
+      const result = EventbusUtils.eventsAPI(Eventbus.#s_IS_GUARDED, data, name, void 0, { events: this.#events });
 
       return result.guarded;
    }
@@ -346,28 +347,28 @@ export class Eventbus
       if (!obj) { return this; }
 
       const data = {};
-      if (s_TRY_CATCH_IS_GUARDED(obj, name, data))
+      if (Eventbus.#s_TRY_CATCH_IS_GUARDED(obj, name, data))
       {
-         console.warn(`@typhonjs-plugin/eventbus ${Utils.getErrorName(this)}` +
+         console.warn(`@typhonjs-plugin/eventbus ${EventbusUtils.getErrorName(this)}` +
           `- listenTo() failed as event name(s) are guarded for target object: ${JSON.stringify(data.names)}`);
          return this;
       }
 
-      const id = obj._listenId || (obj._listenId = s_UNIQUE_ID('l'));
+      const id = obj._listenId || (obj._listenId = Eventbus.#s_UNIQUE_ID('l'));
       const listeningTo = this._listeningTo || (this._listeningTo = {});
-      let listening = _listening = listeningTo[id];
+      let listening = Eventbus.#listening = listeningTo[id];
 
       // This object is not listening to any other events on `obj` yet.
       // Set up the necessary references to track the listening callbacks.
       if (!listening)
       {
-         this._listenId || (this._listenId = s_UNIQUE_ID('l'));
-         listening = _listening = listeningTo[id] = new Listening(this, obj);
+         this._listenId || (this._listenId = Eventbus.#s_UNIQUE_ID('l'));
+         listening = Eventbus.#listening = listeningTo[id] = new Eventbus.#Listening(this, obj);
       }
 
       // Bind callbacks on obj.
-      const error = s_TRY_CATCH_ON(obj, name, callback, this);
-      _listening = void 0;
+      const error = Eventbus.#s_TRY_CATCH_ON(obj, name, callback, this);
+      Eventbus.#listening = void 0;
 
       if (error) { throw error; }
 
@@ -395,7 +396,7 @@ export class Eventbus
       if (!Number.isInteger(count)) { throw new TypeError(`'count' is not an integer`); }
 
       // Map the event into a `{event: beforeWrapper}` object.
-      const events = Utils.eventsAPI(Utils.beforeMap, {}, name, callback, {
+      const events = EventbusUtils.eventsAPI(EventbusUtils.beforeMap, {}, name, callback, {
          count,
          after: this.stopListening.bind(this, obj)
       });
@@ -417,7 +418,7 @@ export class Eventbus
    listenToOnce(obj, name, callback)
    {
       // Map the event into a `{event: beforeWrapper}` object.
-      const events = Utils.eventsAPI(Utils.beforeMap, {}, name, callback, {
+      const events = EventbusUtils.eventsAPI(EventbusUtils.beforeMap, {}, name, callback, {
          count: 1,
          after: this.stopListening.bind(this, obj)
       });
@@ -461,7 +462,8 @@ export class Eventbus
    {
       if (!this.#events) { return this; }
 
-      this.#events = Utils.eventsAPI(s_OFF_API, this.#events, name, callback, { context, listeners: this._listeners });
+      this.#events = EventbusUtils.eventsAPI(Eventbus.#s_OFF_API, this.#events, name, callback,
+       { context, listeners: this._listeners });
 
       return this;
    }
@@ -513,25 +515,25 @@ export class Eventbus
       const data = {};
       if (this.isGuarded(name, data))
       {
-         console.warn(`@typhonjs-plugin/eventbus ${Utils.getErrorName(this)}` +
+         console.warn(`@typhonjs-plugin/eventbus ${EventbusUtils.getErrorName(this)}` +
           `- on() failed as event name(s) are guarded: ${JSON.stringify(data.names)}`);
          return this;
       }
 
-      this.#events = Utils.eventsAPI(s_ON_API, this.#events || {}, name, callback, {
+      this.#events = EventbusUtils.eventsAPI(Eventbus.#s_ON_API, this.#events || {}, name, callback, {
          context,
          ctx: this,
          options,
-         listening: _listening
+         listening: Eventbus.#listening
       });
 
-      if (_listening)
+      if (Eventbus.#listening)
       {
          const listeners = this._listeners || (this._listeners = {});
-         listeners[_listening.id] = _listening;
+         listeners[Eventbus.#listening.id] = Eventbus.#listening;
 
          // Allow the listening to use a counter, instead of tracking callbacks for library interop.
-         _listening.interop = false;
+         Eventbus.#listening.interop = false;
       }
 
       return this;
@@ -557,13 +559,14 @@ export class Eventbus
       const data = {};
       if (this.isGuarded(name, data))
       {
-         console.warn(`@typhonjs-plugin/eventbus ${Utils.getErrorName(this)}` +
+         console.warn(`@typhonjs-plugin/eventbus ${EventbusUtils.getErrorName(this)}` +
           `- once() failed as event name(s) are guarded: ${JSON.stringify(data.names)}`);
          return this;
       }
 
       // Map the event into a `{event: beforeWrapper}` object.
-      const events = Utils.eventsAPI(Utils.beforeMap, {}, name, callback, { count: 1, after: this.off.bind(this) });
+      const events = EventbusUtils.eventsAPI(EventbusUtils.beforeMap, {}, name, callback,
+       { count: 1, after: this.off.bind(this) });
 
       if (typeof name === 'string' && (context === null || context === void 0)) { callback = void 0; }
 
@@ -593,7 +596,7 @@ export class Eventbus
       const listeningTo = this._listeningTo;
       if (!listeningTo) { return this; }
 
-      const ids = obj ? [obj._listenId] : Utils.objectKeys(listeningTo);
+      const ids = obj ? [obj._listenId] : EventbusUtils.objectKeys(listeningTo);
 
       for (let i = 0; i < ids.length; i++)
       {
@@ -624,7 +627,8 @@ export class Eventbus
    {
       if (!this.#events) { return this; }
 
-      s_RESULTS_TARGET_API(s_TRIGGER_API, s_TRIGGER_EVENTS, this.#events, name, void 0, args);
+      Eventbus.#s_RESULTS_TARGET_API(Eventbus.#s_TRIGGER_API, Eventbus.#s_TRIGGER_EVENTS, this.#events, name, void 0,
+       args);
 
       return this;
    }
@@ -644,7 +648,8 @@ export class Eventbus
    {
       if (!this.#events) { return void 0; }
 
-      const result = s_RESULTS_TARGET_API(s_TRIGGER_API, s_TRIGGER_ASYNC_EVENTS, this.#events, name, void 0, args);
+      const result = Eventbus.#s_RESULTS_TARGET_API(Eventbus.#s_TRIGGER_API, Eventbus.#s_TRIGGER_ASYNC_EVENTS,
+       this.#events, name, void 0, args);
 
       // No event callbacks were triggered.
       if (result === void 0) { return void 0; }
@@ -704,81 +709,689 @@ export class Eventbus
    {
       if (!this.#events) { return void 0; }
 
-      return s_RESULTS_TARGET_API(s_TRIGGER_API, s_TRIGGER_SYNC_EVENTS, this.#events, name, void 0, args);
+      return Eventbus.#s_RESULTS_TARGET_API(Eventbus.#s_TRIGGER_API, Eventbus.#s_TRIGGER_SYNC_EVENTS, this.#events,
+       name, void 0, args);
    }
-}
 
-// Private / internal methods ---------------------------------------------------------------------------------------
-
-/**
- * Global listening object
- *
- * @type {Listening}
- */
-let _listening;
-
-/**
- * A listening class that tracks and cleans up memory bindings when all callbacks have been offed.
- */
-class Listening
-{
-   /**
-    * @type {EventbusEvents|{}}
-    */
-   #events;
+   // Internal static reducers and data ------------------------------------------------------------------------------
 
    /**
-    * @type {string}
-    */
-   #id;
-
-   /**
-    * @type {object}
-    */
-   #listener;
-
-   /**
-    * @type {object}
-    */
-   #obj;
-
-   /**
-    * @type {boolean}
-    */
-   #interop;
-
-   /**
-    * Current listening count.
+    * Generate a unique integer ID (unique within the entire client session).
     *
-    * @type {number}
+    * @type {number} - unique ID counter.
     */
-   #count = 0;
-
-   constructor(listener, obj)
-   {
-      this.#id = listener._listenId;
-      this.#listener = listener;
-      this.#obj = obj;
-      this.#interop = true;
-   }
-
-   // Cleans up memory bindings between the listener and the target of the listener.
-   cleanup()
-   {
-      delete this.#listener._listeningTo[this.#obj._listenId];
-      if (!this.#interop) { delete this.#obj._listeners[this.#id]; }
-   }
-
-   get id() { return this.#id; }
-
-   get interop() { return this.#interop; }
-
-   get obj() { return this.#obj; }
-
-   incrementCount() { this.#count++; }
+   static #idCounter = 0;
 
    /**
-    * @see {@link Eventbus#on}
+    * Static listening object
+    *
+    * @type {object}
+    */
+   static #listening;
+
+   /**
+    * A listening class that tracks and cleans up memory bindings when all callbacks have been offed.
+    */
+   static #Listening = class
+   {
+      /**
+       * @type {EventbusEvents|{}}
+       */
+      #events;
+
+      /**
+       * @type {string}
+       */
+      #id;
+
+      /**
+       * @type {object}
+       */
+      #listener;
+
+      /**
+       * @type {object}
+       */
+      #obj;
+
+      /**
+       * @type {boolean}
+       */
+      #interop;
+
+      /**
+       * Current listening count.
+       *
+       * @type {number}
+       */
+      #count = 0;
+
+      constructor(listener, obj)
+      {
+         this.#id = listener._listenId;
+         this.#listener = listener;
+         this.#obj = obj;
+         this.#interop = true;
+      }
+
+      // Cleans up memory bindings between the listener and the target of the listener.
+      cleanup()
+      {
+         delete this.#listener._listeningTo[this.#obj._listenId];
+         if (!this.#interop) { delete this.#obj._listeners[this.#id]; }
+      }
+
+      get id() { return this.#id; }
+
+      get interop() { return this.#interop; }
+
+      get obj() { return this.#obj; }
+
+      incrementCount() { this.#count++; }
+
+      /**
+       * @see {@link Eventbus#on}
+       *
+       * @param {string|import('.').EventMap}   name - Event name(s) or event map.
+       *
+       * @param {Function|object}   callback - Event callback function or context for event map.
+       *
+       * @param {object}            [context] - Event context
+       *
+       * @returns {Listening} This Listening instance.
+       */
+      on(name, callback, context = void 0)
+      {
+         this.#events = EventbusUtils.eventsAPI(Eventbus.#s_ON_API, this.#events || {}, name, callback,
+         {
+            context,
+            ctx: this,
+            options: {},
+            listening: this
+         });
+
+         return this;
+      }
+
+      /**
+       * Offs a callback (or several). Uses an optimized counter if the target of the listener uses Eventbus. Otherwise,
+       * falls back to manual tracking to support events library interop.
+       *
+       * @param {string|import('.').EventMap}   [name] - Event name(s) or event map.
+       *
+       * @param {Function|object}   [callback] - Event callback function or context for event map.
+       */
+      off(name, callback)
+      {
+         let cleanup;
+
+         if (this.#interop)
+         {
+            this.#events = EventbusUtils.eventsAPI(Eventbus.#s_OFF_API, this.#events, name, callback, {
+               context: void 0,
+               listeners: void 0
+            });
+            cleanup = !this.#events;
+         }
+         else
+         {
+            this.#count--;
+            cleanup = this.#count === 0;
+         }
+
+         if (cleanup) { this.cleanup(); }
+      }
+
+      /**
+       * Sets interop.
+       *
+       * @param {boolean} value Value to set.
+       */
+      set interop(value)
+      {
+         /* c8 ignore next 1 */
+         if (typeof value !== 'boolean') { throw new TypeError(`'value' is not a boolean`); }
+         this.#interop = value;
+      }
+   };
+
+   /**
+    * The reducing API that returns the trigger type for an event. The higher type is set.
+    *
+    * @param {object}   output - The output object.
+    *
+    * @param {string}   name - Event name
+    *
+    * @param {Function} callback - Event callback
+    *
+    * @param {object}   opts - Optional parameters
+    *
+    * @returns {object} The output object.
+    */
+   static #s_GET_TYPE(output, name, callback, opts)
+   {
+      const events = opts.events;
+
+      if (events)
+      {
+         const handlers = events[name];
+
+         if (Array.isArray(handlers))
+         {
+            for (const handler of handlers)
+            {
+               if (handler.options.type > output.type)
+               {
+                  output.type = handler.options.type;
+               }
+            }
+         }
+      }
+
+      return output;
+   }
+
+   /**
+    * The reducing API that tests if an event name is guarded. Any event data of a give event name can have the guarded
+    * state set. If so the event name will be added to the output names array and `output.guarded` set to true.
+    *
+    * @param {object}   output - The output object.
+    *
+    * @param {string}   name - Event name
+    *
+    * @param {Function} callback - Event callback
+    *
+    * @param {object}   opts - Optional parameters
+    *
+    * @returns {object} The output object.
+    */
+   static #s_IS_GUARDED(output, name, callback, opts)
+   {
+      const events = opts.events;
+
+      if (events)
+      {
+         const handlers = events[name];
+
+         if (Array.isArray(handlers))
+         {
+            for (const handler of handlers)
+            {
+               if (handler.options.guard)
+               {
+                  output.names.push(name);
+                  output.guarded = true;
+                  return output;
+               }
+            }
+         }
+      }
+
+      return output;
+   }
+
+   /**
+    * The reducing API that removes a callback from the `events` object.
+    *
+    * @param {EventbusEvents}   events - EventbusEvents object
+    *
+    * @param {string}   name - Event name
+    *
+    * @param {Function} callback - Event callback
+    *
+    * @param {object}   opts - Optional parameters
+    *
+    * @returns {void|EventbusEvents} EventbusEvents object
+    */
+   static #s_OFF_API(events, name, callback, opts)
+   {
+      /* c8 ignore next 1 */
+      if (!events) { return; }
+
+      const context = opts.context, listeners = opts.listeners;
+      let i = 0, names;
+
+      // Delete all event listeners and "drop" events.
+      if (!name && !context && !callback)
+      {
+         for (names = EventbusUtils.objectKeys(listeners); i < names.length; i++)
+         {
+            listeners[names[i]].cleanup();
+         }
+         return;
+      }
+
+      names = name ? [name] : EventbusUtils.objectKeys(events);
+
+      for (; i < names.length; i++)
+      {
+         name = names[i];
+         const handlers = events[name];
+
+         // Bail out if there are no events stored.
+         if (!handlers) { break; }
+
+         // Find any remaining events.
+         const remaining = [];
+         for (let j = 0; j < handlers.length; j++)
+         {
+            const handler = handlers[j];
+            if (callback && callback !== handler.callback && callback !== handler.callback._callback ||
+             context && context !== handler.context)
+            {
+               remaining.push(handler);
+            }
+            else
+            {
+               const listening = handler.listening;
+               if (listening) { listening.off(name, callback); }
+            }
+         }
+
+         // Replace events if there are any remaining.  Otherwise, clean up.
+         if (remaining.length)
+         {
+            events[name] = remaining;
+         }
+         else
+         {
+            delete events[name];
+         }
+      }
+
+      return events;
+   }
+
+   /**
+    * The reducing API that adds a callback to the `events` object.
+    *
+    * @param {EventbusEvents}   events - EventbusEvents object
+    *
+    * @param {string}   name - Event name
+    *
+    * @param {Function} callback - Event callback
+    *
+    * @param {object}   opts - Optional parameters
+    *
+    * @returns {EventbusEvents} EventbusEvents object.
+    */
+   static #s_ON_API(events, name, callback, opts)
+   {
+      if (callback)
+      {
+         const handlers = events[name] || (events[name] = []);
+         const context = opts.context, ctx = opts.ctx, listening = opts.listening;
+
+         // Make a copy of options.
+         const options = JSON.parse(JSON.stringify(opts.options));
+
+         // Ensure that guard is set.
+         options.guard = typeof options.guard === 'boolean' ? options.guard : false;
+
+         // Make sure options.type is set.
+         switch (options.type)
+         {
+            case 'sync':
+               options.type = 1;
+               break;
+            case 'async':
+               options.type = 2;
+               break;
+            default:
+               options.type = 0;
+               break;
+         }
+
+         if (listening) { listening.incrementCount(); }
+
+         handlers.push({ callback, context, ctx: context || ctx, options, listening });
+      }
+      return events;
+   }
+
+   /**
+    * Iterates over the standard `event, callback` (as well as the fancy multiple space-separated events `"change blur",
+    * callback` and event maps `{event: callback}`).
+    *
+    * @param {Function} iteratee - Trigger API
+    *
+    * @param {Function} iterateeTarget - Internal function which is dispatched to.
+    *
+    * @param {EventbusEvents|{}}   events - Array of stored event callback data.
+    *
+    * @param {string}   name - Event name
+    *
+    * @param {Function} callback - callback
+    *
+    * @param {object}   opts - Optional parameters
+    *
+    * @returns {*} The results of the callback if any.
+    */
+   static #s_RESULTS_TARGET_API(iteratee, iterateeTarget, events, name, callback, opts)
+   {
+      let results = void 0;
+      let i = 0, names;
+
+      // Handle the case of multiple events being triggered. The potential results of each event & callbacks must be
+      // processed into a single array of results.
+      if (name && EventbusUtils.eventSplitter.test(name))
+      {
+         // Handle space-separated event names by delegating them individually.
+         for (names = name.split(EventbusUtils.eventSplitter); i < names.length; i++)
+         {
+            const result = iteratee(iterateeTarget, events, names[i], callback, opts);
+
+            // Determine type of `results`; 0: undefined, 1: single value, 2: an array of values.
+            const resultsType = Array.isArray(results) ? 2 : results !== void 0 ? 1 : 0;
+
+            // Handle an array result depending on existing results value.
+            if (Array.isArray(result))
+            {
+               switch (resultsType)
+               {
+                  case 0:
+                     // Simply set results.
+                     results = result;
+                     break;
+                  case 1:
+                     // Create a new array from existing results then concat the new result array.
+                     results = [results].concat(result);
+                     break;
+                  case 2:
+                     // `results` is already an array so concat the new result array.
+                     results = results.concat(result);
+                     break;
+               }
+            }
+            else if (result !== void 0)
+            {
+               switch (resultsType)
+               {
+                  case 0:
+                     // Simply set results.
+                     results = result;
+                     break;
+                  case 1: {
+                     // Create a new array from existing results then push the new result value.
+                     const newArray = [results];
+                     newArray.push(result);
+                     results = newArray;
+                     break;
+                  }
+                  case 2:
+                     // `results` is already an array so push the new result array.
+                     results.push(result);
+                     break;
+               }
+            }
+         }
+      }
+      else
+      {
+         // Just single event.
+         results = iteratee(iterateeTarget, events, name, callback, opts);
+      }
+
+      return results;
+   }
+
+   /**
+    * Handles triggering the appropriate event callbacks.
+    *
+    * @param {Function} iterateeTarget - Internal function which is dispatched to.
+    *
+    * @param {EventbusEvents}   objEvents - Array of stored event callback data.
+    *
+    * @param {string}   name - Event name
+    *
+    * @param {Function} callback - callback
+    *
+    * @param {*[]}      args - Arguments supplied to a trigger method.
+    *
+    * @returns {*} The results from the triggered event.
+    */
+   static #s_TRIGGER_API(iterateeTarget, objEvents, name, callback, args)
+   {
+      let result;
+
+      if (objEvents)
+      {
+         const events = objEvents[name];
+         let allEvents = objEvents.all;
+         if (events && allEvents) { allEvents = allEvents.slice(); }
+         if (events) { result = iterateeTarget(events, args); }
+         if (allEvents) { result = iterateeTarget(allEvents, [name].concat(args)); }
+      }
+
+      return result;
+   }
+
+   /**
+    * A difficult-to-believe, but optimized internal dispatch function for triggering events. Tries to keep the usual
+    * cases speedy (most internal Backbone events have 3 arguments).
+    *
+    * @param {EventData[]} events - Array of stored event callback data.
+    *
+    * @param {*[]}         args - Event argument array
+    */
+   static #s_TRIGGER_EVENTS(events, args)
+   {
+      let ev, i = -1;
+      const a1 = args[0], a2 = args[1], a3 = args[2], l = events.length;
+
+      switch (args.length)
+      {
+         case 0:
+            while (++i < l) { (ev = events[i]).callback.call(ev.ctx); }
+            return;
+         case 1:
+            while (++i < l) { (ev = events[i]).callback.call(ev.ctx, a1); }
+            return;
+         case 2:
+            while (++i < l) { (ev = events[i]).callback.call(ev.ctx, a1, a2); }
+            return;
+         case 3:
+            while (++i < l) { (ev = events[i]).callback.call(ev.ctx, a1, a2, a3); }
+            return;
+         default:
+            while (++i < l) { (ev = events[i]).callback.apply(ev.ctx, args); }
+            return;
+      }
+   }
+
+   /**
+    * A difficult-to-believe, but optimized internal dispatch function for triggering events. Tries to keep the usual
+    * cases speedy (most internal Backbone events have 3 arguments). This dispatch method uses ES6 Promises and adds
+    * any returned results to an array which is added to a `Promise.all` construction which passes back a Promise which
+    * waits until all Promises complete. Any target invoked may return a Promise or any result. This is very useful to
+    * use for any asynchronous operations.
+    *
+    * @param {EventData[]} events - Array of stored event callback data.
+    *
+    * @param {*[]}         args - Arguments supplied to `triggerAsync`.
+    *
+    * @returns {Promise<void|*|*[]>} A Promise of the results from the triggered event.
+    */
+   static async #s_TRIGGER_ASYNC_EVENTS(events, args)
+   {
+      let ev, i = -1;
+      const a1 = args[0], a2 = args[1], a3 = args[2], l = events.length;
+
+      const results = [];
+
+      switch (args.length)
+      {
+         case 0:
+            while (++i < l)
+            {
+               const result = (ev = events[i]).callback.call(ev.ctx);
+
+               // If we received a valid result add it to the promises array.
+               if (result !== void 0) { results.push(result); }
+            }
+            break;
+
+         case 1:
+            while (++i < l)
+            {
+               const result = (ev = events[i]).callback.call(ev.ctx, a1);
+
+               // If we received a valid result add it to the promises array.
+               if (result !== void 0) { results.push(result); }
+            }
+            break;
+
+         case 2:
+            while (++i < l)
+            {
+               const result = (ev = events[i]).callback.call(ev.ctx, a1, a2);
+
+               // If we received a valid result add it to the promises array.
+               if (result !== void 0) { results.push(result); }
+            }
+            break;
+
+         case 3:
+            while (++i < l)
+            {
+               const result = (ev = events[i]).callback.call(ev.ctx, a1, a2, a3);
+
+               // If we received a valid result add it to the promises array.
+               if (result !== void 0) { results.push(result); }
+            }
+            break;
+
+         default:
+            while (++i < l)
+            {
+               const result = (ev = events[i]).callback.apply(ev.ctx, args);
+
+               // If we received a valid result add it to the promises array.
+               if (result !== void 0) { results.push(result); }
+            }
+            break;
+      }
+
+      // If there are multiple results then use Promise.all otherwise Promise.resolve. Filter out any undefined results.
+      return results.length > 1 ? Promise.all(results).then((values) =>
+      {
+         const filtered = values.filter((entry) => entry !== void 0);
+         switch (filtered.length)
+         {
+            case 0: return void 0;
+            case 1: return filtered[0];
+            default: return filtered;
+         }
+      }) : results.length === 1 ? results[0] : void 0;
+   }
+
+   /**
+    * A difficult-to-believe, but optimized internal dispatch function for triggering events. Tries to keep the usual
+    * cases speedy (most internal Backbone events have 3 arguments). This dispatch method synchronously passes back a
+    * single value or an array with all results returned by any invoked targets.
+    *
+    * @param {EventData[]} events - Array of stored event callback data.
+    *
+    * @param {*[]}         args - Arguments supplied to `triggerSync`.
+    *
+    * @returns {void|*|*[]} The results from the triggered event.
+    */
+   static #s_TRIGGER_SYNC_EVENTS(events, args)
+   {
+      let ev, i = -1;
+      const a1 = args[0], a2 = args[1], a3 = args[2], l = events.length;
+
+      const results = [];
+
+      switch (args.length)
+      {
+         case 0:
+            while (++i < l)
+            {
+               const result = (ev = events[i]).callback.call(ev.ctx);
+
+               // If we received a valid result return immediately.
+               if (result !== void 0) { results.push(result); }
+            }
+            break;
+         case 1:
+            while (++i < l)
+            {
+               const result = (ev = events[i]).callback.call(ev.ctx, a1);
+
+               // If we received a valid result return immediately.
+               if (result !== void 0) { results.push(result); }
+            }
+            break;
+         case 2:
+            while (++i < l)
+            {
+               const result = (ev = events[i]).callback.call(ev.ctx, a1, a2);
+
+               // If we received a valid result return immediately.
+               if (result !== void 0) { results.push(result); }
+            }
+            break;
+         case 3:
+            while (++i < l)
+            {
+               const result = (ev = events[i]).callback.call(ev.ctx, a1, a2, a3);
+
+               // If we received a valid result return immediately.
+               if (result !== void 0) { results.push(result); }
+            }
+            break;
+         default:
+            while (++i < l)
+            {
+               const result = (ev = events[i]).callback.apply(ev.ctx, args);
+
+               // If we received a valid result return immediately.
+               if (result !== void 0) { results.push(result); }
+            }
+            break;
+      }
+
+      // Return the results array if there are more than one or just a single result.
+      return results.length > 1 ? results : results.length === 1 ? results[0] : void 0;
+   }
+
+   /**
+    * A try-catch guarded function. Used when attempting to invoke `isGuarded` from another eventbus / context via
+    * `listenTo`.
+    *
+    * @param {object}         obj - Event target / context
+    *
+    * @param {string|import('.').EventMap}   name - Event name(s) or event map.
+    *
+    * @param {object}         data - Output data.
+    *
+    * @returns {boolean} Any error if thrown.
+    */
+   static #s_TRY_CATCH_IS_GUARDED(obj, name, data = {})
+   {
+      let guarded = false;
+
+      try
+      {
+         const result = obj.isGuarded(name, data);
+         if (typeof result === 'boolean') { guarded = result; }
+      }
+      catch (err)
+      {
+         guarded = false;
+         data.names = [];
+         data.guarded = false;
+      }
+
+      return guarded;
+   }
+
+   /**
+    * A try-catch guarded #on function, to prevent poisoning the static `Eventbus.#listening` variable. Used when
+    * attempting to invoke `on` from another eventbus / context via `listenTo`.
+    *
+    * @param {object}            obj - Event target / context
     *
     * @param {string|import('.').EventMap}   name - Event name(s) or event map.
     *
@@ -786,641 +1399,34 @@ class Listening
     *
     * @param {object}            [context] - Event context
     *
-    * @returns {Listening} This Listening instance.
+    * @returns {Error} Any error if thrown.
     */
-   on(name, callback, context = void 0)
+   static #s_TRY_CATCH_ON(obj, name, callback, context)
    {
-      this.#events = Utils.eventsAPI(s_ON_API, this.#events || {}, name, callback,
-      {
-         context,
-         ctx: this,
-         options: {},
-         listening: this
-      });
+      let error;
 
-      return this;
+      try
+      {
+         obj.on(name, callback, context);
+      }
+      catch (err)
+      {
+         error = err;
+      }
+
+      return error;
    }
 
    /**
-    * Offs a callback (or several). Uses an optimized counter if the target of the listener uses Eventbus. Otherwise,
-    * falls back to manual tracking to support events library interop.
+    * Creates a new unique ID with a given prefix
     *
-    * @param {string|import('.').EventMap}   [name] - Event name(s) or event map.
+    * @param {string}   prefix - An optional prefix to add to unique ID.
     *
-    * @param {Function|object}   [callback] - Event callback function or context for event map.
+    * @returns {string} A new unique ID with a given prefix.
     */
-   off(name, callback)
+   static #s_UNIQUE_ID(prefix = '')
    {
-      let cleanup;
-
-      if (this.#interop)
-      {
-         this.#events = Utils.eventsAPI(s_OFF_API, this.#events, name, callback, {
-            context: void 0,
-            listeners: void 0
-         });
-         cleanup = !this.#events;
-      }
-      else
-      {
-         this.#count--;
-         cleanup = this.#count === 0;
-      }
-
-      if (cleanup) { this.cleanup(); }
-   }
-
-   /**
-    * Sets interop.
-    *
-    * @param {boolean} value Value to set.
-    */
-   set interop(value)
-   {
-      /* c8 ignore next 1 */
-      if (typeof value !== 'boolean') { throw new TypeError(`'value' is not a boolean`); }
-      this.#interop = value;
+      const id = `${++Eventbus.#idCounter}`;
+      return prefix ? `${prefix}${id}` /* c8 ignore next */ : id;
    }
 }
-
-/**
- * The reducing API that returns the trigger type for an event. The higher type is set.
- *
- * @param {object}   output - The output object.
- *
- * @param {string}   name - Event name
- *
- * @param {Function} callback - Event callback
- *
- * @param {object}   opts - Optional parameters
- *
- * @returns {object} The output object.
- */
-const s_GET_TYPE = (output, name, callback, opts) =>
-{
-   const events = opts.events;
-
-   if (events)
-   {
-      const handlers = events[name];
-
-      if (Array.isArray(handlers))
-      {
-         for (const handler of handlers)
-         {
-            if (handler.options.type > output.type)
-            {
-               output.type = handler.options.type;
-            }
-         }
-      }
-   }
-
-   return output;
-};
-
-/**
- * The reducing API that tests if an event name is guarded. Any event data of a give event name can have the guarded
- * state set. If so the event name will be added to the output names array and `output.guarded` set to true.
- *
- * @param {object}   output - The output object.
- *
- * @param {string}   name - Event name
- *
- * @param {Function} callback - Event callback
- *
- * @param {object}   opts - Optional parameters
- *
- * @returns {object} The output object.
- */
-const s_IS_GUARDED = (output, name, callback, opts) =>
-{
-   const events = opts.events;
-
-   if (events)
-   {
-      const handlers = events[name];
-
-      if (Array.isArray(handlers))
-      {
-         for (const handler of handlers)
-         {
-            if (handler.options.guard)
-            {
-                output.names.push(name);
-                output.guarded = true;
-                return output;
-            }
-         }
-      }
-   }
-
-   return output;
-};
-
-/**
- * The reducing API that removes a callback from the `events` object.
- *
- * @param {EventbusEvents}   events - EventbusEvents object
- *
- * @param {string}   name - Event name
- *
- * @param {Function} callback - Event callback
- *
- * @param {object}   opts - Optional parameters
- *
- * @returns {void|EventbusEvents} EventbusEvents object
- */
-const s_OFF_API = (events, name, callback, opts) =>
-{
-   /* c8 ignore next 1 */
-   if (!events) { return; }
-
-   const context = opts.context, listeners = opts.listeners;
-   let i = 0, names;
-
-   // Delete all event listeners and "drop" events.
-   if (!name && !context && !callback)
-   {
-      for (names = Utils.objectKeys(listeners); i < names.length; i++)
-      {
-         listeners[names[i]].cleanup();
-      }
-      return;
-   }
-
-   names = name ? [name] : Utils.objectKeys(events);
-
-   for (; i < names.length; i++)
-   {
-      name = names[i];
-      const handlers = events[name];
-
-      // Bail out if there are no events stored.
-      if (!handlers) { break; }
-
-      // Find any remaining events.
-      const remaining = [];
-      for (let j = 0; j < handlers.length; j++)
-      {
-         const handler = handlers[j];
-         if (callback && callback !== handler.callback && callback !== handler.callback._callback ||
-          context && context !== handler.context)
-         {
-            remaining.push(handler);
-         }
-         else
-         {
-            const listening = handler.listening;
-            if (listening) { listening.off(name, callback); }
-         }
-      }
-
-      // Replace events if there are any remaining.  Otherwise, clean up.
-      if (remaining.length)
-      {
-         events[name] = remaining;
-      }
-      else
-      {
-         delete events[name];
-      }
-   }
-
-   return events;
-};
-
-/**
- * The reducing API that adds a callback to the `events` object.
- *
- * @param {EventbusEvents}   events - EventbusEvents object
- *
- * @param {string}   name - Event name
- *
- * @param {Function} callback - Event callback
- *
- * @param {object}   opts - Optional parameters
- *
- * @returns {EventbusEvents} EventbusEvents object.
- */
-const s_ON_API = (events, name, callback, opts) =>
-{
-   if (callback)
-   {
-      const handlers = events[name] || (events[name] = []);
-      const context = opts.context, ctx = opts.ctx, listening = opts.listening;
-
-      // Make a copy of options.
-      const options = JSON.parse(JSON.stringify(opts.options));
-
-      // Ensure that guard is set.
-      options.guard = typeof options.guard === 'boolean' ? options.guard : false;
-
-      // Make sure options.type is set.
-      switch (options.type)
-      {
-         case 'sync':
-            options.type = 1;
-            break;
-         case 'async':
-            options.type = 2;
-            break;
-         default:
-            options.type = 0;
-            break;
-      }
-
-      if (listening) { listening.incrementCount(); }
-
-      handlers.push({ callback, context, ctx: context || ctx, options, listening });
-   }
-   return events;
-};
-
-/**
- * Iterates over the standard `event, callback` (as well as the fancy multiple space-separated events `"change blur",
- * callback` and event maps `{event: callback}`).
- *
- * @param {Function} iteratee - Trigger API
- *
- * @param {Function} iterateeTarget - Internal function which is dispatched to.
- *
- * @param {EventbusEvents|{}}   events - Array of stored event callback data.
- *
- * @param {string}   name - Event name
- *
- * @param {Function} callback - callback
- *
- * @param {object}   opts - Optional parameters
- *
- * @returns {*} The results of the callback if any.
- */
-const s_RESULTS_TARGET_API = (iteratee, iterateeTarget, events, name, callback, opts) =>
-{
-   let results = void 0;
-   let i = 0, names;
-
-   // Handle the case of multiple events being triggered. The potential results of each event & callbacks must be
-   // processed into a single array of results.
-   if (name && Utils.eventSplitter.test(name))
-   {
-      // Handle space-separated event names by delegating them individually.
-      for (names = name.split(Utils.eventSplitter); i < names.length; i++)
-      {
-         const result = iteratee(iterateeTarget, events, names[i], callback, opts);
-
-         // Determine type of `results`; 0: undefined, 1: single value, 2: an array of values.
-         const resultsType = Array.isArray(results) ? 2 : results !== void 0 ? 1 : 0;
-
-         // Handle an array result depending on existing results value.
-         if (Array.isArray(result))
-         {
-            switch (resultsType)
-            {
-               case 0:
-                  // Simply set results.
-                  results = result;
-                  break;
-               case 1:
-                  // Create a new array from existing results then concat the new result array.
-                  results = [results].concat(result);
-                  break;
-               case 2:
-                  // `results` is already an array so concat the new result array.
-                  results = results.concat(result);
-                  break;
-            }
-         }
-         else if (result !== void 0)
-         {
-            switch (resultsType)
-            {
-               case 0:
-                  // Simply set results.
-                  results = result;
-                  break;
-               case 1: {
-                  // Create a new array from existing results then push the new result value.
-                  const newArray = [results];
-                  newArray.push(result);
-                  results = newArray;
-                  break;
-               }
-               case 2:
-                  // `results` is already an array so push the new result array.
-                  results.push(result);
-                  break;
-            }
-         }
-      }
-   }
-   else
-   {
-      // Just single event.
-      results = iteratee(iterateeTarget, events, name, callback, opts);
-   }
-
-   return results;
-};
-
-/**
- * Handles triggering the appropriate event callbacks.
- *
- * @param {Function} iterateeTarget - Internal function which is dispatched to.
- *
- * @param {EventbusEvents}   objEvents - Array of stored event callback data.
- *
- * @param {string}   name - Event name
- *
- * @param {Function} callback - callback
- *
- * @param {*[]}      args - Arguments supplied to a trigger method.
- *
- * @returns {*} The results from the triggered event.
- */
-const s_TRIGGER_API = (iterateeTarget, objEvents, name, callback, args) =>
-{
-   let result;
-
-   if (objEvents)
-   {
-      const events = objEvents[name];
-      let allEvents = objEvents.all;
-      if (events && allEvents) { allEvents = allEvents.slice(); }
-      if (events) { result = iterateeTarget(events, args); }
-      if (allEvents) { result = iterateeTarget(allEvents, [name].concat(args)); }
-   }
-
-   return result;
-};
-
-/**
- * A difficult-to-believe, but optimized internal dispatch function for triggering events. Tries to keep the usual
- * cases speedy (most internal Backbone events have 3 arguments).
- *
- * @param {EventData[]} events - Array of stored event callback data.
- *
- * @param {*[]}         args - Event argument array
- */
-const s_TRIGGER_EVENTS = (events, args) =>
-{
-   let ev, i = -1;
-   const a1 = args[0], a2 = args[1], a3 = args[2], l = events.length;
-
-   switch (args.length)
-   {
-      case 0:
-         while (++i < l) { (ev = events[i]).callback.call(ev.ctx); }
-         return;
-      case 1:
-         while (++i < l) { (ev = events[i]).callback.call(ev.ctx, a1); }
-         return;
-      case 2:
-         while (++i < l) { (ev = events[i]).callback.call(ev.ctx, a1, a2); }
-         return;
-      case 3:
-         while (++i < l) { (ev = events[i]).callback.call(ev.ctx, a1, a2, a3); }
-         return;
-      default:
-         while (++i < l) { (ev = events[i]).callback.apply(ev.ctx, args); }
-         return;
-   }
-};
-
-/**
- * A difficult-to-believe, but optimized internal dispatch function for triggering events. Tries to keep the usual
- * cases speedy (most internal Backbone events have 3 arguments). This dispatch method uses ES6 Promises and adds
- * any returned results to an array which is added to a `Promise.all` construction which passes back a Promise which
- * waits until all Promises complete. Any target invoked may return a Promise or any result. This is very useful to
- * use for any asynchronous operations.
- *
- * @param {EventData[]} events - Array of stored event callback data.
- *
- * @param {*[]}         args - Arguments supplied to `triggerAsync`.
- *
- * @returns {Promise<void|*|*[]>} A Promise of the results from the triggered event.
- */
-const s_TRIGGER_ASYNC_EVENTS = async (events, args) =>
-{
-   let ev, i = -1;
-   const a1 = args[0], a2 = args[1], a3 = args[2], l = events.length;
-
-   const results = [];
-
-   switch (args.length)
-   {
-      case 0:
-         while (++i < l)
-         {
-            const result = (ev = events[i]).callback.call(ev.ctx);
-
-            // If we received a valid result add it to the promises array.
-            if (result !== void 0) { results.push(result); }
-         }
-         break;
-
-      case 1:
-         while (++i < l)
-         {
-            const result = (ev = events[i]).callback.call(ev.ctx, a1);
-
-            // If we received a valid result add it to the promises array.
-            if (result !== void 0) { results.push(result); }
-         }
-         break;
-
-      case 2:
-         while (++i < l)
-         {
-            const result = (ev = events[i]).callback.call(ev.ctx, a1, a2);
-
-            // If we received a valid result add it to the promises array.
-            if (result !== void 0) { results.push(result); }
-         }
-         break;
-
-      case 3:
-         while (++i < l)
-         {
-            const result = (ev = events[i]).callback.call(ev.ctx, a1, a2, a3);
-
-            // If we received a valid result add it to the promises array.
-            if (result !== void 0) { results.push(result); }
-         }
-         break;
-
-      default:
-         while (++i < l)
-         {
-            const result = (ev = events[i]).callback.apply(ev.ctx, args);
-
-            // If we received a valid result add it to the promises array.
-            if (result !== void 0) { results.push(result); }
-         }
-         break;
-   }
-
-   // If there are multiple results then use Promise.all otherwise Promise.resolve. Filter out any undefined results.
-   return results.length > 1 ? Promise.all(results).then((values) =>
-   {
-      const filtered = values.filter((entry) => entry !== void 0);
-      switch (filtered.length)
-      {
-         case 0: return void 0;
-         case 1: return filtered[0];
-         default: return filtered;
-      }
-   }) : results.length === 1 ? results[0] : void 0;
-};
-
-/**
- * A difficult-to-believe, but optimized internal dispatch function for triggering events. Tries to keep the usual
- * cases speedy (most internal Backbone events have 3 arguments). This dispatch method synchronously passes back a
- * single value or an array with all results returned by any invoked targets.
- *
- * @param {EventData[]} events - Array of stored event callback data.
- *
- * @param {*[]}         args - Arguments supplied to `triggerSync`.
- *
- * @returns {void|*|*[]} The results from the triggered event.
- */
-const s_TRIGGER_SYNC_EVENTS = (events, args) =>
-{
-   let ev, i = -1;
-   const a1 = args[0], a2 = args[1], a3 = args[2], l = events.length;
-
-   const results = [];
-
-   switch (args.length)
-   {
-      case 0:
-         while (++i < l)
-         {
-            const result = (ev = events[i]).callback.call(ev.ctx);
-
-            // If we received a valid result return immediately.
-            if (result !== void 0) { results.push(result); }
-         }
-         break;
-      case 1:
-         while (++i < l)
-         {
-            const result = (ev = events[i]).callback.call(ev.ctx, a1);
-
-            // If we received a valid result return immediately.
-            if (result !== void 0) { results.push(result); }
-         }
-         break;
-      case 2:
-         while (++i < l)
-         {
-            const result = (ev = events[i]).callback.call(ev.ctx, a1, a2);
-
-            // If we received a valid result return immediately.
-            if (result !== void 0) { results.push(result); }
-         }
-         break;
-      case 3:
-         while (++i < l)
-         {
-            const result = (ev = events[i]).callback.call(ev.ctx, a1, a2, a3);
-
-            // If we received a valid result return immediately.
-            if (result !== void 0) { results.push(result); }
-         }
-         break;
-      default:
-         while (++i < l)
-         {
-            const result = (ev = events[i]).callback.apply(ev.ctx, args);
-
-            // If we received a valid result return immediately.
-            if (result !== void 0) { results.push(result); }
-         }
-         break;
-   }
-
-   // Return the results array if there are more than one or just a single result.
-   return results.length > 1 ? results : results.length === 1 ? results[0] : void 0;
-};
-
-/**
- * A try-catch guarded function. Used when attempting to invoke `isGuarded` from another eventbus / context via
- * `listenTo`.
- *
- * @param {object}         obj - Event target / context
- *
- * @param {string|import('.').EventMap}   name - Event name(s) or event map.
- *
- * @param {object}         data - Output data.
- *
- * @returns {boolean} Any error if thrown.
- */
-const s_TRY_CATCH_IS_GUARDED = (obj, name, data = {}) =>
-{
-   let guarded = false;
-
-   try
-   {
-      const result = obj.isGuarded(name, data);
-      if (typeof result === 'boolean') { guarded = result; }
-   }
-   catch (err)
-   {
-      guarded = false;
-      data.names = [];
-      data.guarded = false;
-   }
-
-   return guarded;
-};
-
-/**
- * A try-catch guarded #on function, to prevent poisoning the global `_listening` variable. Used when attempting to
- * invoke `on` from another eventbus / context via `listenTo`.
- *
- * @param {object}            obj - Event target / context
- *
- * @param {string|import('.').EventMap}   name - Event name(s) or event map.
- *
- * @param {Function|object}   callback - Event callback function or context for event map.
- *
- * @param {object}            [context] - Event context
- *
- * @returns {Error} Any error if thrown.
- */
-const s_TRY_CATCH_ON = (obj, name, callback, context) =>
-{
-   let error;
-
-   try
-   {
-      obj.on(name, callback, context);
-   }
-   catch (err)
-   {
-      error = err;
-   }
-
-   return error;
-};
-
-/**
- * Generate a unique integer ID (unique within the entire client session).
- *
- * @type {number} - unique ID counter.
- */
-let idCounter = 0;
-
-/**
- * Creates a new unique ID with a given prefix
- *
- * @param {string}   prefix - An optional prefix to add to unique ID.
- *
- * @returns {string} A new unique ID with a given prefix.
- */
-const s_UNIQUE_ID = (prefix = '') =>
-{
-   const id = `${++idCounter}`;
-   return prefix ? `${prefix}${id}` /* c8 ignore next */ : id;
-};

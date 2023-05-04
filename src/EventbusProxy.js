@@ -1,4 +1,4 @@
-import * as Utils     from './utils.js';
+import { EventbusUtils } from './EventbusUtils.js';
 
 /**
  * EventbusProxy provides a protected proxy of another Eventbus instance.
@@ -74,13 +74,14 @@ export class EventbusProxy
       const data = {};
       if (this.#eventbus.isGuarded(name, data))
       {
-         console.warn(`@typhonjs-plugin/eventbus ${Utils.getErrorName(this)}` +
+         console.warn(`@typhonjs-plugin/eventbus ${EventbusUtils.getErrorName(this)}` +
           `- before() failed as event name(s) are guarded: ${JSON.stringify(data.names)}`);
          return this;
       }
 
       // Map the event into a `{event: beforeWrapper}` object.
-      const events = Utils.eventsAPI(Utils.beforeMap, {}, name, callback, { count, after: this.off.bind(this) });
+      const events = EventbusUtils.eventsAPI(EventbusUtils.beforeMap, {}, name, callback,
+       { count, after: this.off.bind(this) });
 
       if (typeof name === 'string' && (context === null || context === void 0)) { callback = void 0; }
 
@@ -308,7 +309,7 @@ export class EventbusProxy
    {
       if (this.isDestroyed) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
 
-      this.#events = Utils.eventsAPI(s_OFF_API, this.#events || {}, name, callback, {
+      this.#events = EventbusUtils.eventsAPI(EventbusProxy.#s_OFF_API, this.#events || {}, name, callback, {
          context,
          eventbus: this.#eventbus,
       });
@@ -345,7 +346,7 @@ export class EventbusProxy
       const data = {};
       if (this.#eventbus.isGuarded(name, data))
       {
-         console.warn(`@typhonjs-plugin/eventbus ${Utils.getErrorName(this)}` +
+         console.warn(`@typhonjs-plugin/eventbus ${EventbusUtils.getErrorName(this)}` +
           `- on() failed as event name(s) are guarded: ${JSON.stringify(data.names)}`);
          return this;
       }
@@ -353,7 +354,7 @@ export class EventbusProxy
       // Hang onto the options as s_ON_API sets the context we need to pass to the eventbus in `opts.ctx`.
       const opts = { context, ctx: this, options };
 
-      this.#events = Utils.eventsAPI(s_ON_API, this.#events || {}, name, callback, opts);
+      this.#events = EventbusUtils.eventsAPI(EventbusProxy.#s_ON_API, this.#events || {}, name, callback, opts);
 
       this.#eventbus.on(name, callback, opts.ctx, options);
 
@@ -382,13 +383,14 @@ export class EventbusProxy
       const data = {};
       if (this.#eventbus.isGuarded(name, data))
       {
-         console.warn(`@typhonjs-plugin/eventbus ${Utils.getErrorName(this)}` +
+         console.warn(`@typhonjs-plugin/eventbus ${EventbusUtils.getErrorName(this)}` +
           `- once() failed as event name(s) are guarded: ${JSON.stringify(data.names)}`);
          return this;
       }
 
       // Map the event into a `{event: beforeWrapper}` object.
-      const events = Utils.eventsAPI(Utils.beforeMap, {}, name, callback, { count: 1, after: this.off.bind(this) });
+      const events = EventbusUtils.eventsAPI(EventbusUtils.beforeMap, {}, name, callback,
+       { count: 1, after: this.off.bind(this) });
 
       if (typeof name === 'string' && (context === null || context === void 0)) { callback = void 0; }
 
@@ -575,119 +577,121 @@ export class EventbusProxy
 
       return this.#eventbus.triggerSync(name, ...args);
    }
-}
 
-/**
- * The reducing API that removes a callback from the `events` object. And delegates invoking off to the eventbus
- * reference.
- *
- * @param {EventbusEvents}   events - EventbusEvents object
- *
- * @param {string}   name - Event name
- *
- * @param {Function} callback - Event callback
- *
- * @param {object}   opts - Optional parameters
- *
- * @returns {void|EventbusEvents} EventbusEvents object
- */
-const s_OFF_API = (events, name, callback, opts) =>
-{
-   /* c8 ignore next 1 */
-   if (!events) { return; }
+   // Internal reducer API -------------------------------------------------------------------------------------------
 
-   const context = opts.context;
-   const eventbus = opts.eventbus;
-
-   const names = name ? [name] : Utils.objectKeys(events);
-
-   for (let i = 0; i < names.length; i++)
+   /**
+    * The reducing API that removes a callback from the `events` object. And delegates invoking off to the eventbus
+    * reference.
+    *
+    * @param {EventbusEvents}   events - EventbusEvents object
+    *
+    * @param {string}   name - Event name
+    *
+    * @param {Function} callback - Event callback
+    *
+    * @param {object}   opts - Optional parameters
+    *
+    * @returns {void|EventbusEvents} EventbusEvents object
+    */
+   static #s_OFF_API(events, name, callback, opts)
    {
-      name = names[i];
-      const handlers = events[name];
+      /* c8 ignore next 1 */
+      if (!events) { return; }
 
-      // Bail out if there are no events stored.
-      if (!handlers) { break; }
+      const context = opts.context;
+      const eventbus = opts.eventbus;
 
-      // Find any remaining events.
-      const remaining = [];
-      for (let j = 0; j < handlers.length; j++)
+      const names = name ? [name] : EventbusUtils.objectKeys(events);
+
+      for (let i = 0; i < names.length; i++)
       {
-         const handler = handlers[j];
+         name = names[i];
+         const handlers = events[name];
 
-         if ((callback && callback !== handler.callback && callback !== handler.callback._callback) ||
-          (context && context !== handler.context))
+         // Bail out if there are no events stored.
+         if (!handlers) { break; }
+
+         // Find any remaining events.
+         const remaining = [];
+         for (let j = 0; j < handlers.length; j++)
          {
-            remaining.push(handler);
-            continue;
+            const handler = handlers[j];
+
+            if ((callback && callback !== handler.callback && callback !== handler.callback._callback) ||
+             (context && context !== handler.context))
+            {
+               remaining.push(handler);
+               continue;
+            }
+
+            // Must explicitly remove the event by the stored full set of name, handler, context to ensure
+            // non-proxied event registrations are not removed.
+            /* c8 ignore next 1 */
+            eventbus.off(name, handler.callback || handler.callback._callback, handler.context || handler.ctx);
          }
 
-         // Must explicitly remove the event by the stored full set of name, handler, context to ensure
-         // non-proxied event registrations are not removed.
-         /* c8 ignore next 1 */
-         eventbus.off(name, handler.callback || handler.callback._callback, handler.context || handler.ctx);
+         // Replace events if there are any remaining.  Otherwise, clean up.
+         if (remaining.length)
+         {
+            events[name] = remaining;
+         }
+         else
+         {
+            // eventbus.off(name, callback, context);
+            delete events[name];
+         }
       }
 
-      // Replace events if there are any remaining.  Otherwise, clean up.
-      if (remaining.length)
-      {
-         events[name] = remaining;
-      }
-      else
-      {
-         // eventbus.off(name, callback, context);
-         delete events[name];
-      }
+      return events;
    }
 
-   return events;
-};
-
-/**
- * The reducing API that adds a callback to the `events` object.
- *
- * @param {EventbusEvents}   events - EventbusEvents object
- *
- * @param {string}   name - Event name
- *
- * @param {Function} callback - Event callback
- *
- * @param {object}   opts - Optional parameters
- *
- * @returns {EventbusEvents} EventbusEvents object.
- */
-const s_ON_API = (events, name, callback, opts) =>
-{
-   if (callback)
+   /**
+    * The reducing API that adds a callback to the `events` object.
+    *
+    * @param {EventbusEvents}   events - EventbusEvents object
+    *
+    * @param {string}   name - Event name
+    *
+    * @param {Function} callback - Event callback
+    *
+    * @param {object}   opts - Optional parameters
+    *
+    * @returns {EventbusEvents} EventbusEvents object.
+    */
+   static #s_ON_API(events, name, callback, opts)
    {
-      const handlers = events[name] || (events[name] = []);
-      const context = opts.context, ctx = opts.ctx;
-
-      // Make a copy of options.
-      const options = JSON.parse(JSON.stringify(opts.options));
-
-      // Ensure that guard is set.
-      options.guard = options.guard !== void 0 && typeof options.guard === 'boolean' ? options.guard : false;
-
-      // Ensure that type is set.
-      switch (options.type)
+      if (callback)
       {
-         case 'sync':
-            options.type = 1;
-            break;
-         case 'async':
-            options.type = 2;
-            break;
-         default:
-            options.type = 0;
-            break;
+         const handlers = events[name] || (events[name] = []);
+         const context = opts.context, ctx = opts.ctx;
+
+         // Make a copy of options.
+         const options = JSON.parse(JSON.stringify(opts.options));
+
+         // Ensure that guard is set.
+         options.guard = options.guard !== void 0 && typeof options.guard === 'boolean' ? options.guard : false;
+
+         // Ensure that type is set.
+         switch (options.type)
+         {
+            case 'sync':
+               options.type = 1;
+               break;
+            case 'async':
+               options.type = 2;
+               break;
+            default:
+               options.type = 0;
+               break;
+         }
+
+         // Set opts `ctx` as this is what we send to the eventbus.
+         opts.ctx = context || ctx;
+
+         handlers.push({ callback, context, ctx: opts.ctx, options });
       }
 
-      // Set opts `ctx` as this is what we send to the eventbus.
-      opts.ctx = context || ctx;
-
-      handlers.push({ callback, context, ctx: opts.ctx, options });
+      return events;
    }
-
-   return events;
-};
+}

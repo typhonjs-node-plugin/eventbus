@@ -39,7 +39,8 @@ export class EventbusSecure
     *
     * @param {string}                  [name] - If a name is provided this will be used instead of eventbus name.
     *
-    * @returns {import('.').EventbusSecureObj} The control object which contains an EventbusSecure reference and control functions.
+    * @returns {import('.').EventbusSecureObj} The control object which contains an EventbusSecure reference and
+    *          control functions.
     */
    static initialize(eventbus, name = void 0)
    {
@@ -61,6 +62,11 @@ export class EventbusSecure
             }
          },
 
+         /**
+          * @param {import('.').Eventbus | import('.').EventbusProxy}   eventbus - Target eventbus.
+          *
+          * @param {string}   [name] - Eventbus name.
+          */
          setEventbus: function(eventbus, name = void 0)
          {
             if (name !== void 0 && typeof name !== 'string') { throw new TypeError(`'name' is not a string.`); }

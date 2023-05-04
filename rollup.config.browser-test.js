@@ -1,6 +1,5 @@
 import path       from 'path';
 
-import { babel }  from '@rollup/plugin-babel';        // Babel is used for private class fields for browser usage.
 import resolve    from '@rollup/plugin-node-resolve';
 import istanbul   from 'rollup-plugin-istanbul';      // Adds Istanbul instrumentation.
 
@@ -19,21 +18,11 @@ export default () =>
          output: [{
             file: `${s_TEST_BROWSER_PATH}/Eventbus.js`,
             format: 'es',
-            preferConst: true,
+            generatedCode: { constBindings: true },
             sourcemap: s_SOURCEMAP,
             sourcemapPathTransform: (sourcePath) => sourcePath.replace(relativeTestBrowserPath, `.`)
          }],
          plugins: [
-            babel({
-               babelHelpers: 'bundled',
-               presets: [
-                  ['@babel/preset-env', {
-                     bugfixes: true,
-                     shippedProposals: true,
-                     targets: { esmodules: true }
-                  }]
-               ]
-            }),
             istanbul()
          ]
       },
@@ -44,7 +33,7 @@ export default () =>
          output: [{
             file: `${s_TEST_BROWSER_PATH}/TestsuiteRunner.js`,
             format: 'es',
-            preferConst: true
+            generatedCode: { constBindings: true },
          }],
          plugins: [
             resolve({ browser: true })

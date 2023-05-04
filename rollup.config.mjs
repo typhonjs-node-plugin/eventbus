@@ -1,18 +1,17 @@
-import path          from 'path';
+import path             from 'path';
 
-import { babel }     from '@rollup/plugin-babel';        // Babel is used for private class fields for browser usage.
-import { terser }    from 'rollup-plugin-terser';        // Terser is used for minification / mangling
+// import { babel }        from '@rollup/plugin-babel';        // Babel is used for private class fields for browser usage.
 
-// Import config files for Terser and Postcss; refer to respective documentation for more information.
-import terserConfig from './terser.config.js';
+import { generateDTS }  from '@typhonjs-build-test/esm-d-ts';
 
-import { generateTSDef }   from '@typhonjs-build-test/esm-d-ts';
-
-await generateTSDef({
-   main: './src/index.js',
+await generateDTS({
+   input: './src/index.js',
    output: './types/index.d.ts',
-   prependGen: ['./src/typedef.js'],
-   exportCondition: { browser: true }
+});
+
+await generateDTS({
+   input: './src/busses/index.js',
+   output: './types/index-busses.d.ts',
 });
 
 // The deploy path for the distribution for browser & Node.
@@ -22,17 +21,17 @@ const s_DIST_PATH_BROWSER = './dist/browser';
 const s_SOURCEMAP = true;
 
 // Adds Terser to the output plugins for server bundle if true.
-const s_MINIFY = typeof process.env.ROLLUP_MINIFY === 'string' ? process.env.ROLLUP_MINIFY === 'true' : true;
+// const s_MINIFY = typeof process.env.ROLLUP_MINIFY === 'string' ? process.env.ROLLUP_MINIFY === 'true' : true;
 
 export default () =>
 {
    // Defines potential output plugins to use conditionally if the .env file indicates the bundles should be
    // minified / mangled.
-   const outputPlugins = [];
-   if (s_MINIFY)
-   {
-      outputPlugins.push(terser(terserConfig));
-   }
+   // const outputPlugins = [];
+   // if (s_MINIFY)
+   // {
+   //    outputPlugins.push(terser(terserConfig));
+   // }
 
    // Reverse relative path from the deploy path to local directory; used to replace source maps path, so that it
    // shows up correctly in Chrome dev tools.
@@ -43,22 +42,22 @@ export default () =>
          output: [{
             file: `${s_DIST_PATH_BROWSER}${path.sep}Eventbus.js`,
             format: 'es',
-            plugins: outputPlugins,
-            preferConst: true,
+            // plugins: outputPlugins,
+            generatedCode: { constBindings: true },
             sourcemap: s_SOURCEMAP,
             // sourcemapPathTransform: (sourcePath) => sourcePath.replace(relativeDistBrowserPath, `.`)
          }],
          plugins: [
-            babel({
-               babelHelpers: 'bundled',
-               presets: [
-                  ['@babel/preset-env', {
-                     bugfixes: true,
-                     shippedProposals: true,
-                     targets: { esmodules: true }
-                  }]
-               ]
-            })
+            // babel({
+            //    babelHelpers: 'bundled',
+            //    presets: [
+            //       ['@babel/preset-env', {
+            //          bugfixes: true,
+            //          shippedProposals: true,
+            //          targets: { esmodules: true }
+            //       }]
+            //    ]
+            // })
          ]
       }
    ];

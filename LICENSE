@@ -1,5 +1,5 @@
-This module is distributed under the MPL v2.0 license, but includes Backbone Events which is distributed under the MIT
-license as follows:
+This module is distributed under the MPL v2.0 license, but is a heavily modified version of Backbone Events which is
+distributed under the MIT license as follows:
 --------------
 
 Copyright (c) 2010-2019 Jeremy Ashkenas, DocumentCloud

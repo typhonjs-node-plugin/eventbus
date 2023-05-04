@@ -422,7 +422,7 @@ export function run({ Module, chai })
       {
          expect(() =>
          {
-            for (const entry of eventbus.keys(false)) { assert.ok(false); }
+            for (const entry of eventbus.keys(false)) { assert.ok(false); }   // eslint-disable-line no-unused-vars
          }).to.throw(TypeError, `'regex' is not a RegExp`);
       });
 
@@ -462,7 +462,7 @@ export function run({ Module, chai })
       {
          expect(() =>
          {
-            for (const entry of eventbus.keysWithOptions(false)) { assert.ok(false); }
+            for (const entry of eventbus.keysWithOptions(false)) { assert.ok(false); } // eslint-disable-line no-unused-vars
          }).to.throw(TypeError, `'regex' is not a RegExp`);
       });
 

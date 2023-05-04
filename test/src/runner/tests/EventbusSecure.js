@@ -53,12 +53,12 @@ export function run({ Module, chai })
 
          expect(() =>
          {
-            for (const entry of eventbusSecure.keys()) { assert.ok(false); }
+            for (const entry of eventbusSecure.keys()) { assert.ok(false); }  // eslint-disable-line no-unused-vars
          }).to.throw(ReferenceError, 'This EventbusSecure instance has been destroyed.');
 
          expect(() =>
          {
-            for (const entry of eventbusSecure.keysWithOptions()) { assert.ok(false); }
+            for (const entry of eventbusSecure.keysWithOptions()) { assert.ok(false); }   // eslint-disable-line no-unused-vars
          }).to.throw(ReferenceError, 'This EventbusSecure instance has been destroyed.');
 
          expect(() => EventbusSecure.initialize(eventbus, false)).to.throw(TypeError,
@@ -249,7 +249,7 @@ export function run({ Module, chai })
 
          expect(() =>
          {
-            for (const entry of eventbusSecure.keys(false)) { assert.ok(false); }
+            for (const entry of eventbusSecure.keys(false)) { assert.ok(false); }   // eslint-disable-line no-unused-vars
          }).to.throw(TypeError, `'regex' is not a RegExp`);
       });
 
@@ -283,7 +283,7 @@ export function run({ Module, chai })
 
          expect(() =>
          {
-            for (const entry of eventbusSecure.keysWithOptions(false)) { assert.ok(false); }
+            for (const entry of eventbusSecure.keysWithOptions(false)) { assert.ok(false); } // eslint-disable-line no-unused-vars
          }).to.throw(TypeError, `'regex' is not a RegExp`);
       });
 

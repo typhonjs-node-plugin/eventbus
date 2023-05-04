@@ -14,8 +14,6 @@ export function run({ Module, chai })
 
    describe('Eventbus - getType', () =>
    {
-      let count;
-
       /**
        * @type {import('../../../../../types').Eventbus}
        */
@@ -23,7 +21,6 @@ export function run({ Module, chai })
 
       beforeEach(() =>
       {
-         count = 0;
          eventbus = new Eventbus();
       });
 

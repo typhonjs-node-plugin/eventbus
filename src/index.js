@@ -10,7 +10,7 @@ export { Eventbus };
  *
  * @property {boolean}  guard The guarded option.
  *
- * @property {string}   type The type option.
+ * @property {'async' | 'sync' | void } type The type option.
  */
 
 /**
@@ -27,9 +27,6 @@ export { Eventbus };
  *
  * @property {object} [listening] Any associated listening instance.
  */
-
-// TODO: Note: for `listening` above type should be `Listening`, but that is not exported and this typedef file is
-// used to generate public Typescript declarations.
 
 /**
  * @typedef {{ [key: string]: EventData[] }} EventbusEvents Event data stored by event name.

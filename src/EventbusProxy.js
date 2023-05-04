@@ -12,11 +12,11 @@ import * as Utils     from './utils.js';
  *
  * EventbusProxy provides the on / off, before, once, and trigger methods with the same signatures as found in
  * Eventbus. However, the proxy tracks all added event bindings which is used to proxy between the target
- * eventbus which is passed in from the constructor. All registration methods (on / off / once) proxy. In addition
+ * eventbus which is passed in from the constructor. All registration methods (on / off / once) proxy. In addition,
  * there is a `destroy` method which will unregister all of proxied events and remove references to the managed
  * eventbus. Any further usage of a destroyed EventbusProxy instance results in a ReferenceError thrown.
  *
- * Finally the EventbusProxy only allows events registered through it to be turned off providing a buffer between
+ * Finally, the EventbusProxy only allows events registered through it to be turned off providing a buffer between
  * any consumers such that they can not turn off other registrations made on the eventbus or other proxy instances.
  */
 export class EventbusProxy
@@ -32,7 +32,7 @@ export class EventbusProxy
    /**
     * Stores all proxied event bindings.
     *
-    * @type {Events|{}}
+    * @type {EventbusEvents}
     * @private
     */
    #events;
@@ -56,7 +56,7 @@ export class EventbusProxy
     *
     * @param {number}            count - Number of times the function will fire before being removed.
     *
-    * @param {string|object}     name - Event name(s) or event map.
+    * @param {string|import('.').EventMap}   name - Event name(s) or event map.
     *
     * @param {Function|object}   callback - Event callback function or context for event map.
     *
@@ -120,7 +120,8 @@ export class EventbusProxy
     *
     * @param {RegExp} [regex] - Optional regular expression to filter event names.
     *
-    * @yields
+    * @returns {Generator<[string, Function, object, import('.').DataOutOptions], void, unknown>} Generator
+    * @yields {[string, Function, object, import('.').DataOutOptions]}
     */
    *entries(regex = void 0)
    {
@@ -161,7 +162,7 @@ export class EventbusProxy
     *
     * @param {RegExp} [regex] - Optional regular expression to filter event names.
     *
-    * @yields
+    * @yields {string}
     */
    *keys(regex = void 0)
    {
@@ -178,7 +179,8 @@ export class EventbusProxy
     *
     * @param {RegExp} [regex] - Optional regular expression to filter event names.
     *
-    * @yields
+    * @returns {Generator<[string, import('.').DataOutOptions], void, unknown>} Generator
+    * @yields {[string, import('.').DataOutOptions]}
     */
    *keysWithOptions(regex = void 0)
    {
@@ -259,7 +261,7 @@ export class EventbusProxy
    }
 
    /**
-    * Returns the trigger type of an event name.
+    * Returns the trigger type of event name.
     * Note: if trigger type is not set then undefined is returned for type otherwise 'sync' or 'async' is returned.
     *
     * @param {string}   name - Event name(s) to verify.
@@ -276,7 +278,7 @@ export class EventbusProxy
    /**
     * Returns whether an event name is guarded.
     *
-    * @param {string|object}  name - Event name(s) or event map to verify.
+    * @param {string|import('.').EventMap}  name - Event name(s) or event map to verify.
     *
     * @param {object}         [data] - Stores the output of which names are guarded.
     *
@@ -294,7 +296,7 @@ export class EventbusProxy
     *
     * Please see {@link Eventbus#off}.
     *
-    * @param {string|object}  [name] - Event name(s) or event map.
+    * @param {string|import('.').EventMap}  [name] - Event name(s) or event map.
     *
     * @param {Function}       [callback] - Event callback function
     *
@@ -321,7 +323,7 @@ export class EventbusProxy
     *
     * Please see {@link Eventbus#on}.
     *
-    * @param {string|object}     name - Event name(s) or event map.
+    * @param {string|import('.').EventMap}   name - Event name(s) or event map.
     *
     * @param {Function|object}   callback - Event callback function or context for event map.
     *
@@ -363,7 +365,7 @@ export class EventbusProxy
     * time that X happens, do this". When multiple events are passed in using the space separated syntax, the event
     * will fire once for every event you passed in, not once for a combination of all events
     *
-    * @param {string|object}     name - Event name(s) or event map.
+    * @param {string|import('.').EventMap}   name - Event name(s) or event map.
     *
     * @param {Function|object}   callback - Event callback function or context for event map.
     *
@@ -399,7 +401,8 @@ export class EventbusProxy
     *
     * @param {RegExp} [regex] - Optional regular expression to filter event names.
     *
-    * @yields
+    * @returns {Generator<[string, Function, object, import('.').DataOutOptions], void, unknown>} Generator
+    * @yields {[string, Function, object, import('.').DataOutOptions]}
     */
    *proxyEntries(regex = void 0)
    {
@@ -438,7 +441,7 @@ export class EventbusProxy
     *
     * @param {RegExp} [regex] - Optional regular expression to filter event names.
     *
-    * @yields
+    * @yields {string}
     */
    *proxyKeys(regex = void 0)
    {
@@ -469,19 +472,18 @@ export class EventbusProxy
    /**
     * Returns an iterable for the event names / keys of the locally proxied event names with event options.
     *
-    * Note: The event options returned will respect all of the event options from a registered event event on the main
+    * Note: The event options returned will respect all the event options from a registered event on the main
     * eventbus if applicable.
     *
     * @param {RegExp} [regex] - Optional regular expression to filter event names.
     *
-    * @yields
+    * @returns {Generator<[string, import('.').DataOutOptions], void, unknown>} Generator
+    * @yields {[string, import('.').DataOutOptions]}
     */
    *proxyKeysWithOptions(regex = void 0)
    {
       if (this.isDestroyed) { throw new ReferenceError('This EventbusProxy instance has been destroyed.'); }
       if (regex !== void 0 && !(regex instanceof RegExp)) { throw new TypeError(`'regex' is not a RegExp`); }
-
-      if (!this.#events) { return; }
 
       if (regex)
       {
@@ -579,7 +581,7 @@ export class EventbusProxy
  * The reducing API that removes a callback from the `events` object. And delegates invoking off to the eventbus
  * reference.
  *
- * @param {Events}   events - Events object
+ * @param {EventbusEvents}   events - EventbusEvents object
  *
  * @param {string}   name - Event name
  *
@@ -587,7 +589,7 @@ export class EventbusProxy
  *
  * @param {object}   opts - Optional parameters
  *
- * @returns {void|Events} Events object
+ * @returns {void|EventbusEvents} EventbusEvents object
  */
 const s_OFF_API = (events, name, callback, opts) =>
 {
@@ -644,7 +646,7 @@ const s_OFF_API = (events, name, callback, opts) =>
 /**
  * The reducing API that adds a callback to the `events` object.
  *
- * @param {Events}   events - Events object
+ * @param {EventbusEvents}   events - EventbusEvents object
  *
  * @param {string}   name - Event name
  *
@@ -652,7 +654,7 @@ const s_OFF_API = (events, name, callback, opts) =>
  *
  * @param {object}   opts - Optional parameters
  *
- * @returns {Events} Events object.
+ * @returns {EventbusEvents} EventbusEvents object.
  */
 const s_ON_API = (events, name, callback, opts) =>
 {

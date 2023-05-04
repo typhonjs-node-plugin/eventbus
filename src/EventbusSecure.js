@@ -1,7 +1,7 @@
 /**
  * EventbusSecure provides a secure wrapper around another Eventbus instance.
  *
- * The main use case of EventbusSecure is to provide a secure eventbus window for general public consumption. Only
+ * The main use case of EventbusSecure is to provide a secure eventbus window for public consumption. Only
  * events can be triggered, but not registered / unregistered.
  *
  * You must use the initialize method passing in an existing Eventbus instance as the eventbus reference is private.
@@ -90,7 +90,7 @@ export class EventbusSecure
     *
     * @param {RegExp} [regex] - Optional regular expression to filter event names.
     *
-    * @yields
+    * @yields {string}
     */
    *keys(regex = void 0)
    {
@@ -107,7 +107,8 @@ export class EventbusSecure
     *
     * @param {RegExp} [regex] - Optional regular expression to filter event names.
     *
-    * @yields
+    * @returns {Generator<[string, import('.').DataOutOptions], void, unknown>} Generator
+    * @yields {[string, import('.').DataOutOptions]}
     */
    *keysWithOptions(regex = void 0)
    {
@@ -156,7 +157,7 @@ export class EventbusSecure
    }
 
    /**
-    * Returns the trigger type of an event name.
+    * Returns the trigger type of event name.
     * Note: if trigger type is not set then undefined is returned for type otherwise 'sync' or 'async' is returned.
     *
     * @param {string}   name - Event name(s) to verify.

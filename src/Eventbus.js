@@ -3,8 +3,8 @@ import * as Utils from './utils.js';
 /**
  * `@typhonjs-plugin/eventbus` / Provides the ability to bind and trigger custom named events.
  *
- * This module is an evolution of Backbone Events. (http://backbonejs.org/#Events). Eventbus extends the
- * functionality provided in Backbone Events with additional triggering methods to receive asynchronous and
+ * This module is an evolution of Backbone EventbusEvents. (http://backbonejs.org/#Events). Eventbus extends the
+ * functionality provided in Backbone EventbusEvents with additional triggering methods to receive asynchronous and
  * synchronous results.
  *
  * ---------------
@@ -22,7 +22,7 @@ export class Eventbus
    /**
     * Stores the events map for associated events and callback / context data.
     *
-    * @type {Events|{}}
+    * @type {EventbusEvents}
     * @private
     */
    #events;
@@ -41,7 +41,7 @@ export class Eventbus
       /**
        * Stores the Listening instances for this context.
        *
-       * @type {object.<string, Listening>}
+       * @type {{ [key: string]: Listening }}
        * @private
        */
       this._listeners = void 0;
@@ -57,7 +57,7 @@ export class Eventbus
       /**
        * Stores the Listening instances for other contexts.
        *
-       * @type {object.<string, Listening>}
+       * @type {{ [key: string]: Listening }}
        * @private
        */
       this._listeningTo = void 0;
@@ -70,7 +70,7 @@ export class Eventbus
     *
     * @param {number}            count - Number of times the function will fire before being removed.
     *
-    * @param {string|object}     name - Event name(s) or event map.
+    * @param {string|import('.').EventMap}   name - Event name(s) or event map.
     *
     * @param {Function|object}   callback - Event callback function or context for event map.
     *
@@ -105,7 +105,8 @@ export class Eventbus
     *
     * @param {RegExp} [regex] - Optional regular expression to filter event names.
     *
-    * @yields
+    * @returns {Generator<[string, Function, object, import('.').DataOutOptions], void, unknown>} Generator
+    * @yields {[string, Function, object, import('.').DataOutOptions]}
     */
    *entries(regex = void 0)
    {
@@ -122,6 +123,13 @@ export class Eventbus
                for (const event of this.#events[name])
                {
                   yield [name, event.callback, event.context, JSON.parse(JSON.stringify(event.options))];
+
+                  // yield {
+                  //    name,
+                  //    callback: event.callback,
+                  //    context: event.context,
+                  //    options: JSON.parse(JSON.stringify(event.options))
+                  // };
                }
             }
          }
@@ -133,6 +141,13 @@ export class Eventbus
             for (const event of this.#events[name])
             {
                yield [name, event.callback, event.context, JSON.parse(JSON.stringify(event.options))];
+
+               // yield {
+               //    name,
+               //    callback: event.callback,
+               //    context: event.context,
+               //    options: JSON.parse(JSON.stringify(event.options))
+               // };
             }
          }
       }
@@ -194,7 +209,7 @@ export class Eventbus
    }
 
    /**
-    * Returns the trigger type of an event name.
+    * Returns the trigger type of event name.
     * Note: if trigger type is not set then undefined is returned for type otherwise 'sync' or 'async' is returned.
     *
     * @param {string}   name - Event name(s) to verify.
@@ -219,7 +234,7 @@ export class Eventbus
    /**
     * Returns whether an event name is guarded.
     *
-    * @param {string|object}  name - Event name(s) or event map to verify.
+    * @param {string|import('.').EventMap}   name - Event name(s) or event map to verify.
     *
     * @param {object}         [data] - Stores the output of which names are guarded.
     *
@@ -240,7 +255,7 @@ export class Eventbus
     *
     * @param {RegExp} [regex] - Optional regular expression to filter event names.
     *
-    * @yields
+    * @yields {string}
     */
    *keys(regex = void 0)
    {
@@ -272,7 +287,8 @@ export class Eventbus
     *
     * @param {RegExp} [regex] - Optional regular expression to filter event names.
     *
-    * @yields
+    * @returns {Generator<[string, import('.').DataOutOptions], void, unknown>} Generator
+    * @yields {[string, import('.').DataOutOptions]}
     */
    *keysWithOptions(regex = void 0)
    {
@@ -310,7 +326,7 @@ export class Eventbus
    }
 
    /**
-    * Tell an object to listen to a particular event on an other object. The advantage of using this form, instead of
+    * Tell an object to listen to a particular event on another object. The advantage of using this form, instead of
     * other.on(event, callback, object), is that listenTo allows the object to keep track of the events, and they can
     * be removed all at once later on. The callback will always be called with object as context.
     *
@@ -319,7 +335,7 @@ export class Eventbus
     *
     * @param {object}            obj - Event context
     *
-    * @param {string|object}     name - Event name(s) or event map.
+    * @param {string|import('.').EventMap}   name - Event name(s) or event map.
     *
     * @param {Function|object}   callback - Event callback function or context for event map.
     *
@@ -342,7 +358,7 @@ export class Eventbus
       let listening = _listening = listeningTo[id];
 
       // This object is not listening to any other events on `obj` yet.
-      // Setup the necessary references to track the listening callbacks.
+      // Set up the necessary references to track the listening callbacks.
       if (!listening)
       {
          this._listenId || (this._listenId = s_UNIQUE_ID('l'));
@@ -368,7 +384,7 @@ export class Eventbus
     *
     * @param {object}            obj - Target event context.
     *
-    * @param {string|object}     name - Event name(s) or event map.
+    * @param {string|import('.').EventMap}   name - Event name(s) or event map.
     *
     * @param {Function|object}   callback - Event callback function or context for event map.
     *
@@ -392,7 +408,7 @@ export class Eventbus
     *
     * @param {object}            obj - Target event context
     *
-    * @param {string|object}     name - Event name(s) or event map.
+    * @param {string|import('.').EventMap}     name - Event name(s) or event map.
     *
     * @param {Function|object}   callback - Event callback function or context for event map.
     *
@@ -410,7 +426,7 @@ export class Eventbus
    }
 
    /**
-    * Remove a previously-bound callback function from an object. If no context is specified, all of the versions of
+    * Remove a previously-bound callback function from an object. If no context is specified, all the versions of
     * the callback with different contexts will be removed. If no callback is specified, all callbacks for the event
     * will be removed. If no event is specified, callbacks for all events will be removed.
     *
@@ -433,7 +449,7 @@ export class Eventbus
     * // Removes all callbacks on `object`.
     * object.off();
     *
-    * @param {string|object}  [name] - Event name(s) or event map.
+    * @param {string|import('.').EventMap}   [name] - Event name(s) or event map.
     *
     * @param {Function}       [callback] - Event callback function
     *
@@ -477,7 +493,7 @@ export class Eventbus
     *    "destroy": bookView.remove
     * });
     *
-    * @param {string|object}     name - Event name(s) or event map.
+    * @param {string|import('.').EventMap}   name - Event name(s) or event map.
     *
     * @param {Function|object}   callback - Event callback function or context for event map.
     *
@@ -526,7 +542,7 @@ export class Eventbus
     * time that X happens, do this". When multiple events are passed in using the space separated syntax, the event
     * will fire once for every event you passed in, not once for a combination of all events
     *
-    * @param {string|object}     name - Event name(s) or event map.
+    * @param {string|import('.').EventMap}   name - Event name(s) or event map.
     *
     * @param {Function|object}   callback - Event callback function or context for event map.
     *
@@ -707,7 +723,7 @@ let _listening;
 class Listening
 {
    /**
-    * @type {Events|{}}
+    * @type {EventbusEvents|{}}
     */
    #events;
 
@@ -746,7 +762,7 @@ class Listening
       this.#interop = true;
    }
 
-   // Cleans up memory bindings between the listener and the listenee.
+   // Cleans up memory bindings between the listener and the target of the listener.
    cleanup()
    {
       delete this.#listener._listeningTo[this.#obj._listenId];
@@ -764,7 +780,7 @@ class Listening
    /**
     * @see {@link Eventbus#on}
     *
-    * @param {string|object}     name - Event name(s) or event map.
+    * @param {string|import('.').EventMap}   name - Event name(s) or event map.
     *
     * @param {Function|object}   callback - Event callback function or context for event map.
     *
@@ -786,10 +802,10 @@ class Listening
    }
 
    /**
-    * Offs a callback (or several). Uses an optimized counter if the listenee uses Eventbus. Otherwise, falls back to
-    * manual tracking to support events library interop.
+    * Offs a callback (or several). Uses an optimized counter if the target of the listener uses Eventbus. Otherwise,
+    * falls back to manual tracking to support events library interop.
     *
-    * @param {string|object}     [name] - Event name(s) or event map.
+    * @param {string|import('.').EventMap}   [name] - Event name(s) or event map.
     *
     * @param {Function|object}   [callback] - Event callback function or context for event map.
     */
@@ -905,7 +921,7 @@ const s_IS_GUARDED = (output, name, callback, opts) =>
 /**
  * The reducing API that removes a callback from the `events` object.
  *
- * @param {Events}   events - Events object
+ * @param {EventbusEvents}   events - EventbusEvents object
  *
  * @param {string}   name - Event name
  *
@@ -913,7 +929,7 @@ const s_IS_GUARDED = (output, name, callback, opts) =>
  *
  * @param {object}   opts - Optional parameters
  *
- * @returns {void|Events} Events object
+ * @returns {void|EventbusEvents} EventbusEvents object
  */
 const s_OFF_API = (events, name, callback, opts) =>
 {
@@ -977,7 +993,7 @@ const s_OFF_API = (events, name, callback, opts) =>
 /**
  * The reducing API that adds a callback to the `events` object.
  *
- * @param {Events}   events - Events object
+ * @param {EventbusEvents}   events - EventbusEvents object
  *
  * @param {string}   name - Event name
  *
@@ -985,7 +1001,7 @@ const s_OFF_API = (events, name, callback, opts) =>
  *
  * @param {object}   opts - Optional parameters
  *
- * @returns {Events} Events object.
+ * @returns {EventbusEvents} EventbusEvents object.
  */
 const s_ON_API = (events, name, callback, opts) =>
 {
@@ -1023,13 +1039,13 @@ const s_ON_API = (events, name, callback, opts) =>
 
 /**
  * Iterates over the standard `event, callback` (as well as the fancy multiple space-separated events `"change blur",
- * callback` and jQuery-style event maps `{event: callback}`).
+ * callback` and event maps `{event: callback}`).
  *
  * @param {Function} iteratee - Trigger API
  *
  * @param {Function} iterateeTarget - Internal function which is dispatched to.
  *
- * @param {Events|{}}   events - Array of stored event callback data.
+ * @param {EventbusEvents|{}}   events - Array of stored event callback data.
  *
  * @param {string}   name - Event name
  *
@@ -1112,7 +1128,7 @@ const s_RESULTS_TARGET_API = (iteratee, iterateeTarget, events, name, callback, 
  *
  * @param {Function} iterateeTarget - Internal function which is dispatched to.
  *
- * @param {Events}   objEvents - Array of stored event callback data.
+ * @param {EventbusEvents}   objEvents - Array of stored event callback data.
  *
  * @param {string}   name - Event name
  *
@@ -1174,7 +1190,7 @@ const s_TRIGGER_EVENTS = (events, args) =>
 /**
  * A difficult-to-believe, but optimized internal dispatch function for triggering events. Tries to keep the usual
  * cases speedy (most internal Backbone events have 3 arguments). This dispatch method uses ES6 Promises and adds
- * any returned results to an array which is added to a Promise.all construction which passes back a Promise which
+ * any returned results to an array which is added to a `Promise.all` construction which passes back a Promise which
  * waits until all Promises complete. Any target invoked may return a Promise or any result. This is very useful to
  * use for any asynchronous operations.
  *
@@ -1329,12 +1345,12 @@ const s_TRIGGER_SYNC_EVENTS = (events, args) =>
 };
 
 /**
- * A try-catch guarded function. Used when attempting to invoke `isGuarded` from an other eventbus / context via
+ * A try-catch guarded function. Used when attempting to invoke `isGuarded` from another eventbus / context via
  * `listenTo`.
  *
  * @param {object}         obj - Event target / context
  *
- * @param {string|object}  name - Event name(s) or event map.
+ * @param {string|import('.').EventMap}   name - Event name(s) or event map.
  *
  * @param {object}         data - Output data.
  *
@@ -1361,11 +1377,11 @@ const s_TRY_CATCH_IS_GUARDED = (obj, name, data = {}) =>
 
 /**
  * A try-catch guarded #on function, to prevent poisoning the global `_listening` variable. Used when attempting to
- * invoke `on` from an other eventbus / context via `listenTo`.
+ * invoke `on` from another eventbus / context via `listenTo`.
  *
  * @param {object}            obj - Event target / context
  *
- * @param {string|object}     name - Event name(s) or event map.
+ * @param {string|import('.').EventMap}   name - Event name(s) or event map.
  *
  * @param {Function|object}   callback - Event callback function or context for event map.
  *
@@ -1375,14 +1391,18 @@ const s_TRY_CATCH_IS_GUARDED = (obj, name, data = {}) =>
  */
 const s_TRY_CATCH_ON = (obj, name, callback, context) =>
 {
+   let error;
+
    try
    {
       obj.on(name, callback, context);
    }
    catch (err)
    {
-      return err;
+      error = err;
    }
+
+   return error;
 };
 
 /**

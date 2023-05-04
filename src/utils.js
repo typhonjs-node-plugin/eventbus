@@ -7,21 +7,21 @@ export const eventSplitter = /\s+/;
 
 /**
  * Iterates over the standard `event, callback` (as well as the fancy multiple space-separated events `"change blur",
- * callback` and jQuery-style event maps `{event: callback}`).
+ * callback` and event maps `{event: callback}`).
  *
  * @template T
  *
  * @param {Function}       iteratee - Event operation to invoke.
  *
- * @param {T}              events - Events object
+ * @param {T}              events - EventbusEvents object
  *
- * @param {string|object}  name - A single event name, compound event names, or a hash of event names.
+ * @param {string|import('.').EventMap}  name - A single event name, compound event names, or a hash of event names.
  *
  * @param {Function}       callback - Event callback function
  *
  * @param {object}         opts - Optional parameters
  *
- * @returns {T} Events object or processed data.
+ * @returns {T} EventbusEvents object or processed data.
  */
 export function eventsAPI(iteratee, events, name, callback, opts)
 {
@@ -121,7 +121,7 @@ export const objectKeys = (object) =>
  * Reduces the event callbacks into a map of `{event: beforeWrapper}`. `after` unbinds the `beforeWrapper` after
  * it has been called the number of times specified by options.count.
  *
- * @param {Events}   map - Events object
+ * @param {EventbusEvents}   map - EventbusEvents object
  *
  * @param {string}   name - Event name
  *
@@ -129,7 +129,7 @@ export const objectKeys = (object) =>
  *
  * @param {object}   opts - Function to invoke after event has been triggered once; `off()`
  *
- * @returns {Events} The Events object.
+ * @returns {EventbusEvents} The EventbusEvents object.
  */
 export function beforeMap(map, name, callback, opts)
 {

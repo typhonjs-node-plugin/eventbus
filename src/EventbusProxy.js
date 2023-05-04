@@ -62,7 +62,7 @@ export class EventbusProxy
     *
     * @param {object}            [context] - Event context
     *
-    * @param {import('.').ProxyOnOptions}    [options] - Event registration options.
+    * @param {import('.').EventOptions}   [options] - Event registration options.
     *
     * @returns {EventbusProxy} This EventbusProxy instance.
     */
@@ -329,7 +329,7 @@ export class EventbusProxy
     *
     * @param {object}            [context] - Event context.
     *
-    * @param {import('.').ProxyOnOptions}    [options] - Event registration options.
+    * @param {import('.').EventOptions}   [options] - Event registration options.
     *
     * @returns {EventbusProxy} This EventbusProxy
     */
@@ -371,7 +371,7 @@ export class EventbusProxy
     *
     * @param {object}            context - Event context
     *
-    * @param {import('.').ProxyOnOptions}    [options] - Event registration options.
+    * @param {import('.').EventOptions}   [options] - Event registration options.
     *
     * @returns {EventbusProxy} This EventbusProxy instance.
     */

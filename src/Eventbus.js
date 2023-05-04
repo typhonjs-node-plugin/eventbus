@@ -76,7 +76,7 @@ export class Eventbus
     *
     * @param {object}            [context] - Event context
     *
-    * @param {import('.').OnOptions}         [options] - Event registration options.
+    * @param {import('.').EventOptions}         [options] - Event registration options.
     *
     * @returns {Eventbus} This Eventbus instance.
     */
@@ -499,7 +499,7 @@ export class Eventbus
     *
     * @param {object}            [context] - Event context
     *
-    * @param {import('.').OnOptions}         [options] - Event registration options.
+    * @param {import('.').EventOptions}         [options] - Event registration options.
     *
     * @returns {Eventbus} This Eventbus instance.
     */
@@ -548,7 +548,7 @@ export class Eventbus
     *
     * @param {object}            [context] - Event context.
     *
-    * @param {import('.').OnOptions}         [options] - Event registration options.
+    * @param {import('.').EventOptions}         [options] - Event registration options.
     *
     * @returns {Eventbus} This Eventbus instance.
     */

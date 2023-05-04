@@ -52,21 +52,12 @@ export { Eventbus };
  */
 
 /**
- * @typedef {object} OnOptions Event registration options for Eventbus.
+ * @typedef {object} EventOptions Event registration options.
  *
  * @property {boolean}        [guard] When set to true this registration is guarded. Further attempts to register an
- * event by the same name will not be possible as long as a guarded event exists.
+ * event by the same name will not be possible as long as a guarded event exists with the same name.
  *
- * @property {string|number}  [type] Provides a hint on the trigger type. May be a string or number 'sync' / 1 or
- * 'async' / 2. Any other value is not recognized and internally type will be set to undefined / 0.
- */
-
-/**
- * @typedef {object} ProxyOnOptionsBase Event registration options.
- *
- * @property {boolean} [private] -
- */
-
-/**
- * @typedef {OnOptions & ProxyOnOptionsBase} ProxyOnOptions Event registration options for EventbusProxy.
+ * @property {'sync'|'async'} [type] Provides a hint on the trigger type. It may be a string 'sync' or 'async'.
+ * Any other value is not recognized and internally type will be set to undefined. If the callback is a function
+ * defined with the `async` modifier it will automatically be detected as async.
  */

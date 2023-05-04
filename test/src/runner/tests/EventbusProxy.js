@@ -574,6 +574,33 @@ export function run({ Module, chai })
          assert.strictEqual(result, 'async');
       });
 
+      it('getType - trigger / async automatic detection', () =>
+      {
+         proxy.on('test:trigger', async () => {}, void 0);
+
+         const result = proxy.getType('test:trigger');
+
+         assert.strictEqual(result, 'async');
+      });
+
+      it('getType - trigger / async automatic detection (incorrect type)', () =>
+      {
+         proxy.on('test:trigger', async () => {}, void 0, { type: 'sync' });
+
+         const result = proxy.getType('test:trigger');
+
+         assert.strictEqual(result, 'async');
+      });
+
+      it('getType - trigger / *async automatic detection', () =>
+      {
+         proxy.on('test:trigger', async function *() {}, void 0);
+
+         const result = proxy.getType('test:trigger');
+
+         assert.strictEqual(result, 'async');
+      });
+
       it('keys throws when regex not instance of RegExp', () =>
       {
          expect(() =>

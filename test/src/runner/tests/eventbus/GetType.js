@@ -81,6 +81,33 @@ export function run({ Module, chai })
          assert.strictEqual(result, 'async');
       });
 
+      it('trigger / async automatic detection', () =>
+      {
+         eventbus.on('test:trigger', async () => {}, void 0);
+
+         const result = eventbus.getType('test:trigger');
+
+         assert.strictEqual(result, 'async');
+      });
+
+      it('trigger / *async automatic detection', () =>
+      {
+         eventbus.on('test:trigger', async function *() {}, void 0);
+
+         const result = eventbus.getType('test:trigger');
+
+         assert.strictEqual(result, 'async');
+      });
+
+      it('trigger / async automatic detection (incorrect options type)', () =>
+      {
+         eventbus.on('test:trigger', async () => {}, void 0, { type: 'sync' });
+
+         const result = eventbus.getType('test:trigger');
+
+         assert.strictEqual(result, 'async');
+      });
+
       it('mixed trigger / normal + sync', async () =>
       {
          eventbus.on('test:trigger', () => { return 1; }, void 0, { type: 'sync' });

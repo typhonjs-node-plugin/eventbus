@@ -87,6 +87,36 @@ export function run({ Module, chai })
          assert.strictEqual(result.type, 'async');
       });
 
+      it('trigger / async automatic detection', () =>
+      {
+         eventbus.on('test:trigger', async () => {}, void 0);
+
+         const result = eventbus.getOptions('test:trigger');
+
+         assert.strictEqual(result.guard, false);
+         assert.strictEqual(result.type, 'async');
+      });
+
+      it('trigger / async automatic detection (incorrect type)', () =>
+      {
+         eventbus.on('test:trigger', async () => {}, void 0, { type: 'sync' });
+
+         const result = eventbus.getOptions('test:trigger');
+
+         assert.strictEqual(result.guard, false);
+         assert.strictEqual(result.type, 'async');
+      });
+
+      it('trigger / *async automatic detection', () =>
+      {
+         eventbus.on('test:trigger', async function *() {}, void 0);
+
+         const result = eventbus.getOptions('test:trigger');
+
+         assert.strictEqual(result.guard, false);
+         assert.strictEqual(result.type, 'async');
+      });
+
       it('guarded / mixed trigger / normal + sync', async () =>
       {
          eventbus.on('test:trigger', () => { return 1; }, void 0, { type: 'sync' });

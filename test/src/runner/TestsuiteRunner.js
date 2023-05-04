@@ -4,7 +4,6 @@ import * as APIChecks      from './tests/eventbus/APIChecks.js';
 import * as Backbone       from './tests/eventbus/Backbone.js';
 import * as GetOptions     from './tests/eventbus/GetOptions.js';
 import * as GetType        from './tests/eventbus/GetType.js';
-import * as Instances      from './tests/eventbus/Instances.js';
 import * as OtherAPI       from './tests/eventbus/OtherAPI.js';
 import * as Trigger        from './tests/eventbus/Trigger.js';
 import * as TriggerAsync   from './tests/eventbus/TriggerAsync.js';
@@ -23,7 +22,6 @@ export default new TestsuiteRunner({
    Backbone,
    GetOptions,
    GetType,
-   Instances,
    OtherAPI,
    Trigger,
    TriggerAsync,

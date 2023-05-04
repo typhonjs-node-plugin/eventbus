@@ -672,18 +672,27 @@ export class EventbusProxy
          // Ensure that guard is set.
          options.guard = options.guard !== void 0 && typeof options.guard === 'boolean' ? options.guard : false;
 
-         // Ensure that type is set.
-         switch (options.type)
+         // Determine automatically if the callback is `async` via being defined with the `async` modifier.
+         if (callback instanceof EventbusUtils.AsyncFunction ||
+          callback instanceof EventbusUtils.AsyncGeneratorFunction)
          {
-            case 'sync':
-               options.type = 1;
-               break;
-            case 'async':
-               options.type = 2;
-               break;
-            default:
-               options.type = 0;
-               break;
+            options.type = 2;
+         }
+         else
+         {
+            // Ensure that type is set.
+            switch (options.type)
+            {
+               case 'sync':
+                  options.type = 1;
+                  break;
+               case 'async':
+                  options.type = 2;
+                  break;
+               default:
+                  options.type = 0;
+                  break;
+            }
          }
 
          // Set opts `ctx` as this is what we send to the eventbus.

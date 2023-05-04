@@ -4,6 +4,20 @@
 export class EventbusUtils
 {
    /**
+    * Used in instanceof checks to determine if callbacks are async.
+    *
+    * @type {Function}
+    */
+   static AsyncFunction = /* c8 ignore start */async function() {}.constructor;/* c8 ignore stop */
+
+   /**
+    * Used in instanceof checks to determine if callbacks are async.
+    *
+    * @type {Function}
+    */
+   static AsyncGeneratorFunction = /* c8 ignore start */async function *() {}.constructor;/* c8 ignore stop */
+
+   /**
     * Regular expression used to split event strings.
     *
     * @type {RegExp}

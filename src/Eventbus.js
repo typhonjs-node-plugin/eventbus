@@ -1,13 +1,8 @@
 import { EventbusUtils } from './EventbusUtils.js';
 
 /**
- * `@typhonjs-plugin/eventbus` / Provides the ability to bind and trigger custom named events.
- *
- * This module is an evolution of Backbone EventbusEvents. (http://backbonejs.org/#Events). Eventbus extends the
- * functionality provided in Backbone EventbusEvents with additional triggering methods to receive asynchronous and
- * synchronous results.
- *
- * ---------------
+ * `@typhonjs-plugin/eventbus` / Provides the ability to bind and trigger custom named events. Bound callback functions
+ * may be triggered asynchronously or synchronously returning results.
  */
 export class Eventbus
 {
@@ -431,8 +426,7 @@ export class Eventbus
     * the callback with different contexts will be removed. If no callback is specified, all callbacks for the event
     * will be removed. If no event is specified, callbacks for all events will be removed.
     *
-    * Note that calling model.off(), for example, will indeed remove all events on the model — including events that
-    * Backbone uses for internal bookkeeping.
+    * Note that calling model.off(), for example, will indeed remove all events on the model.
     *
     * @example
     * // Removes just the `onChange` callback.
@@ -488,7 +482,7 @@ export class Eventbus
     * });
     *
     * @example
-    * All Backbone event methods also support an event map syntax, as an alternative to positional arguments:
+    * All event methods also support an event map syntax, as an alternative to positional arguments:
     * book.on({
     *    "change:author": authorPane.update,
     *    "change:title change:subtitle": titleView.update,
@@ -1028,18 +1022,27 @@ export class Eventbus
          // Ensure that guard is set.
          options.guard = typeof options.guard === 'boolean' ? options.guard : false;
 
-         // Make sure options.type is set.
-         switch (options.type)
+         // Determine automatically if the callback is `async` via being defined with the `async` modifier.
+         if (callback instanceof EventbusUtils.AsyncFunction ||
+          callback instanceof EventbusUtils.AsyncGeneratorFunction)
          {
-            case 'sync':
-               options.type = 1;
-               break;
-            case 'async':
-               options.type = 2;
-               break;
-            default:
-               options.type = 0;
-               break;
+            options.type = 2;
+         }
+         else
+         {
+            // Ensure that type is set.
+            switch (options.type)
+            {
+               case 'sync':
+                  options.type = 1;
+                  break;
+               case 'async':
+                  options.type = 2;
+                  break;
+               default:
+                  options.type = 0;
+                  break;
+            }
          }
 
          if (listening) { listening.incrementCount(); }
@@ -1168,7 +1171,7 @@ export class Eventbus
 
    /**
     * A difficult-to-believe, but optimized internal dispatch function for triggering events. Tries to keep the usual
-    * cases speedy (most internal Backbone events have 3 arguments).
+    * cases speedy.
     *
     * @param {EventData[]} events - Array of stored event callback data.
     *
@@ -1201,10 +1204,9 @@ export class Eventbus
 
    /**
     * A difficult-to-believe, but optimized internal dispatch function for triggering events. Tries to keep the usual
-    * cases speedy (most internal Backbone events have 3 arguments). This dispatch method uses ES6 Promises and adds
-    * any returned results to an array which is added to a `Promise.all` construction which passes back a Promise which
-    * waits until all Promises complete. Any target invoked may return a Promise or any result. This is very useful to
-    * use for any asynchronous operations.
+    * cases speedy. This dispatch method uses ES6 Promises and adds any returned results to an array which is added to
+    * a `Promise.all` construction which passes back a Promise which waits until all Promises complete. Any target
+    * invoked may return a Promise or any result. This is very useful to use for any asynchronous operations.
     *
     * @param {EventData[]} events - Array of stored event callback data.
     *
@@ -1287,8 +1289,8 @@ export class Eventbus
 
    /**
     * A difficult-to-believe, but optimized internal dispatch function for triggering events. Tries to keep the usual
-    * cases speedy (most internal Backbone events have 3 arguments). This dispatch method synchronously passes back a
-    * single value or an array with all results returned by any invoked targets.
+    * cases speedy. This dispatch method synchronously passes back a single value or an array with all results returned
+    * by any invoked targets.
     *
     * @param {EventData[]} events - Array of stored event callback data.
     *

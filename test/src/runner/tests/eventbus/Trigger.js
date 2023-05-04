@@ -266,7 +266,7 @@ export function run({ Module, chai })
          assert.strictEqual(callbacks.testTriggerCount, 1);
       });
 
-      it('trigger (listenToBefpre)', () =>
+      it('trigger (listenToBefore)', () =>
       {
          const test = new Eventbus();
 

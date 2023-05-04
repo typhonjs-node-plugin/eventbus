@@ -9,7 +9,7 @@ import * as Utils from './utils.js';
  *
  * ---------------
  */
-export default class Eventbus
+export class Eventbus
 {
    /**
     * Stores the name of this eventbus.
@@ -76,7 +76,7 @@ export default class Eventbus
     *
     * @param {object}            [context] - Event context
     *
-    * @param {OnOptions}         [options] - Event registration options.
+    * @param {import('.').OnOptions}         [options] - Event registration options.
     *
     * @returns {Eventbus} This Eventbus instance.
     */
@@ -171,7 +171,7 @@ export default class Eventbus
     *
     * @param {string}   name - Event name(s) to verify.
     *
-    * @returns {DataOutOptions} The event options.
+    * @returns {import('.').DataOutOptions} The event options.
     */
    getOptions(name)
    {
@@ -483,7 +483,7 @@ export default class Eventbus
     *
     * @param {object}            [context] - Event context
     *
-    * @param {OnOptions}         [options] - Event registration options.
+    * @param {import('.').OnOptions}         [options] - Event registration options.
     *
     * @returns {Eventbus} This Eventbus instance.
     */
@@ -532,7 +532,7 @@ export default class Eventbus
     *
     * @param {object}            [context] - Event context.
     *
-    * @param {OnOptions}         [options] - Event registration options.
+    * @param {import('.').OnOptions}         [options] - Event registration options.
     *
     * @returns {Eventbus} This Eventbus instance.
     */

@@ -10,12 +10,12 @@
  * contains two functions to control the secure eventbus externally; `destroy` and `setEventbus`. Expose to end
  * consumers just the `eventbusSecure` instance.
  */
-export default class EventbusSecure
+export class EventbusSecure
 {
    /**
     * Stores the target eventbus.
     *
-    * @type {Eventbus}
+    * @type {import('.').Eventbus}
     * @private
     */
    #eventbus;
@@ -35,11 +35,11 @@ export default class EventbusSecure
     * `destroy()` will destroy the underlying Eventbus reference.
     * `setEventbus(<eventbus>)` will set the underlying reference.
     *
-    * @param {Eventbus|EventbusProxy}  eventbus - The target eventbus instance.
+    * @param {import('.').Eventbus|import('.').EventbusProxy}  eventbus - The target eventbus instance.
     *
     * @param {string}                  [name] - If a name is provided this will be used instead of eventbus name.
     *
-    * @returns {EventbusSecureObj} The control object which contains an EventbusSecure reference and control functions.
+    * @returns {import('.').EventbusSecureObj} The control object which contains an EventbusSecure reference and control functions.
     */
    static initialize(eventbus, name = void 0)
    {
@@ -146,7 +146,7 @@ export default class EventbusSecure
     *
     * @param {string}   name - Event name(s) to verify.
     *
-    * @returns {DataOutOptions} The event options.
+    * @returns {import('.').DataOutOptions} The event options.
     */
    getOptions(name)
    {

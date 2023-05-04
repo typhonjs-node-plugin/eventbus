@@ -19,12 +19,12 @@ import * as Utils     from './utils.js';
  * Finally the EventbusProxy only allows events registered through it to be turned off providing a buffer between
  * any consumers such that they can not turn off other registrations made on the eventbus or other proxy instances.
  */
-export default class EventbusProxy
+export class EventbusProxy
 {
    /**
     * Stores the target eventbus.
     *
-    * @type {Eventbus}
+    * @type {import('.').Eventbus}
     * @private
     */
    #eventbus;
@@ -40,7 +40,7 @@ export default class EventbusProxy
    /**
     * Creates the event proxy with an existing instance of Eventbus.
     *
-    * @param {Eventbus}   eventbus - The target eventbus instance.
+    * @param {import('.').Eventbus}   eventbus - The target eventbus instance.
     */
    constructor(eventbus)
    {
@@ -62,7 +62,7 @@ export default class EventbusProxy
     *
     * @param {object}            [context] - Event context
     *
-    * @param {ProxyOnOptions}    [options] - Event registration options.
+    * @param {import('.').ProxyOnOptions}    [options] - Event registration options.
     *
     * @returns {EventbusProxy} This EventbusProxy instance.
     */
@@ -249,7 +249,7 @@ export default class EventbusProxy
     *
     * @param {string}   name - Event name(s) to verify.
     *
-    * @returns {DataOutOptions} The event options.
+    * @returns {import('.').DataOutOptions} The event options.
     */
    getOptions(name)
    {
@@ -327,7 +327,7 @@ export default class EventbusProxy
     *
     * @param {object}            [context] - Event context.
     *
-    * @param {ProxyOnOptions}    [options] - Event registration options.
+    * @param {import('.').ProxyOnOptions}    [options] - Event registration options.
     *
     * @returns {EventbusProxy} This EventbusProxy
     */
@@ -369,7 +369,7 @@ export default class EventbusProxy
     *
     * @param {object}            context - Event context
     *
-    * @param {ProxyOnOptions}    [options] - Event registration options.
+    * @param {import('.').ProxyOnOptions}    [options] - Event registration options.
     *
     * @returns {EventbusProxy} This EventbusProxy instance.
     */

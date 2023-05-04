@@ -1,96 +1,4 @@
 /**
- * The complete options for an event name.
- */
-type DataOutOptions = {
-    /**
-     * - The guarded option.
-     */
-    guard: boolean;
-    /**
-     * - The type option.
-     */
-    type: string;
-};
-/**
- * The callback data for an event.
- */
-type EventData = {
-    /**
-     * - Callback function
-     */
-    callback: Function;
-    /**
-     * - Event context
-     */
-    context: object;
-    /**
-     * - Event context or local eventbus instance.
-     */
-    ctx: object;
-    /**
-     * - Holds options for this event registration, One such option is 'guarded' which prevents
-     *   multiple registrations.
-     */
-    options: object;
-    /**
-     * - Any associated listening instance.
-     */
-    listening?: object;
-};
-/**
- * - Event data stored by event name.
- */
-type Events = {
-    [x: string]: EventData[];
-};
-/**
- * - The control object returned by `EventbusSecure.initialize`.
- */
-type EventbusSecureObj = {
-    /**
-     * - A function which destroys the underlying Eventbus reference.
-     */
-    destroy: Function;
-    /**
-     * - The EventbusSecure instance.
-     */
-    eventbusSecure: any;
-    /**
-     * - A function to set the underlying Eventbus reference.
-     */
-    setEventbus: Function;
-};
-/**
- * - Event registration options for Eventbus.
- */
-type OnOptions = {
-    /**
-     * - When set to true this registration is guarded. Further attempts to register an
-     *    event by the same name will not be possible as long as a guarded event exists.
-     */
-    guard?: boolean;
-    /**
-     * - Provides a hint on the trigger type. May be a string or number 'sync' / 1 or
-     *    'async' / 2. Any other value is not recognized and internally type will be
-     *    set to undefined / 0.
-     */
-    type?: string | number;
-};
-/**
- * - Event registration options.
- */
-type ProxyOnOptionsBase = {
-    /**
-     * -
-     */
-    private?: boolean;
-};
-/**
- * - Event registration options for EventbusProxy.
- */
-type ProxyOnOptions = OnOptions & ProxyOnOptionsBase;
-
-/**
  * EventbusProxy provides a protected proxy of another Eventbus instance.
  *
  * The main use case of EventbusProxy is to allow indirect access to an eventbus. This is handy when it comes to
@@ -102,20 +10,20 @@ type ProxyOnOptions = OnOptions & ProxyOnOptionsBase;
  *
  * EventbusProxy provides the on / off, before, once, and trigger methods with the same signatures as found in
  * Eventbus. However, the proxy tracks all added event bindings which is used to proxy between the target
- * eventbus which is passed in from the constructor. All registration methods (on / off / once) proxy. In addition
+ * eventbus which is passed in from the constructor. All registration methods (on / off / once) proxy. In addition,
  * there is a `destroy` method which will unregister all of proxied events and remove references to the managed
  * eventbus. Any further usage of a destroyed EventbusProxy instance results in a ReferenceError thrown.
  *
- * Finally the EventbusProxy only allows events registered through it to be turned off providing a buffer between
+ * Finally, the EventbusProxy only allows events registered through it to be turned off providing a buffer between
  * any consumers such that they can not turn off other registrations made on the eventbus or other proxy instances.
  */
 declare class EventbusProxy {
     /**
      * Creates the event proxy with an existing instance of Eventbus.
      *
-     * @param {Eventbus}   eventbus - The target eventbus instance.
+     * @param {import('.').Eventbus}   eventbus - The target eventbus instance.
      */
-    constructor(eventbus: any);
+    constructor(eventbus: Eventbus);
     /**
      * Just like `on`, but causes the bound callback to fire several times up to the count specified before being
      * removed. When multiple events are passed in using the space separated syntax, the event
@@ -123,17 +31,17 @@ declare class EventbusProxy {
      *
      * @param {number}            count - Number of times the function will fire before being removed.
      *
-     * @param {string|object}     name - Event name(s) or event map.
+     * @param {string|import('.').EventMap}   name - Event name(s) or event map.
      *
      * @param {Function|object}   callback - Event callback function or context for event map.
      *
      * @param {object}            [context] - Event context
      *
-     * @param {ProxyOnOptions}    [options] - Event registration options.
+     * @param {import('.').EventOptions}   [options] - Event registration options.
      *
      * @returns {EventbusProxy} This EventbusProxy instance.
      */
-    before(count: number, name: string | object, callback: Function | object, context?: object, options?: ProxyOnOptions): EventbusProxy;
+    before(count: number, name: string | EventMap, callback: Function | object, context?: object, options?: EventOptions): EventbusProxy;
     /**
      * Creates an EventbusProxy wrapping the backing Eventbus instance. An EventbusProxy proxies events allowing all
      * listeners added to be easily removed from the wrapped Eventbus.
@@ -152,9 +60,10 @@ declare class EventbusProxy {
      *
      * @param {RegExp} [regex] - Optional regular expression to filter event names.
      *
-     * @yields
+     * @returns {Generator<[string, Function, object, import('.').DataOutOptions], void, unknown>} Generator
+     * @yields {[string, Function, object, import('.').DataOutOptions]}
      */
-    entries(regex?: RegExp): Generator<any, void, unknown>;
+    entries(regex?: RegExp): Generator<[string, Function, object, DataOutOptions], void, unknown>;
     /**
      * Returns the current proxied eventbus event count.
      *
@@ -172,17 +81,18 @@ declare class EventbusProxy {
      *
      * @param {RegExp} [regex] - Optional regular expression to filter event names.
      *
-     * @yields
+     * @yields {string}
      */
-    keys(regex?: RegExp): Generator<any, void, unknown>;
+    keys(regex?: RegExp): Generator<string, void, unknown>;
     /**
      * Returns an iterable for the event names / keys of registered event listeners along with event options.
      *
      * @param {RegExp} [regex] - Optional regular expression to filter event names.
      *
-     * @yields
+     * @returns {Generator<[string, import('.').DataOutOptions], void, unknown>} Generator
+     * @yields {[string, import('.').DataOutOptions]}
      */
-    keysWithOptions(regex?: RegExp): Generator<any, void, unknown>;
+    keysWithOptions(regex?: RegExp): Generator<[string, DataOutOptions], void, unknown>;
     /**
      * Returns whether this EventbusProxy has already been destroyed.
      *
@@ -212,11 +122,11 @@ declare class EventbusProxy {
      *
      * @param {string}   name - Event name(s) to verify.
      *
-     * @returns {DataOutOptions} The event options.
+     * @returns {import('.').DataOutOptions} The event options.
      */
     getOptions(name: string): DataOutOptions;
     /**
-     * Returns the trigger type of an event name.
+     * Returns the trigger type of event name.
      * Note: if trigger type is not set then undefined is returned for type otherwise 'sync' or 'async' is returned.
      *
      * @param {string}   name - Event name(s) to verify.
@@ -227,19 +137,19 @@ declare class EventbusProxy {
     /**
      * Returns whether an event name is guarded.
      *
-     * @param {string|object}  name - Event name(s) or event map to verify.
+     * @param {string|import('.').EventMap}  name - Event name(s) or event map to verify.
      *
      * @param {object}         [data] - Stores the output of which names are guarded.
      *
      * @returns {boolean} Whether the given event name is guarded.
      */
-    isGuarded(name: string | object, data?: object): boolean;
+    isGuarded(name: string | EventMap, data?: object): boolean;
     /**
      * Remove a previously-bound proxied event binding.
      *
      * Please see {@link Eventbus#off}.
      *
-     * @param {string|object}  [name] - Event name(s) or event map.
+     * @param {string|import('.').EventMap}  [name] - Event name(s) or event map.
      *
      * @param {Function}       [callback] - Event callback function
      *
@@ -247,7 +157,7 @@ declare class EventbusProxy {
      *
      * @returns {EventbusProxy} This EventbusProxy
      */
-    off(name?: string | object, callback?: Function, context?: object): EventbusProxy;
+    off(name?: string | EventMap, callback?: Function, context?: object): EventbusProxy;
     /**
      * Bind a callback function to an object. The callback will be invoked whenever the event is fired. If you have a
      * large number of different events on a page, the convention is to use colons to namespace them: "poll:start", or
@@ -255,61 +165,63 @@ declare class EventbusProxy {
      *
      * Please see {@link Eventbus#on}.
      *
-     * @param {string|object}     name - Event name(s) or event map.
+     * @param {string|import('.').EventMap}   name - Event name(s) or event map.
      *
      * @param {Function|object}   callback - Event callback function or context for event map.
      *
      * @param {object}            [context] - Event context.
      *
-     * @param {ProxyOnOptions}    [options] - Event registration options.
+     * @param {import('.').EventOptions}   [options] - Event registration options.
      *
      * @returns {EventbusProxy} This EventbusProxy
      */
-    on(name: string | object, callback: Function | object, context?: object, options?: ProxyOnOptions): EventbusProxy;
+    on(name: string | EventMap, callback: Function | object, context?: object, options?: EventOptions): EventbusProxy;
     /**
      * Just like `on`, but causes the bound callback to fire only once before being removed. Handy for saying "the next
      * time that X happens, do this". When multiple events are passed in using the space separated syntax, the event
      * will fire once for every event you passed in, not once for a combination of all events
      *
-     * @param {string|object}     name - Event name(s) or event map.
+     * @param {string|import('.').EventMap}   name - Event name(s) or event map.
      *
      * @param {Function|object}   callback - Event callback function or context for event map.
      *
      * @param {object}            context - Event context
      *
-     * @param {ProxyOnOptions}    [options] - Event registration options.
+     * @param {import('.').EventOptions}   [options] - Event registration options.
      *
      * @returns {EventbusProxy} This EventbusProxy instance.
      */
-    once(name: string | object, callback: Function | object, context?: object, options?: ProxyOnOptions): EventbusProxy;
+    once(name: string | EventMap, callback: Function | object, context?: object, options?: EventOptions): EventbusProxy;
     /**
      * Returns an iterable for all stored locally proxied events yielding an array with event name, callback
      * function, and event context.
      *
      * @param {RegExp} [regex] - Optional regular expression to filter event names.
      *
-     * @yields
+     * @returns {Generator<[string, Function, object, import('.').DataOutOptions], void, unknown>} Generator
+     * @yields {[string, Function, object, import('.').DataOutOptions]}
      */
-    proxyEntries(regex?: RegExp): Generator<any[], void, unknown>;
+    proxyEntries(regex?: RegExp): Generator<[string, Function, object, DataOutOptions], void, unknown>;
     /**
      * Returns an iterable for the event names / keys of the locally proxied event names.
      *
      * @param {RegExp} [regex] - Optional regular expression to filter event names.
      *
-     * @yields
+     * @yields {string}
      */
     proxyKeys(regex?: RegExp): Generator<string, void, unknown>;
     /**
      * Returns an iterable for the event names / keys of the locally proxied event names with event options.
      *
-     * Note: The event options returned will respect all of the event options from a registered event event on the main
+     * Note: The event options returned will respect all the event options from a registered event on the main
      * eventbus if applicable.
      *
      * @param {RegExp} [regex] - Optional regular expression to filter event names.
      *
-     * @yields
+     * @returns {Generator<[string, import('.').DataOutOptions], void, unknown>} Generator
+     * @yields {[string, import('.').DataOutOptions]}
      */
-    proxyKeysWithOptions(regex?: RegExp): Generator<any[], void, unknown>;
+    proxyKeysWithOptions(regex?: RegExp): Generator<[string, DataOutOptions], void, unknown>;
     /**
      * Trigger callbacks for the given event, or space-delimited list of events. Subsequent arguments to trigger will be
      * passed along to the event callbacks.
@@ -360,7 +272,7 @@ declare class EventbusProxy {
 /**
  * EventbusSecure provides a secure wrapper around another Eventbus instance.
  *
- * The main use case of EventbusSecure is to provide a secure eventbus window for general public consumption. Only
+ * The main use case of EventbusSecure is to provide a secure eventbus window for public consumption. Only
  * events can be triggered, but not registered / unregistered.
  *
  * You must use the initialize method passing in an existing Eventbus instance as the eventbus reference is private.
@@ -377,29 +289,31 @@ declare class EventbusSecure {
      * `destroy()` will destroy the underlying Eventbus reference.
      * `setEventbus(<eventbus>)` will set the underlying reference.
      *
-     * @param {Eventbus|EventbusProxy}  eventbus - The target eventbus instance.
+     * @param {import('.').Eventbus|import('.').EventbusProxy}  eventbus - The target eventbus instance.
      *
      * @param {string}                  [name] - If a name is provided this will be used instead of eventbus name.
      *
-     * @returns {EventbusSecureObj} The control object which contains an EventbusSecure reference and control functions.
+     * @returns {import('.').EventbusSecureObj} The control object which contains an EventbusSecure reference and
+     *          control functions.
      */
-    static initialize(eventbus: any | any, name?: string): EventbusSecureObj;
+    static initialize(eventbus: Eventbus | EventbusProxy, name?: string): EventbusSecureObj;
     /**
      * Returns an iterable for the event names / keys of secured eventbus event listeners.
      *
      * @param {RegExp} [regex] - Optional regular expression to filter event names.
      *
-     * @yields
+     * @yields {string}
      */
-    keys(regex?: RegExp): Generator<any, void, unknown>;
+    keys(regex?: RegExp): Generator<string, void, unknown>;
     /**
      * Returns an iterable for the event names / keys of registered event listeners along with event options.
      *
      * @param {RegExp} [regex] - Optional regular expression to filter event names.
      *
-     * @yields
+     * @returns {Generator<[string, import('.').DataOutOptions], void, unknown>} Generator
+     * @yields {[string, import('.').DataOutOptions]}
      */
-    keysWithOptions(regex?: RegExp): Generator<any, void, unknown>;
+    keysWithOptions(regex?: RegExp): Generator<[string, DataOutOptions], void, unknown>;
     /**
      * Returns whether this instance has already been destroyed.
      *
@@ -417,11 +331,11 @@ declare class EventbusSecure {
      *
      * @param {string}   name - Event name(s) to verify.
      *
-     * @returns {DataOutOptions} The event options.
+     * @returns {import('.').DataOutOptions} The event options.
      */
     getOptions(name: string): DataOutOptions;
     /**
-     * Returns the trigger type of an event name.
+     * Returns the trigger type of event name.
      * Note: if trigger type is not set then undefined is returned for type otherwise 'sync' or 'async' is returned.
      *
      * @param {string}   name - Event name(s) to verify.
@@ -477,13 +391,8 @@ declare class EventbusSecure {
 }
 
 /**
- * `@typhonjs-plugin/eventbus` / Provides the ability to bind and trigger custom named events.
- *
- * This module is an evolution of Backbone Events. (http://backbonejs.org/#Events). Eventbus extends the
- * functionality provided in Backbone Events with additional triggering methods to receive asynchronous and
- * synchronous results.
- *
- * ---------------
+ * `@typhonjs-plugin/eventbus` / Provides the ability to bind and trigger custom named events. Bound callback functions
+ * may be triggered asynchronously or synchronously returning results.
  */
 declare class Eventbus {
     /**
@@ -499,25 +408,26 @@ declare class Eventbus {
      *
      * @param {number}            count - Number of times the function will fire before being removed.
      *
-     * @param {string|object}     name - Event name(s) or event map.
+     * @param {string|import('.').EventMap}   name - Event name(s) or event map.
      *
      * @param {Function|object}   callback - Event callback function or context for event map.
      *
      * @param {object}            [context] - Event context
      *
-     * @param {OnOptions}         [options] - Event registration options.
+     * @param {import('.').EventOptions}         [options] - Event registration options.
      *
      * @returns {Eventbus} This Eventbus instance.
      */
-    before(count: number, name: string | object, callback: Function | object, context?: object, options?: OnOptions): Eventbus;
+    before(count: number, name: string | EventMap, callback: Function | object, context?: object, options?: EventOptions): Eventbus;
     /**
      * Returns an iterable for all stored events yielding an array with event name, callback function, and event context.
      *
      * @param {RegExp} [regex] - Optional regular expression to filter event names.
      *
-     * @yields
+     * @returns {Generator<[string, Function, object, import('.').DataOutOptions], void, unknown>} Generator
+     * @yields {[string, Function, object, import('.').DataOutOptions]}
      */
-    entries(regex?: RegExp): Generator<any[], void, unknown>;
+    entries(regex?: RegExp): Generator<[string, Function, object, DataOutOptions], void, unknown>;
     /**
      * Returns the current event count.
      *
@@ -535,11 +445,11 @@ declare class Eventbus {
      *
      * @param {string}   name - Event name(s) to verify.
      *
-     * @returns {DataOutOptions} The event options.
+     * @returns {import('.').DataOutOptions} The event options.
      */
     getOptions(name: string): DataOutOptions;
     /**
-     * Returns the trigger type of an event name.
+     * Returns the trigger type of event name.
      * Note: if trigger type is not set then undefined is returned for type otherwise 'sync' or 'async' is returned.
      *
      * @param {string}   name - Event name(s) to verify.
@@ -550,19 +460,19 @@ declare class Eventbus {
     /**
      * Returns whether an event name is guarded.
      *
-     * @param {string|object}  name - Event name(s) or event map to verify.
+     * @param {string|import('.').EventMap}   name - Event name(s) or event map to verify.
      *
      * @param {object}         [data] - Stores the output of which names are guarded.
      *
      * @returns {boolean} Whether the given event name is guarded.
      */
-    isGuarded(name: string | object, data?: object): boolean;
+    isGuarded(name: string | EventMap, data?: object): boolean;
     /**
      * Returns an iterable for the event names / keys of registered event listeners.
      *
      * @param {RegExp} [regex] - Optional regular expression to filter event names.
      *
-     * @yields
+     * @yields {string}
      */
     keys(regex?: RegExp): Generator<string, void, unknown>;
     /**
@@ -570,9 +480,10 @@ declare class Eventbus {
      *
      * @param {RegExp} [regex] - Optional regular expression to filter event names.
      *
-     * @yields
+     * @returns {Generator<[string, import('.').DataOutOptions], void, unknown>} Generator
+     * @yields {[string, import('.').DataOutOptions]}
      */
-    keysWithOptions(regex?: RegExp): Generator<(string | DataOutOptions)[], void, unknown>;
+    keysWithOptions(regex?: RegExp): Generator<[string, DataOutOptions], void, unknown>;
     /**
      * Returns the current eventbus name.
      *
@@ -580,7 +491,7 @@ declare class Eventbus {
      */
     get name(): string;
     /**
-     * Tell an object to listen to a particular event on an other object. The advantage of using this form, instead of
+     * Tell an object to listen to a particular event on another object. The advantage of using this form, instead of
      * other.on(event, callback, object), is that listenTo allows the object to keep track of the events, and they can
      * be removed all at once later on. The callback will always be called with object as context.
      *
@@ -589,13 +500,13 @@ declare class Eventbus {
      *
      * @param {object}            obj - Event context
      *
-     * @param {string|object}     name - Event name(s) or event map.
+     * @param {string|import('.').EventMap}   name - Event name(s) or event map.
      *
      * @param {Function|object}   callback - Event callback function or context for event map.
      *
      * @returns {Eventbus} This Eventbus instance.
      */
-    listenTo(obj: object, name: string | object, callback: Function | object): Eventbus;
+    listenTo(obj: object, name: string | EventMap, callback: Function | object): Eventbus;
     _listeningTo: {};
     _listenId: string;
     /**
@@ -605,32 +516,31 @@ declare class Eventbus {
      *
      * @param {object}            obj - Target event context.
      *
-     * @param {string|object}     name - Event name(s) or event map.
+     * @param {string|import('.').EventMap}   name - Event name(s) or event map.
      *
      * @param {Function|object}   callback - Event callback function or context for event map.
      *
      * @returns {Eventbus} This Eventbus instance.
      */
-    listenToBefore(count: number, obj: object, name: string | object, callback: Function | object): Eventbus;
+    listenToBefore(count: number, obj: object, name: string | EventMap, callback: Function | object): Eventbus;
     /**
      * Just like `listenTo`, but causes the bound callback to fire only once before being removed.
      *
      * @param {object}            obj - Target event context
      *
-     * @param {string|object}     name - Event name(s) or event map.
+     * @param {string|import('.').EventMap}     name - Event name(s) or event map.
      *
      * @param {Function|object}   callback - Event callback function or context for event map.
      *
      * @returns {Eventbus} This Eventbus instance.
      */
-    listenToOnce(obj: object, name: string | object, callback: Function | object): Eventbus;
+    listenToOnce(obj: object, name: string | EventMap, callback: Function | object): Eventbus;
     /**
-     * Remove a previously-bound callback function from an object. If no context is specified, all of the versions of
+     * Remove a previously-bound callback function from an object. If no context is specified, all the versions of
      * the callback with different contexts will be removed. If no callback is specified, all callbacks for the event
      * will be removed. If no event is specified, callbacks for all events will be removed.
      *
-     * Note that calling model.off(), for example, will indeed remove all events on the model — including events that
-     * Backbone uses for internal bookkeeping.
+     * Note that calling model.off(), for example, will indeed remove all events on the model.
      *
      * @example
      * // Removes just the `onChange` callback.
@@ -648,7 +558,7 @@ declare class Eventbus {
      * // Removes all callbacks on `object`.
      * object.off();
      *
-     * @param {string|object}  [name] - Event name(s) or event map.
+     * @param {string|import('.').EventMap}   [name] - Event name(s) or event map.
      *
      * @param {Function}       [callback] - Event callback function
      *
@@ -656,7 +566,7 @@ declare class Eventbus {
      *
      * @returns {Eventbus} This Eventbus instance.
      */
-    off(name?: string | object, callback?: Function, context?: object): Eventbus;
+    off(name?: string | EventMap, callback?: Function, context?: object): Eventbus;
     /**
      * Bind a callback function to an object. The callback will be invoked whenever the event is fired. If you have a
      * large number of different events on a page, the convention is to use colons to namespace them: "poll:start", or
@@ -677,41 +587,41 @@ declare class Eventbus {
      * });
      *
      * @example
-     * All Backbone event methods also support an event map syntax, as an alternative to positional arguments:
+     * All event methods also support an event map syntax, as an alternative to positional arguments:
      * book.on({
      *    "change:author": authorPane.update,
      *    "change:title change:subtitle": titleView.update,
      *    "destroy": bookView.remove
      * });
      *
-     * @param {string|object}     name - Event name(s) or event map.
+     * @param {string|import('.').EventMap}   name - Event name(s) or event map.
      *
      * @param {Function|object}   callback - Event callback function or context for event map.
      *
      * @param {object}            [context] - Event context
      *
-     * @param {OnOptions}         [options] - Event registration options.
+     * @param {import('.').EventOptions}         [options] - Event registration options.
      *
      * @returns {Eventbus} This Eventbus instance.
      */
-    on(name: string | object, callback: Function | object, context?: object, options?: OnOptions): Eventbus;
+    on(name: string | EventMap, callback: Function | object, context?: object, options?: EventOptions): Eventbus;
     _listeners: {};
     /**
      * Just like `on`, but causes the bound callback to fire only once before being removed. Handy for saying "the next
      * time that X happens, do this". When multiple events are passed in using the space separated syntax, the event
      * will fire once for every event you passed in, not once for a combination of all events
      *
-     * @param {string|object}     name - Event name(s) or event map.
+     * @param {string|import('.').EventMap}   name - Event name(s) or event map.
      *
      * @param {Function|object}   callback - Event callback function or context for event map.
      *
      * @param {object}            [context] - Event context.
      *
-     * @param {OnOptions}         [options] - Event registration options.
+     * @param {import('.').EventOptions}         [options] - Event registration options.
      *
      * @returns {Eventbus} This Eventbus instance.
      */
-    once(name: string | object, callback: Function | object, context?: object, options?: OnOptions): Eventbus;
+    once(name: string | EventMap, callback: Function | object, context?: object, options?: EventOptions): Eventbus;
     /**
      * Tell an object to stop listening to events. Either call stopListening with no arguments to have the object remove
      * all of its registered callbacks ... or be more precise by telling it to remove just the events it's listening to
@@ -779,22 +689,90 @@ declare class Eventbus {
 }
 
 /**
- * Provides a main eventbus instance.
- *
- * @type {Eventbus}
+ * The complete options for an event name.
  */
-declare const eventbus: Eventbus;
+type DataOutOptions = {
+    /**
+     * The guarded option.
+     */
+    guard: boolean;
+    /**
+     * The type option.
+     */
+    type: 'async' | 'sync' | void;
+};
 /**
- * Provides an eventbus instance potentially for use with a plugin system.
- *
- * @type {Eventbus}
+ * The callback data for an event.
  */
-declare const pluginEventbus: Eventbus;
+type EventData = {
+    /**
+     * Callback function
+     */
+    callback: Function;
+    /**
+     * Event context
+     */
+    context: object;
+    /**
+     * Event context or local eventbus instance.
+     */
+    ctx: object;
+    /**
+     * Holds options for this event registration, One such option is 'guarded' which
+     * prevents multiple registrations.
+     */
+    options: DataOutOptions;
+    /**
+     * Any associated listening instance.
+     */
+    listening?: object;
+};
 /**
- * Provides an eventbus instance potentially for use for testing.
- *
- * @type {Eventbus}
+ * Event data stored by event name.
  */
-declare const testEventbus: Eventbus;
+type EventbusEvents = {
+    [key: string]: EventData[];
+};
+/**
+ * Defines multiple events that can be used to registered in one API
+ * call.
+ */
+type EventMap = {
+    [key: string]: Function;
+};
+/**
+ * The control object returned by `EventbusSecure.initialize`.
+ */
+type EventbusSecureObj = {
+    /**
+     * A function which destroys the underlying Eventbus reference.
+     */
+    destroy: Function;
+    /**
+     * The EventbusSecure instance.
+     */
+    eventbusSecure: EventbusSecure;
+    /**
+     * A
+     * function to set the underlying Eventbus reference.
+     */
+    setEventbus: (eventbus: Eventbus | EventbusProxy, name?: string) => void;
+};
+/**
+ * Event registration options.
+ */
+type EventOptions = {
+    /**
+     * When set to true this registration is guarded. Further attempts to register an
+     * event by the same name will not be possible as long as a guarded event exists with the same name.
+     */
+    guard?: boolean;
+    /**
+     * Provides a hint on the trigger type. It may be a string 'sync' or 'async'.
+     * Any other value is not recognized and internally type will be set to undefined. If the callback is a function
+     * defined with the `async` modifier it will automatically be detected as async.
+     */
+    type?: 'sync' | 'async';
+};
 
-export { EventbusProxy, EventbusSecure, Eventbus as default, eventbus, pluginEventbus, testEventbus };
+export { DataOutOptions, EventData, EventMap, EventOptions, Eventbus, EventbusEvents, EventbusProxy, EventbusSecure, EventbusSecureObj };

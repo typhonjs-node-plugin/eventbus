@@ -1,14 +1,14 @@
 /**
  * @param {object}                           opts - Test options
  *
- * @param {import('../../../../../types/index-busses')}   opts.ModuleBusses - Module to test
+ * @param {import('../../../../../types/index-busses')}   opts.ModuleBuses - Module to test
  *
  * @param {object}                           opts.chai - Chai
  */
-export function run({ ModuleBusses, chai })
+export function run({ ModuleBuses, chai })
 {
    const { assert } = chai;
-   const { eventbus, pluginEventbus, testEventbus } = ModuleBusses;
+   const { eventbus, pluginEventbus, testEventbus } = ModuleBuses;
 
    describe('Instances', () =>
    {

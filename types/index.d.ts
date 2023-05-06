@@ -573,7 +573,7 @@ declare class Eventbus {
      * "change:selection".
      *
      * To supply a context value for this when the callback is invoked, pass the optional last argument:
-     * model.on('change', this.render, this) or model.on({change: this.render}, this).
+     * `model.on('change', this.render, this)` or `model.on({change: this.render}, this)`.
      *
      * @example
      * The event string may also be a space-delimited list of several events...

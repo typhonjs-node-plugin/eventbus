@@ -1,7 +1,7 @@
 {
   "name": "@typhonjs-plugin/eventbus",
   "description": "Provides a flexible in process eventbus.",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "author": "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)",
   "type": "module",
   "exports": {
@@ -9,9 +9,9 @@
       "types": "./types/index.d.ts",
       "import": "./src/index.js"
     },
-    "./busses": {
-      "types": "./types/index-busses.d.ts",
-      "import": "./src/busses/index.js"
+    "./buses": {
+      "types": "./types/index-buses.d.ts",
+      "import": "./src/buses/index.js"
     },
     "./package.json": "./package.json"
   },

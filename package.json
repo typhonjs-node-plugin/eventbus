@@ -45,6 +45,6 @@
     "prepublishOnly": "npm run eslint && npm run types && npm run test-node && npm run test-browser",
     "test-browser": "node ./test/src/browser/run.js",
     "test-node": "c8 --exclude-after-remap=true --reporter=lcov --reporter=text-summary mocha -colors \"test/src/node/**/*.test.js\" --timeout 16000",
-    "types": "node -e \"import('@typhonjs-build-test/esm-d-ts').then(async module => { await module.generateDTS({ input: './src/index.js', output: './types/index.d.ts' }); await module.generateDTS({ input: './src/busses/index.js', output: './types/index-busses.d.ts' }); });\""
+    "types": "node -e \"import('@typhonjs-build-test/esm-d-ts').then(async module => { await module.generateDTS({ input: './src/index.js', output: './types/index.d.ts' }); await module.generateDTS({ input: './src/buses/index.js', output: './types/index-buses.d.ts' }); });\""
   }
 }

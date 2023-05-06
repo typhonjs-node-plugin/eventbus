@@ -1,4 +1,15 @@
 /**
+ * Provides an in-process eventbus for registering and triggering events. There are three varieties from the main
+ * `Eventbus` to the `EventbusProxy` and `EventbusSecure` variations. A proxy eventbus tracks local registrations to
+ * an associated Eventbus and makes it easy to unregister all events on the main eventbus through the proxy solving the
+ * dangling listener issue. Proxy eventbuses are used in the TyphonJS `PluginManager` to manage plugin access to the
+ * manager eventbus. There also is a secure variation that can not have events registered and only is accessible for
+ * triggering events.
+ *
+ * @module
+ */
+
+/**
  * EventbusProxy provides a protected proxy of another Eventbus instance.
  *
  * The main use case of EventbusProxy is to allow indirect access to an eventbus. This is handy when it comes to
@@ -160,8 +171,8 @@ declare class EventbusProxy {
     off(name?: string | EventMap, callback?: Function, context?: object): EventbusProxy;
     /**
      * Bind a callback function to an object. The callback will be invoked whenever the event is fired. If you have a
-     * large number of different events on a page, the convention is to use colons to namespace them: "poll:start", or
-     * "change:selection".
+     * large number of different events on a page, the convention is to use colons to namespace them: `poll:start`, or
+     * `change:selection`.
      *
      * Please see {@link Eventbus#on}.
      *
@@ -391,8 +402,8 @@ declare class EventbusSecure {
 }
 
 /**
- * `@typhonjs-plugin/eventbus` / Provides the ability to bind and trigger custom named events. Bound callback functions
- * may be triggered asynchronously or synchronously returning results.
+ * Provides the ability to bind and trigger custom named events. Bound callback functions may be triggered
+ * asynchronously or synchronously returning results.
  */
 declare class Eventbus {
     /**
@@ -496,7 +507,9 @@ declare class Eventbus {
      * be removed all at once later on. The callback will always be called with object as context.
      *
      * @example
+     * ```js
      * view.listenTo(model, 'change', view.render);
+     * ```
      *
      * @param {object}            obj - Event context
      *
@@ -543,11 +556,12 @@ declare class Eventbus {
      * Note that calling model.off(), for example, will indeed remove all events on the model.
      *
      * @example
+     * ```js
      * // Removes just the `onChange` callback.
-     * object.off("change", onChange);
+     * object.off('change', onChange);
      *
-     * // Removes all "change" callbacks.
-     * object.off("change");
+     * // Removes all 'change' callbacks.
+     * object.off('change');
      *
      * // Removes the `onChange` callback for all events.
      * object.off(null, onChange);
@@ -557,6 +571,7 @@ declare class Eventbus {
      *
      * // Removes all callbacks on `object`.
      * object.off();
+     * ```
      *
      * @param {string|import('.').EventMap}   [name] - Event name(s) or event map.
      *
@@ -569,30 +584,36 @@ declare class Eventbus {
     off(name?: string | EventMap, callback?: Function, context?: object): Eventbus;
     /**
      * Bind a callback function to an object. The callback will be invoked whenever the event is fired. If you have a
-     * large number of different events on a page, the convention is to use colons to namespace them: "poll:start", or
-     * "change:selection".
+     * large number of different events on a page, the convention is to use colons to namespace them: 'poll:start', or
+     * 'change:selection'.
      *
      * To supply a context value for this when the callback is invoked, pass the optional last argument:
      * `model.on('change', this.render, this)` or `model.on({change: this.render}, this)`.
      *
      * @example
-     * The event string may also be a space-delimited list of several events...
-     * book.on("change:title change:author", ...);
+     * ```js
+     * // The event string may also be a space-delimited list of several events...
+     * book.on('change:title change:author', ...);
+     * ```
      *
      * @example
-     * Callbacks bound to the special "all" event will be triggered when any event occurs, and are passed the name of
+     * ```js
+     * Callbacks bound to the special 'all' event will be triggered when any event occurs, and are passed the name of
      * the event as the first argument. For example, to proxy all events from one object to another:
-     * proxy.on("all", function(eventName) {
+     * proxy.on('all', (eventName) => {
      *    object.trigger(eventName);
      * });
+     * ```
      *
      * @example
+     * ```js
      * All event methods also support an event map syntax, as an alternative to positional arguments:
      * book.on({
-     *    "change:author": authorPane.update,
-     *    "change:title change:subtitle": titleView.update,
-     *    "destroy": bookView.remove
+     *    'change:author': authorPane.update,
+     *    'change:title change:subtitle': titleView.update,
+     *    'destroy': bookView.remove
      * });
+     * ```
      *
      * @param {string|import('.').EventMap}   name - Event name(s) or event map.
      *
@@ -628,9 +649,11 @@ declare class Eventbus {
      * on a specific object, or a specific event, or just a specific callback.
      *
      * @example
+     * ```js
      * view.stopListening();
      *
      * view.stopListening(model);
+     * ```
      *
      * @param {object}   obj - Event context
      *

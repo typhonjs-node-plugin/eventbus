@@ -317,8 +317,8 @@ export class EventbusProxy
 
    /**
     * Bind a callback function to an object. The callback will be invoked whenever the event is fired. If you have a
-    * large number of different events on a page, the convention is to use colons to namespace them: "poll:start", or
-    * "change:selection".
+    * large number of different events on a page, the convention is to use colons to namespace them: `poll:start`, or
+    * `change:selection`.
     *
     * Please see {@link Eventbus#on}.
     *

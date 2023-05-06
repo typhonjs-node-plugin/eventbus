@@ -1,8 +1,8 @@
 import { EventbusUtils } from './EventbusUtils.js';
 
 /**
- * `@typhonjs-plugin/eventbus` / Provides the ability to bind and trigger custom named events. Bound callback functions
- * may be triggered asynchronously or synchronously returning results.
+ * Provides the ability to bind and trigger custom named events. Bound callback functions may be triggered
+ * asynchronously or synchronously returning results.
  */
 export class Eventbus
 {
@@ -311,7 +311,9 @@ export class Eventbus
     * be removed all at once later on. The callback will always be called with object as context.
     *
     * @example
+    * ```js
     * view.listenTo(model, 'change', view.render);
+    * ```
     *
     * @param {object}            obj - Event context
     *
@@ -413,11 +415,12 @@ export class Eventbus
     * Note that calling model.off(), for example, will indeed remove all events on the model.
     *
     * @example
+    * ```js
     * // Removes just the `onChange` callback.
-    * object.off("change", onChange);
+    * object.off('change', onChange);
     *
-    * // Removes all "change" callbacks.
-    * object.off("change");
+    * // Removes all 'change' callbacks.
+    * object.off('change');
     *
     * // Removes the `onChange` callback for all events.
     * object.off(null, onChange);
@@ -427,6 +430,7 @@ export class Eventbus
     *
     * // Removes all callbacks on `object`.
     * object.off();
+    * ```
     *
     * @param {string|import('.').EventMap}   [name] - Event name(s) or event map.
     *
@@ -448,30 +452,36 @@ export class Eventbus
 
    /**
     * Bind a callback function to an object. The callback will be invoked whenever the event is fired. If you have a
-    * large number of different events on a page, the convention is to use colons to namespace them: "poll:start", or
-    * "change:selection".
+    * large number of different events on a page, the convention is to use colons to namespace them: 'poll:start', or
+    * 'change:selection'.
     *
     * To supply a context value for this when the callback is invoked, pass the optional last argument:
     * `model.on('change', this.render, this)` or `model.on({change: this.render}, this)`.
     *
     * @example
-    * The event string may also be a space-delimited list of several events...
-    * book.on("change:title change:author", ...);
+    * ```js
+    * // The event string may also be a space-delimited list of several events...
+    * book.on('change:title change:author', ...);
+    * ```
     *
     * @example
-    * Callbacks bound to the special "all" event will be triggered when any event occurs, and are passed the name of
+    * ```js
+    * Callbacks bound to the special 'all' event will be triggered when any event occurs, and are passed the name of
     * the event as the first argument. For example, to proxy all events from one object to another:
-    * proxy.on("all", function(eventName) {
+    * proxy.on('all', (eventName) => {
     *    object.trigger(eventName);
     * });
+    * ```
     *
     * @example
+    * ```js
     * All event methods also support an event map syntax, as an alternative to positional arguments:
     * book.on({
-    *    "change:author": authorPane.update,
-    *    "change:title change:subtitle": titleView.update,
-    *    "destroy": bookView.remove
+    *    'change:author': authorPane.update,
+    *    'change:title change:subtitle': titleView.update,
+    *    'destroy': bookView.remove
     * });
+    * ```
     *
     * @param {string|import('.').EventMap}   name - Event name(s) or event map.
     *
@@ -557,9 +567,11 @@ export class Eventbus
     * on a specific object, or a specific event, or just a specific callback.
     *
     * @example
+    * ```js
     * view.stopListening();
     *
     * view.stopListening(model);
+    * ```
     *
     * @param {object}   obj - Event context
     *
@@ -929,7 +941,7 @@ export class Eventbus
       const context = opts.context, listeners = opts.listeners;
       let i = 0, names;
 
-      // Delete all event listeners and "drop" events.
+      // Delete all event listeners and `drop` events.
       if (!name && !context && !callback)
       {
          for (names = EventbusUtils.objectKeys(listeners); i < names.length; i++)

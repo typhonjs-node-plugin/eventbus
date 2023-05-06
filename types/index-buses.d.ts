@@ -1,3 +1,16 @@
+/**
+ * Provides several standard Eventbus instances that are accessible through named exports: `mainEventbus`,
+ * `pluginEventbus`, and `testEventbus`. For the most part these instances are useful for testing applications to
+ * have easy access across the runtime to consistent instances.
+ *
+ * @example
+ * ```js
+ * import { mainEventbus, pluginEventbus, testEventbus } from '@typhonjs-plugin/eventbus';
+ * ```
+ *
+ * @module
+ */
+
 import * as _typhonjs_plugin_eventbus from '@typhonjs-plugin/eventbus';
 
 /**

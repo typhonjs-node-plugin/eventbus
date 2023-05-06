@@ -1,0 +1,10 @@
+/**
+ * Provides an in-process eventbus for registering and triggering events. There are three varieties from the main
+ * `Eventbus` to the `EventbusProxy` and `EventbusSecure` variations. A proxy eventbus tracks local registrations to
+ * an associated Eventbus and makes it easy to unregister all events on the main eventbus through the proxy solving the
+ * dangling listener issue. Proxy eventbuses are used in the TyphonJS `PluginManager` to manage plugin access to the
+ * manager eventbus. There also is a secure variation that can not have events registered and only is accessible for
+ * triggering events.
+ *
+ * @module
+ */

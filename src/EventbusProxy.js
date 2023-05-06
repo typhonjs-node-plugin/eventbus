@@ -25,15 +25,13 @@ export class EventbusProxy
     * Stores the target eventbus.
     *
     * @type {import('.').Eventbus}
-    * @private
     */
    #eventbus;
 
    /**
     * Stores all proxied event bindings.
     *
-    * @type {EventbusEvents}
-    * @private
+    * @type {import('.').EventbusEvents}
     */
    #events;
 
@@ -62,7 +60,7 @@ export class EventbusProxy
     *
     * @param {object}            [context] - Event context
     *
-    * @param {import('.').EventOptions}   [options] - Event registration options.
+    * @param {import('.').EventOptions | import('.').EventOptionsOut}   [options] - Event registration options.
     *
     * @returns {EventbusProxy} This EventbusProxy instance.
     */
@@ -121,8 +119,8 @@ export class EventbusProxy
     *
     * @param {RegExp} [regex] - Optional regular expression to filter event names.
     *
-    * @returns {Generator<[string, Function, object, import('.').DataOutOptions], void, unknown>} Generator
-    * @yields {[string, Function, object, import('.').DataOutOptions]}
+    * @returns {Generator<[string, Function, object, import('.').EventOptionsOut], void, unknown>} Generator
+    * @yields {[string, Function, object, import('.').EventOptionsOut]}
     */
    *entries(regex = void 0)
    {
@@ -180,8 +178,8 @@ export class EventbusProxy
     *
     * @param {RegExp} [regex] - Optional regular expression to filter event names.
     *
-    * @returns {Generator<[string, import('.').DataOutOptions], void, unknown>} Generator
-    * @yields {[string, import('.').DataOutOptions]}
+    * @returns {Generator<[string, import('.').EventOptionsOut], void, unknown>} Generator
+    * @yields {[string, import('.').EventOptionsOut]}
     */
    *keysWithOptions(regex = void 0)
    {
@@ -252,7 +250,7 @@ export class EventbusProxy
     *
     * @param {string}   name - Event name(s) to verify.
     *
-    * @returns {import('.').DataOutOptions} The event options.
+    * @returns {import('.').EventOptionsOut} The event options.
     */
    getOptions(name)
    {
@@ -330,7 +328,7 @@ export class EventbusProxy
     *
     * @param {object}            [context] - Event context.
     *
-    * @param {import('.').EventOptions}   [options] - Event registration options.
+    * @param {import('.').EventOptions | import('.').EventOptionsOut}   [options] - Event registration options.
     *
     * @returns {EventbusProxy} This EventbusProxy
     */
@@ -372,7 +370,7 @@ export class EventbusProxy
     *
     * @param {object}            context - Event context
     *
-    * @param {import('.').EventOptions}   [options] - Event registration options.
+    * @param {import('.').EventOptions | import('.').EventOptionsOut}   [options] - Event registration options.
     *
     * @returns {EventbusProxy} This EventbusProxy instance.
     */
@@ -403,8 +401,8 @@ export class EventbusProxy
     *
     * @param {RegExp} [regex] - Optional regular expression to filter event names.
     *
-    * @returns {Generator<[string, Function, object, import('.').DataOutOptions], void, unknown>} Generator
-    * @yields {[string, Function, object, import('.').DataOutOptions]}
+    * @returns {Generator<[string, Function, object, import('.').EventOptionsOut], void, unknown>} Generator
+    * @yields {[string, Function, object, import('.').EventOptionsOut]}
     */
    *proxyEntries(regex = void 0)
    {
@@ -479,8 +477,8 @@ export class EventbusProxy
     *
     * @param {RegExp} [regex] - Optional regular expression to filter event names.
     *
-    * @returns {Generator<[string, import('.').DataOutOptions], void, unknown>} Generator
-    * @yields {[string, import('.').DataOutOptions]}
+    * @returns {Generator<[string, import('.').EventOptionsOut], void, unknown>} Generator
+    * @yields {[string, import('.').EventOptionsOut]}
     */
    *proxyKeysWithOptions(regex = void 0)
    {
@@ -584,7 +582,7 @@ export class EventbusProxy
     * The reducing API that removes a callback from the `events` object. And delegates invoking off to the eventbus
     * reference.
     *
-    * @param {EventbusEvents}   events - EventbusEvents object
+    * @param {import('.').EventbusEvents}   events - EventbusEvents object
     *
     * @param {string}   name - Event name
     *
@@ -592,7 +590,7 @@ export class EventbusProxy
     *
     * @param {object}   opts - Optional parameters
     *
-    * @returns {void|EventbusEvents} EventbusEvents object
+    * @returns {void | import('.').EventbusEvents} EventbusEvents object
     */
    static #s_OFF_API(events, name, callback, opts)
    {
@@ -618,6 +616,7 @@ export class EventbusProxy
          {
             const handler = handlers[j];
 
+            // @ts-ignore
             if ((callback && callback !== handler.callback && callback !== handler.callback._callback) ||
              (context && context !== handler.context))
             {
@@ -627,7 +626,7 @@ export class EventbusProxy
 
             // Must explicitly remove the event by the stored full set of name, handler, context to ensure
             // non-proxied event registrations are not removed.
-            /* c8 ignore next 1 */
+            /* c8 ignore next 1 */ // @ts-ignore
             eventbus.off(name, handler.callback || handler.callback._callback, handler.context || handler.ctx);
          }
 
@@ -649,7 +648,7 @@ export class EventbusProxy
    /**
     * The reducing API that adds a callback to the `events` object.
     *
-    * @param {EventbusEvents}   events - EventbusEvents object
+    * @param {import('.').EventbusEvents}   events - EventbusEvents object
     *
     * @param {string}   name - Event name
     *
@@ -657,7 +656,7 @@ export class EventbusProxy
     *
     * @param {object}   opts - Optional parameters
     *
-    * @returns {EventbusEvents} EventbusEvents object.
+    * @returns {import('.').EventbusEvents} EventbusEvents object.
     */
    static #s_ON_API(events, name, callback, opts)
    {

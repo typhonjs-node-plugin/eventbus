@@ -15,8 +15,7 @@ export class EventbusSecure
    /**
     * Stores the target eventbus.
     *
-    * @type {import('.').Eventbus}
-    * @private
+    * @type {import('.').Eventbus | import('.').EventbusProxy}
     */
    #eventbus;
 
@@ -24,7 +23,6 @@ export class EventbusSecure
     * Stores a potentially alternate name instead of returning the wrapped Eventbus instance name.
     *
     * @type {string}
-    * @private
     */
    #name;
 
@@ -35,7 +33,7 @@ export class EventbusSecure
     * `destroy()` will destroy the underlying Eventbus reference.
     * `setEventbus(<eventbus>)` will set the underlying reference.
     *
-    * @param {import('.').Eventbus|import('.').EventbusProxy}  eventbus - The target eventbus instance.
+    * @param {import('.').Eventbus | import('.').EventbusProxy}  eventbus - The target eventbus instance.
     *
     * @param {string}                  [name] - If a name is provided this will be used instead of eventbus name.
     *
@@ -113,8 +111,8 @@ export class EventbusSecure
     *
     * @param {RegExp} [regex] - Optional regular expression to filter event names.
     *
-    * @returns {Generator<[string, import('.').DataOutOptions], void, unknown>} Generator
-    * @yields {[string, import('.').DataOutOptions]}
+    * @returns {Generator<[string, import('.').EventOptionsOut], void, unknown>} Generator
+    * @yields {[string, import('.').EventOptionsOut]}
     */
    *keysWithOptions(regex = void 0)
    {
@@ -153,7 +151,7 @@ export class EventbusSecure
     *
     * @param {string}   name - Event name(s) to verify.
     *
-    * @returns {import('.').DataOutOptions} The event options.
+    * @returns {import('.').EventOptionsOut} The event options.
     */
    getOptions(name)
    {

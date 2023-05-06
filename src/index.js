@@ -6,14 +6,6 @@ export *             from './EventbusSecure.js';
 export { Eventbus };
 
 /**
- * @typedef {object} DataOutOptions The complete options for an event name.
- *
- * @property {boolean}  guard The guarded option.
- *
- * @property {'async' | 'sync' | void } type The type option.
- */
-
-/**
  * @typedef {object} EventData The callback data for an event.
  *
  * @property {Function} callback Callback function
@@ -22,7 +14,7 @@ export { Eventbus };
  *
  * @property {object} ctx Event context or local eventbus instance.
  *
- * @property {DataOutOptions} options Holds options for this event registration, One such option is 'guarded' which
+ * @property {EventOptionsOut} options Holds options for this event registration, One such option is 'guarded' which
  * prevents multiple registrations.
  *
  * @property {object} [listening] Any associated listening instance.
@@ -57,4 +49,12 @@ export { Eventbus };
  * @property {'sync'|'async'} [type] Provides a hint on the trigger type. It may be a string 'sync' or 'async'.
  * Any other value is not recognized and internally type will be set to undefined. If the callback is a function
  * defined with the `async` modifier it will automatically be detected as async.
+ */
+
+/**
+ * @typedef {object} EventOptionsOut The complete options for an event name returned from `entries`, etc.
+ *
+ * @property {boolean}  guard The guarded option.
+ *
+ * @property {'async' | 'sync' | void } type The type option.
  */

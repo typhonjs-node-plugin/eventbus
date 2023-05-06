@@ -10,15 +10,13 @@ export class Eventbus
     * Stores the name of this eventbus.
     *
     * @type {string}
-    * @private
     */
    #name = '';
 
    /**
     * Stores the events map for associated events and callback / context data.
     *
-    * @type {EventbusEvents}
-    * @private
+    * @type {import('.').EventbusEvents}
     */
    #events;
 
@@ -36,7 +34,7 @@ export class Eventbus
       /**
        * Stores the Listening instances for this context.
        *
-       * @type {{ [key: string]: Listening }}
+       * @type {{ [key: string]: object }}
        * @private
        */
       this._listeners = void 0;
@@ -52,7 +50,7 @@ export class Eventbus
       /**
        * Stores the Listening instances for other contexts.
        *
-       * @type {{ [key: string]: Listening }}
+       * @type {{ [key: string]: object }}
        * @private
        */
       this._listeningTo = void 0;
@@ -71,7 +69,7 @@ export class Eventbus
     *
     * @param {object}            [context] - Event context
     *
-    * @param {import('.').EventOptions}         [options] - Event registration options.
+    * @param {import('.').EventOptions | import('.').EventOptionsOut} [options] - Event registration options.
     *
     * @returns {Eventbus} This Eventbus instance.
     */
@@ -101,8 +99,8 @@ export class Eventbus
     *
     * @param {RegExp} [regex] - Optional regular expression to filter event names.
     *
-    * @returns {Generator<[string, Function, object, import('.').DataOutOptions], void, unknown>} Generator
-    * @yields {[string, Function, object, import('.').DataOutOptions]}
+    * @returns {Generator<[string, Function, object, import('.').EventOptionsOut], void, unknown>} Generator
+    * @yields {[string, Function, object, import('.').EventOptionsOut]}
     */
    *entries(regex = void 0)
    {
@@ -119,13 +117,6 @@ export class Eventbus
                for (const event of this.#events[name])
                {
                   yield [name, event.callback, event.context, JSON.parse(JSON.stringify(event.options))];
-
-                  // yield {
-                  //    name,
-                  //    callback: event.callback,
-                  //    context: event.context,
-                  //    options: JSON.parse(JSON.stringify(event.options))
-                  // };
                }
             }
          }
@@ -137,13 +128,6 @@ export class Eventbus
             for (const event of this.#events[name])
             {
                yield [name, event.callback, event.context, JSON.parse(JSON.stringify(event.options))];
-
-               // yield {
-               //    name,
-               //    callback: event.callback,
-               //    context: event.context,
-               //    options: JSON.parse(JSON.stringify(event.options))
-               // };
             }
          }
       }
@@ -182,7 +166,7 @@ export class Eventbus
     *
     * @param {string}   name - Event name(s) to verify.
     *
-    * @returns {import('.').DataOutOptions} The event options.
+    * @returns {import('.').EventOptionsOut} The event options.
     */
    getOptions(name)
    {
@@ -283,8 +267,8 @@ export class Eventbus
     *
     * @param {RegExp} [regex] - Optional regular expression to filter event names.
     *
-    * @returns {Generator<[string, import('.').DataOutOptions], void, unknown>} Generator
-    * @yields {[string, import('.').DataOutOptions]}
+    * @returns {Generator<[string, import('.').EventOptionsOut], void, unknown>} Generator
+    * @yields {[string, import('.').EventOptionsOut]}
     */
    *keysWithOptions(regex = void 0)
    {
@@ -495,7 +479,7 @@ export class Eventbus
     *
     * @param {object}            [context] - Event context
     *
-    * @param {import('.').EventOptions}         [options] - Event registration options.
+    * @param {import('.').EventOptions | import('.').EventOptionsOut}         [options] - Event registration options.
     *
     * @returns {Eventbus} This Eventbus instance.
     */
@@ -544,7 +528,7 @@ export class Eventbus
     *
     * @param {object}            [context] - Event context.
     *
-    * @param {import('.').EventOptions}         [options] - Event registration options.
+    * @param {import('.').EventOptions | import('.').EventOptionsOut}         [options] - Event registration options.
     *
     * @returns {Eventbus} This Eventbus instance.
     */
@@ -729,7 +713,7 @@ export class Eventbus
    static #Listening = class
    {
       /**
-       * @type {EventbusEvents|{}}
+       * @type {import('.').EventbusEvents|{}}
        */
       #events;
 
@@ -792,7 +776,7 @@ export class Eventbus
        *
        * @param {object}            [context] - Event context
        *
-       * @returns {Listening} This Listening instance.
+       * @returns {object} This Listening instance.
        */
       on(name, callback, context = void 0)
       {
@@ -927,7 +911,7 @@ export class Eventbus
    /**
     * The reducing API that removes a callback from the `events` object.
     *
-    * @param {EventbusEvents}   events - EventbusEvents object
+    * @param {import('.').EventbusEvents}   events - EventbusEvents object
     *
     * @param {string}   name - Event name
     *
@@ -935,7 +919,7 @@ export class Eventbus
     *
     * @param {object}   opts - Optional parameters
     *
-    * @returns {void|EventbusEvents} EventbusEvents object
+    * @returns {void | import('.').EventbusEvents} EventbusEvents object
     */
    static #s_OFF_API(events, name, callback, opts)
    {
@@ -970,6 +954,7 @@ export class Eventbus
          for (let j = 0; j < handlers.length; j++)
          {
             const handler = handlers[j];
+            // @ts-ignore
             if (callback && callback !== handler.callback && callback !== handler.callback._callback ||
              context && context !== handler.context)
             {
@@ -999,7 +984,7 @@ export class Eventbus
    /**
     * The reducing API that adds a callback to the `events` object.
     *
-    * @param {EventbusEvents}   events - EventbusEvents object
+    * @param {import('.').EventbusEvents}   events - EventbusEvents object
     *
     * @param {string}   name - Event name
     *
@@ -1007,7 +992,7 @@ export class Eventbus
     *
     * @param {object}   opts - Optional parameters
     *
-    * @returns {EventbusEvents} EventbusEvents object.
+    * @returns {import('.').EventbusEvents} EventbusEvents object.
     */
    static #s_ON_API(events, name, callback, opts)
    {
@@ -1060,7 +1045,7 @@ export class Eventbus
     *
     * @param {Function} iterateeTarget - Internal function which is dispatched to.
     *
-    * @param {EventbusEvents|{}}   events - Array of stored event callback data.
+    * @param {import('.').EventbusEvents | {}}   events - Array of stored event callback data.
     *
     * @param {string}   name - Event name
     *
@@ -1143,7 +1128,7 @@ export class Eventbus
     *
     * @param {Function} iterateeTarget - Internal function which is dispatched to.
     *
-    * @param {EventbusEvents}   objEvents - Array of stored event callback data.
+    * @param {import('.').EventbusEvents}   objEvents - Array of stored event callback data.
     *
     * @param {string}   name - Event name
     *
@@ -1173,7 +1158,7 @@ export class Eventbus
     * A difficult-to-believe, but optimized internal dispatch function for triggering events. Tries to keep the usual
     * cases speedy.
     *
-    * @param {EventData[]} events - Array of stored event callback data.
+    * @param {import('.').EventData[]} events - Array of stored event callback data.
     *
     * @param {*[]}         args - Event argument array
     */
@@ -1208,7 +1193,7 @@ export class Eventbus
     * a `Promise.all` construction which passes back a Promise which waits until all Promises complete. Any target
     * invoked may return a Promise or any result. This is very useful to use for any asynchronous operations.
     *
-    * @param {EventData[]} events - Array of stored event callback data.
+    * @param {import('.').EventData[]} events - Array of stored event callback data.
     *
     * @param {*[]}         args - Arguments supplied to `triggerAsync`.
     *
@@ -1292,7 +1277,7 @@ export class Eventbus
     * cases speedy. This dispatch method synchronously passes back a single value or an array with all results returned
     * by any invoked targets.
     *
-    * @param {EventData[]} events - Array of stored event callback data.
+    * @param {import('.').EventData[]} events - Array of stored event callback data.
     *
     * @param {*[]}         args - Arguments supplied to `triggerSync`.
     *

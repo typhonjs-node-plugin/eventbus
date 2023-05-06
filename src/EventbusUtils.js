@@ -34,7 +34,8 @@ export class EventbusUtils
     *
     * @param {T}              events - EventbusEvents object
     *
-    * @param {string|import('.').EventMap}  name - A single event name, compound event names, or a hash of event names.
+    * @param {string | import('.').EventMap}  name - A single event name, compound event names, or a hash of event
+    *        names.
     *
     * @param {Function}       callback - Event callback function
     *
@@ -54,7 +55,7 @@ export class EventbusUtils
             events = EventbusUtils.eventsAPI(iteratee, events, names[i], name[names[i]], opts);
          }
       }
-      else if (name && EventbusUtils.eventSplitter.test(name))
+      else if (name && typeof name === 'string' && EventbusUtils.eventSplitter.test(name))
       {
          // Handle space-separated event names by delegating them individually.
          for (names = name.split(EventbusUtils.eventSplitter); i < names.length; i++)
@@ -141,7 +142,7 @@ export class EventbusUtils
     * Reduces the event callbacks into a map of `{event: beforeWrapper}`. `after` unbinds the `beforeWrapper` after
     * it has been called the number of times specified by options.count.
     *
-    * @param {EventbusEvents}   map - EventbusEvents object
+    * @param {import('.').EventbusEvents}   map - EventbusEvents object
     *
     * @param {string}   name - Event name
     *
@@ -149,7 +150,7 @@ export class EventbusUtils
     *
     * @param {object}   opts - Function to invoke after event has been triggered once; `off()`
     *
-    * @returns {EventbusEvents} The EventbusEvents object.
+    * @returns {import('.').EventbusEvents} The EventbusEvents object.
     */
    static beforeMap(map, name, callback, opts)
    {
@@ -158,11 +159,13 @@ export class EventbusUtils
 
       if (callback)
       {
+         // @ts-ignore
          const beforeWrapper = map[name] = EventbusUtils.#s_BEFORE(count, function()
          {
             return callback.apply(this, arguments);
          }, () => { after(name, beforeWrapper); });
 
+         // @ts-ignore
          beforeWrapper._callback = callback;
       }
       return map;

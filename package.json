@@ -1,7 +1,7 @@
 {
   "name": "@typhonjs-plugin/eventbus",
   "description": "Provides a flexible in process eventbus.",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "author": "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)",
   "type": "module",
   "exports": {
@@ -19,7 +19,7 @@
     "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)"
   ],
   "devDependencies": {
-    "@typhonjs-build-test/node-browser": "^0.0.1",
+    "@typhonjs-build-test/node-browser": "^0.0.3",
     "rollup": "^3"
   },
   "engines": {

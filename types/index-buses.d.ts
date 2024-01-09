@@ -5,7 +5,7 @@
  *
  * @example
  * ```js
- * import { mainEventbus, pluginEventbus, testEventbus } from '@typhonjs-plugin/eventbus';
+ * import { eventbus, pluginEventbus, testEventbus } from '@typhonjs-plugin/eventbus/buses';
  * ```
  *
  * @module

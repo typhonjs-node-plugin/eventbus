@@ -1,7 +1,7 @@
 {
   "name": "@typhonjs-plugin/eventbus",
-  "description": "Provides a flexible in process eventbus.",
-  "version": "0.0.19",
+  "description": "Provides a flexible in process eventbus for Node and in the browser.",
+  "version": "0.1.0",
   "author": "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)",
   "type": "module",
   "exports": {
@@ -19,8 +19,9 @@
     "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)"
   ],
   "devDependencies": {
-    "@typhonjs-build-test/node-browser": "^0.0.3",
-    "rollup": "^3"
+    "@typhonjs-build-test/esm-d-ts": "^0.2.0-next.3",
+    "@typhonjs-build-test/node-browser": "^0.0.4",
+    "rollup": "^4.9.4"
   },
   "engines": {
     "node": ">=14.18"
@@ -35,16 +36,25 @@
     "plugin",
     "eventbus"
   ],
+  "typedocOptions": {
+    "dmtLinksService": {
+      "Discord": "https://typhonjs.io/discord/",
+      "GitHub": "https://github.com/typhonjs-node-plugin/eventbus",
+      "NPM": "https://www.npmjs.com/package/@typhonjs-plugin/eventbus"
+    }
+  },
   "license": "MPL-2.0",
   "repository": "github:typhonjs-node-plugin/eventbus",
   "bugs": "https://github.com/typhonjs-node-plugin/eventbus/issues",
+  "apidocs": "https://typhonjs-node-plugin.github.io/eventbus/",
   "scripts": {
     "eslint": "eslint .",
+    "docs": "typedoc-pkg --api-link esm",
     "posttest-browser": "nyc report --exclude-after-remap=true --reporter=lcov --reporter=text-summary --report-dir=coverage-browser",
     "pretest-browser": "rollup --config rollup.config.browser-test.js",
     "prepublishOnly": "npm run eslint && npm run types && npm run test-node && npm run test-browser",
     "test-browser": "node ./test/src/browser/run.js",
     "test-node": "c8 --exclude-after-remap=true --reporter=lcov --reporter=text-summary mocha -colors \"test/src/node/**/*.test.js\" --timeout 16000",
-    "types": "node -e \"import('@typhonjs-build-test/esm-d-ts').then(async module => { await module.generateDTS({ input: './src/index.js', output: './types/index.d.ts', prependFiles: ['./module.desc'] }); await module.generateDTS({ input: './src/buses/index.js', output: './types/index-buses.d.ts', prependFiles: ['./module.desc'] }); });\""
+    "types": "esm-d-ts gen src/index.js -o types/index.d.ts && esm-d-ts gen src/buses/index.js -o types/index-buses.d.ts"
   }
 }

@@ -1,7 +1,7 @@
 {
   "name": "@typhonjs-plugin/eventbus",
   "description": "Provides a flexible in process eventbus for Node and in the browser.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)",
   "type": "module",
   "exports": {
@@ -19,10 +19,10 @@
     "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)"
   ],
   "devDependencies": {
-    "@typhonjs-build-test/esm-d-ts": "^0.2.0",
-    "@typhonjs-build-test/node-browser": "^0.0.4",
-    "@typhonjs-typedoc/typedoc-pkg": "^0.0.2",
-    "rollup": "^4.9.4"
+    "@typhonjs-build-test/esm-d-ts": "^0.3.0-next.9",
+    "@typhonjs-build-test/node-browser": "^0.0.5",
+    "@typhonjs-typedoc/typedoc-pkg": "^0.3.1",
+    "rollup": "^4.34.2"
   },
   "engines": {
     "node": ">=14.18"
@@ -50,7 +50,7 @@
   "apidocs": "https://typhonjs-node-plugin.github.io/eventbus/",
   "scripts": {
     "eslint": "eslint .",
-    "docs": "typedoc-pkg --api-link esm",
+    "docs": "typedoc-pkg --api-link es",
     "posttest-browser": "nyc report --exclude-after-remap=true --reporter=lcov --reporter=text-summary --report-dir=coverage-browser",
     "pretest-browser": "rollup --config rollup.config.browser-test.js",
     "prepublishOnly": "npm run eslint && npm run types && npm run test-node && npm run test-browser",
